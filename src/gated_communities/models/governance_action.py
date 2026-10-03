@@ -44,9 +44,7 @@ class GovernanceActionBase(BaseModel):
     target_type: str = Field(..., description="Type of the target entity")
     actor_id: str = Field(..., description="ID of the actor performing the action")
     reason: str | None = Field(default=None, description="Reason for the action")
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Additional action metadata"
-    )
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional action metadata")
 
 
 class GovernanceActionCreate(GovernanceActionBase):
@@ -62,9 +60,7 @@ class GovernanceActionUpdate(BaseModel):
 
     status: ActionStatus | None = Field(default=None, description="New status")
     reason: str | None = Field(default=None, description="Updated reason")
-    metadata: dict[str, Any] | None = Field(
-        default=None, description="Updated metadata"
-    )
+    metadata: dict[str, Any] | None = Field(default=None, description="Updated metadata")
 
 
 class GovernanceAction(GovernanceActionBase):
@@ -73,18 +69,10 @@ class GovernanceAction(GovernanceActionBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID = Field(default_factory=uuid4, description="Unique action identifier")
-    status: ActionStatus = Field(
-        default=ActionStatus.PENDING, description="Action status"
-    )
-    created_at: datetime = Field(
-        default_factory=datetime.utcnow, description="Creation timestamp"
-    )
+    status: ActionStatus = Field(default=ActionStatus.PENDING, description="Action status")
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
     updated_at: datetime = Field(
         default_factory=datetime.utcnow, description="Last update timestamp"
     )
-    resolved_at: datetime | None = Field(
-        default=None, description="Resolution timestamp"
-    )
-    resolution_notes: str | None = Field(
-        default=None, description="Notes about the resolution"
-    )
+    resolved_at: datetime | None = Field(default=None, description="Resolution timestamp")
+    resolution_notes: str | None = Field(default=None, description="Notes about the resolution")

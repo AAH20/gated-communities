@@ -7,11 +7,9 @@ from typing import TYPE_CHECKING, Any
 
 from community_governance.agents.base import BaseAgent
 from community_governance.config.logging_config import get_logger
-from community_governance.exceptions import (AgentExecutionError,
-                                             RuleNotFoundError)
+from community_governance.exceptions import AgentExecutionError, RuleNotFoundError
 from community_governance.models.governance_action import GovernanceAction
-from community_governance.models.rule import (Rule, RuleEnforcementResult,
-                                              RuleSeverity)
+from community_governance.models.rule import Rule, RuleEnforcementResult, RuleSeverity
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -64,9 +62,7 @@ class RuleEnforcerAgent(BaseAgent[dict[str, Any], list[RuleEnforcementResult]]):
         """
         self.rules.append(rule)
         self._rule_index[rule.id] = rule
-        logger.info(
-            f"Rule '{rule.name}' added to enforcement set", rule_id=str(rule.id)
-        )
+        logger.info(f"Rule '{rule.name}' added to enforcement set", rule_id=str(rule.id))
 
     def remove_rule(self, rule_id: UUID) -> None:
         """Remove a rule from the enforcement set.
@@ -100,9 +96,7 @@ class RuleEnforcerAgent(BaseAgent[dict[str, Any], list[RuleEnforcementResult]]):
         try:
             action = input_data.get("action")
             if not isinstance(action, GovernanceAction):
-                raise ValueError(
-                    "Input must contain a valid 'action' of type GovernanceAction"
-                )
+                raise ValueError("Input must contain a valid 'action' of type GovernanceAction")
 
             context = input_data.get("context", {})
             results: list[RuleEnforcementResult] = []
@@ -245,7 +239,7 @@ Action:
 - Type: {action.action_type.value}
 - Target: {action.target_type} ({action.target_id})
 - Actor: {action.actor_id}
-- Reason: {action.reason or 'N/A'}
+- Reason: {action.reason or "N/A"}
 - Metadata: {json.dumps(action.metadata, indent=2)}
 
 Context:

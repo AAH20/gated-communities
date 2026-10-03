@@ -81,9 +81,7 @@ def get_dashboard_metrics() -> dict[str, Any]:
         total_posts = 0
         total_events = 0
 
-        avg_members = (
-            total_members / total_communities if total_communities > 0 else 0.0
-        )
+        avg_members = total_members / total_communities if total_communities > 0 else 0.0
 
         return {
             "total_communities": total_communities,
@@ -99,9 +97,7 @@ def get_dashboard_metrics() -> dict[str, Any]:
         raise
     except Exception as exc:
         logger.error("Failed to compute dashboard metrics: %s", exc)
-        raise AnalyticsServiceError(
-            f"Failed to compute dashboard metrics: {exc}"
-        ) from exc
+        raise AnalyticsServiceError(f"Failed to compute dashboard metrics: {exc}") from exc
 
 
 def get_community_metrics(community_id: str, time_range: str) -> dict[str, Any]:
@@ -160,8 +156,7 @@ def get_community_metrics(community_id: str, time_range: str) -> dict[str, Any]:
             exc,
         )
         raise AnalyticsServiceError(
-            f"Failed to compute community metrics for community "
-            f"{community_id}: {exc}"
+            f"Failed to compute community metrics for community {community_id}: {exc}"
         ) from exc
 
 
@@ -207,9 +202,7 @@ def get_engagement_metrics(community_id: str, time_range: str) -> dict[str, Any]
         avg_session_duration_minutes = 0.0
         total_members = 0
 
-        engagement_rate = (
-            monthly_active_users / total_members if total_members > 0 else 0.0
-        )
+        engagement_rate = monthly_active_users / total_members if total_members > 0 else 0.0
 
         return {
             "community_id": community_id,
@@ -234,8 +227,7 @@ def get_engagement_metrics(community_id: str, time_range: str) -> dict[str, Any]
             exc,
         )
         raise AnalyticsServiceError(
-            f"Failed to compute engagement metrics for community "
-            f"{community_id}: {exc}"
+            f"Failed to compute engagement metrics for community {community_id}: {exc}"
         ) from exc
 
 
@@ -278,9 +270,7 @@ def get_growth_metrics(community_id: str, time_range: str) -> dict[str, Any]:
         new_events_in_period = 0
 
         net_growth = new_members_in_period - churned_members_in_period
-        growth_rate = (
-            (net_growth / total_members) if total_members > 0 else 0.0
-        )
+        growth_rate = (net_growth / total_members) if total_members > 0 else 0.0
 
         return {
             "community_id": community_id,
@@ -304,8 +294,7 @@ def get_growth_metrics(community_id: str, time_range: str) -> dict[str, Any]:
             exc,
         )
         raise AnalyticsServiceError(
-            f"Failed to compute growth metrics for community "
-            f"{community_id}: {exc}"
+            f"Failed to compute growth metrics for community {community_id}: {exc}"
         ) from exc
 
 
@@ -365,6 +354,5 @@ def get_moderation_metrics(community_id: str, time_range: str) -> dict[str, Any]
             exc,
         )
         raise AnalyticsServiceError(
-            f"Failed to compute moderation metrics for community "
-            f"{community_id}: {exc}"
+            f"Failed to compute moderation metrics for community {community_id}: {exc}"
         ) from exc

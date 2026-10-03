@@ -5,7 +5,6 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 
 class VerificationStatus(str, Enum):
@@ -26,17 +25,17 @@ class MemberProfile:
     display_name: str
     email: str
     status: VerificationStatus
-    verified_at: Optional[str] = None
-    rejection_reason: Optional[str] = None
+    verified_at: str | None = None
+    rejection_reason: str | None = None
     trust_score: float = 0.0
-    badges: List[str] = field(default_factory=list)
+    badges: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
 # Mock data store
 # ---------------------------------------------------------------------------
 
-_MOCK_MEMBERS: Dict[str, MemberProfile] = {
+_MOCK_MEMBERS: dict[str, MemberProfile] = {
     "mbr_001": MemberProfile(
         member_id="mbr_001",
         display_name="Alice Chen",
@@ -88,7 +87,7 @@ def _generate_member_id() -> str:
     return f"mbr_{uuid.uuid4().hex[:8]}"
 
 
-def verify_member(member_id: str) -> Dict[str, object]:
+def verify_member(member_id: str) -> dict[str, object]:
     """Verify a single member and return their verification status.
 
     Args:
@@ -136,7 +135,7 @@ def verify_member(member_id: str) -> Dict[str, object]:
     }
 
 
-def batch_verify(member_ids: List[str]) -> Dict[str, object]:
+def batch_verify(member_ids: list[str]) -> dict[str, object]:
     """Verify multiple members in a batch and return aggregated results.
 
     Args:
@@ -159,8 +158,8 @@ def batch_verify(member_ids: List[str]) -> Dict[str, object]:
             },
         }
 
-    results: List[Dict[str, object]] = []
-    summary: Dict[str, int] = {
+    results: list[dict[str, object]] = []
+    summary: dict[str, int] = {
         "total": len(member_ids),
         "verified": 0,
         "pending": 0,

@@ -126,9 +126,7 @@ class TrendAnalyzerAgent(BaseAgent[list[Trend]]):
         # Detect severity trend
         severities = [d.get("avg_severity", 0.0) for d in data]
         if len(severities) >= 2:
-            sev_change = (
-                (severities[-1] - severities[0]) / max(severities[0], 0.01)
-            ) * 100
+            sev_change = ((severities[-1] - severities[0]) / max(severities[0], 0.01)) * 100
             trends.append(
                 Trend(
                     metric_name="average_severity",
@@ -157,9 +155,7 @@ class TrendAnalyzerAgent(BaseAgent[list[Trend]]):
             return TrendDirection.STABLE
         if abs(change_pct) > 50:
             return TrendDirection.VOLATILE
-        return (
-            TrendDirection.INCREASING if change_pct > 0 else TrendDirection.DECREASING
-        )
+        return TrendDirection.INCREASING if change_pct > 0 else TrendDirection.DECREASING
 
     async def _llm_analyze(
         self, data: list[dict[str, Any]], start: datetime, end: datetime
@@ -174,9 +170,7 @@ class TrendAnalyzerAgent(BaseAgent[list[Trend]]):
         Returns:
             list[Trend]: LLM-identified trends.
         """
-        data_summary = (
-            f"Data points: {len(data)}, Period: {start.date()} to {end.date()}"
-        )
+        data_summary = f"Data points: {len(data)}, Period: {start.date()} to {end.date()}"
         await self._prompt.ainvoke(
             {
                 "start_date": start.isoformat(),

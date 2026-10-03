@@ -5,9 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from escalation_workflow.agents.base import BaseAgent
-from escalation_workflow.models.analysis import (EscalationAnalysis,
-                                                 EscalationPattern,
-                                                 TrendReport)
+from escalation_workflow.models.analysis import EscalationAnalysis, EscalationPattern, TrendReport
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
@@ -60,8 +58,7 @@ Provide actionable recommendations for prevention and improvement."""
 
         escalations = input_data.escalations
         escalation_summaries = [
-            f"- {e.title} ({e.priority}, {e.category}, {e.status})"
-            for e in escalations[:10]
+            f"- {e.title} ({e.priority}, {e.category}, {e.status})" for e in escalations[:10]
         ]
 
         user_content = f"""
@@ -94,9 +91,7 @@ Provide:
             self.logger.error("Analysis failed", error=str(exc))
             return self._fallback_analysis(escalations)
 
-    def _parse_analysis(
-        self, content: str, escalations: list[Escalation]
-    ) -> EscalationAnalysis:
+    def _parse_analysis(self, content: str, escalations: list[Escalation]) -> EscalationAnalysis:
         """Parse LLM response into an EscalationAnalysis.
 
         Args:
@@ -189,8 +184,6 @@ Provide:
             resolved_count=resolved,
             breached_count=breached,
             avg_resolution_minutes=0.0,
-            top_categories=dict(
-                sorted(categories.items(), key=lambda x: x[1], reverse=True)[:5]
-            ),
+            top_categories=dict(sorted(categories.items(), key=lambda x: x[1], reverse=True)[:5]),
             priority_distribution=priorities,
         )

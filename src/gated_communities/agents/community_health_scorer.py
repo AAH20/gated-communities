@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class HealthScoreBreakdown:
@@ -124,6 +125,7 @@ def _get_mock_data(community_id: str) -> dict[str, Any]:
 # Scoring helpers
 # ---------------------------------------------------------------------------
 
+
 def _score_engagement(data: dict[str, Any]) -> float:
     """Score engagement (0-100) based on posts, comments, and response time."""
     member_count = max(data["member_count"], 1)
@@ -203,6 +205,7 @@ def _score_growth(data: dict[str, Any]) -> float:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def calculate_health_score(community_id: str) -> HealthScoreBreakdown:
     """Calculate the overall health score for a community.
 
@@ -221,10 +224,7 @@ def calculate_health_score(community_id: str) -> HealthScoreBreakdown:
 
     # Weighted overall score
     overall = round(
-        engagement * 0.30
-        + retention * 0.30
-        + moderation * 0.20
-        + growth * 0.20,
+        engagement * 0.30 + retention * 0.30 + moderation * 0.20 + growth * 0.20,
         2,
     )
 
@@ -260,117 +260,139 @@ def identify_risks(community_id: str) -> list[RiskFactor]:
     # Churn risk
     churn = data["churn_rate"]
     if churn >= 0.30:
-        risks.append(RiskFactor(
-            category="retention",
-            severity="critical",
-            description="Extremely high member churn rate",
-            metric_value=churn,
-            threshold=0.30,
-            recommendation="Conduct exit surveys and implement re-engagement campaigns immediately",
-        ))
+        risks.append(
+            RiskFactor(
+                category="retention",
+                severity="critical",
+                description="Extremely high member churn rate",
+                metric_value=churn,
+                threshold=0.30,
+                recommendation="Conduct exit surveys and implement re-engagement campaigns immediately",
+            )
+        )
     elif churn >= 0.15:
-        risks.append(RiskFactor(
-            category="retention",
-            severity="high",
-            description="Elevated member churn rate",
-            metric_value=churn,
-            threshold=0.15,
-            recommendation="Analyze churn patterns and improve onboarding experience",
-        ))
+        risks.append(
+            RiskFactor(
+                category="retention",
+                severity="high",
+                description="Elevated member churn rate",
+                metric_value=churn,
+                threshold=0.15,
+                recommendation="Analyze churn patterns and improve onboarding experience",
+            )
+        )
     elif churn >= 0.08:
-        risks.append(RiskFactor(
-            category="retention",
-            severity="medium",
-            description="Moderate member churn rate",
-            metric_value=churn,
-            threshold=0.08,
-            recommendation="Monitor churn trends and enhance community value proposition",
-        ))
+        risks.append(
+            RiskFactor(
+                category="retention",
+                severity="medium",
+                description="Moderate member churn rate",
+                metric_value=churn,
+                threshold=0.08,
+                recommendation="Monitor churn trends and enhance community value proposition",
+            )
+        )
 
     # Engagement risk
     member_count = max(data["member_count"], 1)
     active_ratio = data["active_members"] / member_count
     if active_ratio < 0.10:
-        risks.append(RiskFactor(
-            category="engagement",
-            severity="critical",
-            description="Critically low active member ratio",
-            metric_value=round(active_ratio, 3),
-            threshold=0.10,
-            recommendation="Launch targeted re-engagement initiatives and content programs",
-        ))
+        risks.append(
+            RiskFactor(
+                category="engagement",
+                severity="critical",
+                description="Critically low active member ratio",
+                metric_value=round(active_ratio, 3),
+                threshold=0.10,
+                recommendation="Launch targeted re-engagement initiatives and content programs",
+            )
+        )
     elif active_ratio < 0.25:
-        risks.append(RiskFactor(
-            category="engagement",
-            severity="high",
-            description="Low active member ratio",
-            metric_value=round(active_ratio, 3),
-            threshold=0.25,
-            recommendation="Increase interactive content and community events",
-        ))
+        risks.append(
+            RiskFactor(
+                category="engagement",
+                severity="high",
+                description="Low active member ratio",
+                metric_value=round(active_ratio, 3),
+                threshold=0.25,
+                recommendation="Increase interactive content and community events",
+            )
+        )
 
     # Response time risk
     response_time = data["avg_response_time_hours"]
     if response_time >= 48.0:
-        risks.append(RiskFactor(
-            category="engagement",
-            severity="high",
-            description="Very slow average response time",
-            metric_value=response_time,
-            threshold=48.0,
-            recommendation="Recruit more moderators and set response time SLAs",
-        ))
+        risks.append(
+            RiskFactor(
+                category="engagement",
+                severity="high",
+                description="Very slow average response time",
+                metric_value=response_time,
+                threshold=48.0,
+                recommendation="Recruit more moderators and set response time SLAs",
+            )
+        )
     elif response_time >= 12.0:
-        risks.append(RiskFactor(
-            category="engagement",
-            severity="medium",
-            description="Slow average response time",
-            metric_value=response_time,
-            threshold=12.0,
-            recommendation="Improve moderator coverage during peak hours",
-        ))
+        risks.append(
+            RiskFactor(
+                category="engagement",
+                severity="medium",
+                description="Slow average response time",
+                metric_value=response_time,
+                threshold=12.0,
+                recommendation="Improve moderator coverage during peak hours",
+            )
+        )
 
     # Toxicity risk
     incident_rate = data["toxicity_incidents"] / member_count
     if incident_rate >= 0.02:
-        risks.append(RiskFactor(
-            category="moderation",
-            severity="critical",
-            description="High toxicity incident rate",
-            metric_value=round(incident_rate, 4),
-            threshold=0.02,
-            recommendation="Implement stricter moderation policies and automated toxicity detection",
-        ))
+        risks.append(
+            RiskFactor(
+                category="moderation",
+                severity="critical",
+                description="High toxicity incident rate",
+                metric_value=round(incident_rate, 4),
+                threshold=0.02,
+                recommendation="Implement stricter moderation policies and automated toxicity detection",
+            )
+        )
     elif incident_rate >= 0.005:
-        risks.append(RiskFactor(
-            category="moderation",
-            severity="medium",
-            description="Elevated toxicity incident rate",
-            metric_value=round(incident_rate, 4),
-            threshold=0.005,
-            recommendation="Review moderation guidelines and increase moderator presence",
-        ))
+        risks.append(
+            RiskFactor(
+                category="moderation",
+                severity="medium",
+                description="Elevated toxicity incident rate",
+                metric_value=round(incident_rate, 4),
+                threshold=0.005,
+                recommendation="Review moderation guidelines and increase moderator presence",
+            )
+        )
 
     # Growth risk
     new_ratio = data["new_members_30d"] / member_count
     if new_ratio == 0:
-        risks.append(RiskFactor(
-            category="growth",
-            severity="high",
-            description="No new member acquisition in last 30 days",
-            metric_value=0.0,
-            threshold=0.01,
-            recommendation="Launch referral program and increase community visibility",
-        ))
+        risks.append(
+            RiskFactor(
+                category="growth",
+                severity="high",
+                description="No new member acquisition in last 30 days",
+                metric_value=0.0,
+                threshold=0.01,
+                recommendation="Launch referral program and increase community visibility",
+            )
+        )
     elif new_ratio < 0.02:
-        risks.append(RiskFactor(
-            category="growth",
-            severity="medium",
-            description="Stagnant new member growth",
-            metric_value=round(new_ratio, 4),
-            threshold=0.02,
-            recommendation="Promote community through partnerships and social channels",
-        ))
+        risks.append(
+            RiskFactor(
+                category="growth",
+                severity="medium",
+                description="Stagnant new member growth",
+                metric_value=round(new_ratio, 4),
+                threshold=0.02,
+                recommendation="Promote community through partnerships and social channels",
+            )
+        )
 
     return risks
 
@@ -391,9 +413,7 @@ def _validate_community_id(community_id: str) -> None:
         ValueError: If community_id is empty or whitespace-only.
     """
     if not isinstance(community_id, str):
-        raise TypeError(
-            f"community_id must be a string, got {type(community_id).__name__}"
-        )
+        raise TypeError(f"community_id must be a string, got {type(community_id).__name__}")
     if not community_id.strip():
         raise ValueError("community_id must not be empty or whitespace-only")
 
@@ -528,21 +548,13 @@ def score_community_health(community_id: str) -> dict[str, Any]:
     # Generate recommendations
     recommendations: list[str] = []
     if engagement < 40.0:
-        recommendations.append(
-            "Increase member engagement through targeted content and events."
-        )
+        recommendations.append("Increase member engagement through targeted content and events.")
     if retention < 40.0:
-        recommendations.append(
-            "Improve member retention by addressing churn factors."
-        )
+        recommendations.append("Improve member retention by addressing churn factors.")
     if moderation < 60.0:
-        recommendations.append(
-            "Strengthen moderation policies and increase moderator presence."
-        )
+        recommendations.append("Strengthen moderation policies and increase moderator presence.")
     if growth < 30.0:
-        recommendations.append(
-            "Boost new member acquisition through outreach and referrals."
-        )
+        recommendations.append("Boost new member acquisition through outreach and referrals.")
     if not recommendations:
         recommendations.append("Community is healthy. Maintain current strategies.")
 
@@ -592,8 +604,6 @@ def flag_unhealthy_community(community_id: str) -> bool:
             health_score,
         )
     else:
-        logger.debug(
-            "Community %s is not unhealthy (score: %.2f)", community_id, health_score
-        )
+        logger.debug("Community %s is not unhealthy (score: %.2f)", community_id, health_score)
 
     return is_unhealthy

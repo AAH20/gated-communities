@@ -8,12 +8,16 @@ from fastapi import APIRouter, HTTPException
 from moderation_queue.agents.auto_moderator import AutoModeratorAgent
 from moderation_queue.agents.human_review_router import HumanReviewRouterAgent
 from moderation_queue.agents.priority_scorer import PriorityScorerAgent
-from moderation_queue.api.models import (ContentSubmission, ModerationDecision,
-                                         ModerationPipelineResponse,
-                                         ModerationResultResponse,
-                                         PriorityScoreResponse,
-                                         QueueItemResponse, QueueStatsResponse,
-                                         RoutingResultResponse)
+from moderation_queue.api.models import (
+    ContentSubmission,
+    ModerationDecision,
+    ModerationPipelineResponse,
+    ModerationResultResponse,
+    PriorityScoreResponse,
+    QueueItemResponse,
+    QueueStatsResponse,
+    RoutingResultResponse,
+)
 from moderation_queue.config.settings import get_settings
 from structlog import get_logger
 
@@ -90,9 +94,7 @@ async def moderate_content(submission: ContentSubmission) -> ModerationPipelineR
         "id": submission_id,
         "content_type": submission.content_type,
         "priority": priority_result.data["priority"],
-        "status": (
-            "resolved" if final_decision != ModerationDecision.ESCALATE else "in_review"
-        ),
+        "status": ("resolved" if final_decision != ModerationDecision.ESCALATE else "in_review"),
         "assigned_queue": routing_result.queue if routing_result else None,
         "created_at": response.processed_at,
         "updated_at": response.processed_at,
@@ -147,9 +149,7 @@ async def get_queue_item(item_id: str) -> QueueItemResponse:
 
 
 @router.post("/queue/{item_id}/resolve")
-async def resolve_queue_item(
-    item_id: str, decision: ModerationDecision
-) -> dict[str, str]:
+async def resolve_queue_item(item_id: str, decision: ModerationDecision) -> dict[str, str]:
     """Resolve a queue item with a final decision."""
     if item_id not in _queue:
         raise HTTPException(status_code=404, detail="Queue item not found")

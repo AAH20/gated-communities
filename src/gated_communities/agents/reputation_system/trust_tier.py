@@ -9,15 +9,11 @@ class TrustTierInput(BaseModel):
     """Input for trust tier evaluation."""
 
     member_id: str = Field(..., description="Member identifier")
-    current_score: int = Field(
-        ..., ge=0, le=1000, description="Current reputation score"
-    )
+    current_score: int = Field(..., ge=0, le=1000, description="Current reputation score")
     current_tier: TrustTierLevel = Field(..., description="Current trust tier")
     account_age_days: int = Field(default=0, description="Account age in days")
     violation_count: int = Field(default=0, description="Number of violations")
-    verification_status: bool = Field(
-        default=False, description="Identity verification status"
-    )
+    verification_status: bool = Field(default=False, description="Identity verification status")
 
 
 class TrustTierOutput(BaseModel):
@@ -53,12 +49,8 @@ class TrustTierAgent(BaseAgent[TrustTierInput, TrustTierOutput]):
             Trust tier evaluation results.
         """
         recommended_tier = self._calculate_recommended_tier(input_data)
-        can_upgrade = self._tier_rank(recommended_tier) > self._tier_rank(
-            input_data.current_tier
-        )
-        can_downgrade = self._tier_rank(recommended_tier) < self._tier_rank(
-            input_data.current_tier
-        )
+        can_upgrade = self._tier_rank(recommended_tier) > self._tier_rank(input_data.current_tier)
+        can_downgrade = self._tier_rank(recommended_tier) < self._tier_rank(input_data.current_tier)
 
         requirements_met, requirements_pending = self._evaluate_requirements(
             input_data, recommended_tier
@@ -162,9 +154,7 @@ class TrustTierAgent(BaseAgent[TrustTierInput, TrustTierOutput]):
             if data.account_age_days >= 90:
                 met.append("Account age >= 90 days")
             else:
-                pending.append(
-                    f"Account age >= 90 days (current: {data.account_age_days})"
-                )
+                pending.append(f"Account age >= 90 days (current: {data.account_age_days})")
 
         # Verification requirement
         if target_tier in (TrustTierLevel.PLATINUM, TrustTierLevel.DIAMOND):

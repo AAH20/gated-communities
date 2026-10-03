@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -118,7 +118,7 @@ class EventService:
                 raise EventValidationError(f"Missing required field: {field}")
 
         event_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         event: dict[str, Any] = {
             "id": event_id,
@@ -166,7 +166,7 @@ class EventService:
         data = {k: v for k, v in data.items() if k != "id"}
 
         event.update(data)
-        event["updated_at"] = datetime.now(timezone.utc).isoformat()
+        event["updated_at"] = datetime.now(UTC).isoformat()
 
         return event.copy()
 

@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING
 
 from community_governance.api.dependencies import get_policy_manager
 from community_governance.config.logging_config import get_logger
-from community_governance.models.policy import (Policy, PolicyCreate,
-                                                PolicyStatus, PolicyUpdate)
+from community_governance.models.policy import Policy, PolicyCreate, PolicyStatus, PolicyUpdate
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 if TYPE_CHECKING:
@@ -37,9 +36,7 @@ async def create_policy(
     Returns:
         The newly created policy.
     """
-    policy = await agent.execute(
-        {"operation": "create", "policy_data": policy_data.model_dump()}
-    )
+    policy = await agent.execute({"operation": "create", "policy_data": policy_data.model_dump()})
     _policies_store[policy.id] = policy
     logger.info(f"Policy created: {policy.name}", policy_id=str(policy.id))
     return policy

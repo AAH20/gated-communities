@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import logging
 import traceback
-from typing import Any, Awaitable, Callable, Dict, Optional, Type
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -33,15 +34,15 @@ class AppException(Exception):
 
     def __init__(
         self,
-        message: Optional[str] = None,
+        message: str | None = None,
         *,
-        details: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         self.message = message or self.message
         self.details = details or {}
         super().__init__(self.message)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "error": {
                 "code": self.error_code,
@@ -167,7 +168,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
             traceback.format_exc(),
         )
 
-        body: Dict[str, Any] = {
+        body: dict[str, Any] = {
             "error": {
                 "code": "internal_error",
                 "message": "An internal server error occurred.",

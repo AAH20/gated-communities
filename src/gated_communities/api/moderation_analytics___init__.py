@@ -6,17 +6,23 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, status
-from moderation_analytics.agents import (AnalyticsExplainerAgent,
-                                         ModerationPredictorAgent,
-                                         ModeratorPerformanceAgent,
-                                         PolicyEffectivenessAgent,
-                                         TrendAnalyzerAgent)
+from moderation_analytics.agents import (
+    AnalyticsExplainerAgent,
+    ModerationPredictorAgent,
+    ModeratorPerformanceAgent,
+    PolicyEffectivenessAgent,
+    TrendAnalyzerAgent,
+)
 from moderation_analytics.config import Settings, get_settings
-from moderation_analytics.models import (AnalyticsSummary, HealthResponse,
-                                         ModerationAnalytics,
-                                         ModerationPrediction,
-                                         ModeratorPerformance,
-                                         PolicyEffectiveness, Trend)
+from moderation_analytics.models import (
+    AnalyticsSummary,
+    HealthResponse,
+    ModerationAnalytics,
+    ModerationPrediction,
+    ModeratorPerformance,
+    PolicyEffectiveness,
+    Trend,
+)
 from prometheus_client import Counter, Histogram, generate_latest
 from starlette.responses import Response
 
@@ -189,9 +195,7 @@ async def analyze_trends(
     return await agent.run(data=data)
 
 
-@router.get(
-    "/api/v1/moderators", response_model=list[dict[str, Any]], tags=["moderators"]
-)
+@router.get("/api/v1/moderators", response_model=list[dict[str, Any]], tags=["moderators"])
 async def list_moderators() -> list[dict[str, Any]]:
     """List all moderators.
 
@@ -213,9 +217,7 @@ async def list_moderators() -> list[dict[str, Any]]:
 async def get_moderator_performance(
     moderator_id: str,
     days: int = Query(default=30, ge=1, le=365),
-    agent: ModeratorPerformanceAgent = Depends(
-        get_moderator_performance
-    ),  # noqa: B008,
+    agent: ModeratorPerformanceAgent = Depends(get_moderator_performance),  # noqa: B008,
 ) -> ModeratorPerformance:
     """Get performance metrics for a specific moderator.
 
@@ -242,9 +244,7 @@ async def get_moderator_performance(
         }
     ]
 
-    results = await agent.run(
-        moderator_data=sample_data, period_start=start, period_end=end
-    )
+    results = await agent.run(moderator_data=sample_data, period_start=start, period_end=end)
     return results[0]
 
 
@@ -255,9 +255,7 @@ async def get_moderator_performance(
 )
 async def evaluate_moderators(
     moderator_data: list[dict[str, Any]],
-    agent: ModeratorPerformanceAgent = Depends(
-        get_moderator_performance
-    ),  # noqa: B008,
+    agent: ModeratorPerformanceAgent = Depends(get_moderator_performance),  # noqa: B008,
 ) -> list[ModeratorPerformance]:
     """Evaluate moderators with AI agent.
 
@@ -332,9 +330,7 @@ async def get_policy_effectiveness(
         }
     ]
 
-    results = await agent.run(
-        policy_data=sample_data, period_start=start, period_end=end
-    )
+    results = await agent.run(policy_data=sample_data, period_start=start, period_end=end)
     return results[0]
 
 

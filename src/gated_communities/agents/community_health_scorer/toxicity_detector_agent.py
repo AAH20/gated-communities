@@ -100,9 +100,7 @@ class ToxicityDetectorAgent:
         if categories.get("spam", 0) > 0.3:
             recommendations.append("Strengthen spam detection and rate limiting")
         if not recommendations:
-            recommendations.append(
-                "Continue monitoring content for emerging toxicity patterns"
-            )
+            recommendations.append("Continue monitoring content for emerging toxicity patterns")
 
         return ToxicityReport(
             overall_toxicity_score=round(overall_toxicity, 2),

@@ -24,16 +24,10 @@ class CreateQueueRequest(BaseModel):
 
     name: str = Field(..., min_length=1, description="Queue name")
     description: str = Field(default="", description="Queue description")
-    content_types: list[ContentType] = Field(
-        default_factory=list, description="Content types"
-    )
+    content_types: list[ContentType] = Field(default_factory=list, description="Content types")
     max_size: int = Field(default=1000, ge=1, description="Maximum items")
-    priority_weights: dict[str, float] = Field(
-        default_factory=dict, description="Priority weights"
-    )
-    assigned_reviewers: list[str] = Field(
-        default_factory=list, description="Reviewer IDs"
-    )
+    priority_weights: dict[str, float] = Field(default_factory=dict, description="Priority weights")
+    assigned_reviewers: list[str] = Field(default_factory=list, description="Reviewer IDs")
 
 
 class QueueListResponse(BaseModel):
@@ -83,9 +77,7 @@ async def create_queue(
     description="Get a list of all moderation queues",
 )
 async def list_queues(
-    active_only: bool = Query(
-        default=False, description="Filter active queues only"
-    ),  # noqa: B008
+    active_only: bool = Query(default=False, description="Filter active queues only"),  # noqa: B008
     logger=Depends(get_logger),  # noqa: B008
 ) -> QueueListResponse:
     """List moderation queues.

@@ -7,8 +7,7 @@ from typing import Any
 
 from langchain_core.messages import AIMessage
 from moderation_queue.agents.base import AgentConfig, BaseAgent
-from moderation_queue.models import (ModerationItem, PriorityLevel,
-                                     PriorityScore)
+from moderation_queue.models import ModerationItem, PriorityLevel, PriorityScore
 from pydantic import BaseModel, Field
 
 
@@ -29,9 +28,7 @@ class PriorityScorerOutput(BaseModel):
 
     score: float = Field(..., ge=0.0, le=1.0, description="Priority score")
     level: PriorityLevel = Field(..., description="Priority level")
-    factors: dict[str, float] = Field(
-        default_factory=dict, description="Scoring factors"
-    )
+    factors: dict[str, float] = Field(default_factory=dict, description="Scoring factors")
     reasoning: str = Field(default="", description="Scoring reasoning")
     confidence: float = Field(default=0.8, ge=0.0, le=1.0, description="Confidence")
 

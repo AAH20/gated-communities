@@ -9,8 +9,8 @@ Provides:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
@@ -22,14 +22,15 @@ router = APIRouter(prefix="/messages", tags=["messages"])
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class MessageCreate(BaseModel):
     """Payload for creating a new message."""
 
     channel_id: str = Field(..., min_length=1, max_length=64, description="Target channel ID")
     user_id: str = Field(..., min_length=1, max_length=64, description="Author user ID")
     content: str = Field(..., min_length=1, max_length=4000, description="Message body")
-    parent_id: Optional[str] = Field(None, description="Parent message ID for threaded replies")
-    attachments: Optional[List[str]] = Field(default_factory=list, max_length=10)
+    parent_id: str | None = Field(None, description="Parent message ID for threaded replies")
+    attachments: list[str] | None = Field(default_factory=list, max_length=10)
 
     @field_validator("content")
     @classmethod
@@ -46,18 +47,18 @@ class MessageResponse(BaseModel):
     channel_id: str
     user_id: str
     content: str
-    parent_id: Optional[str] = None
-    attachments: List[str] = Field(default_factory=list)
+    parent_id: str | None = None
+    attachments: list[str] = Field(default_factory=list)
     created_at: str
     updated_at: str
     edited: bool = False
-    reactions: Dict[str, int] = Field(default_factory=dict)
+    reactions: dict[str, int] = Field(default_factory=dict)
 
 
 class MessageListResponse(BaseModel):
     """Paginated list of messages."""
 
-    data: List[MessageResponse]
+    data: list[MessageResponse]
     total: int
     page: int
     page_size: int
@@ -85,7 +86,7 @@ MOCK_CHANNELS = {
     "chan-dev": {"name": "dev", "community_id": "comm-002"},
 }
 
-_MESSAGES: List[Dict[str, Any]] = []
+_MESSAGES: list[dict[str, Any]] = []
 
 
 def _seed_mock_data() -> None:
@@ -96,14 +97,38 @@ def _seed_mock_data() -> None:
     sample_messages = [
         ("chan-general", "user-001", "Hey everyone! Welcome to the gated community. 🎉"),
         ("chan-general", "user-002", "Thanks Alice! Excited to be here."),
-        ("chan-general", "user-003", "Has anyone set up their profile yet? The onboarding flow is pretty smooth."),
-        ("chan-general", "user-001", "Yeah, took me about 2 minutes. The verification step is quick."),
-        ("chan-announcements", "user-001", "📢 Community guidelines have been updated. Please review them."),
-        ("chan-announcements", "user-004", "Reminder: Q3 community call is next Thursday at 3pm UTC."),
-        ("chan-help", "user-005", "I'm having trouble with the API rate limits. Anyone else seeing 429s?"),
+        (
+            "chan-general",
+            "user-003",
+            "Has anyone set up their profile yet? The onboarding flow is pretty smooth.",
+        ),
+        (
+            "chan-general",
+            "user-001",
+            "Yeah, took me about 2 minutes. The verification step is quick.",
+        ),
+        (
+            "chan-announcements",
+            "user-001",
+            "📢 Community guidelines have been updated. Please review them.",
+        ),
+        (
+            "chan-announcements",
+            "user-004",
+            "Reminder: Q3 community call is next Thursday at 3pm UTC.",
+        ),
+        (
+            "chan-help",
+            "user-005",
+            "I'm having trouble with the API rate limits. Anyone else seeing 429s?",
+        ),
         ("chan-help", "user-002", "Check your API key tier — the free tier is 100 req/min."),
         ("chan-help", "user-005", "Ah, that explains it. Thanks Bob!"),
-        ("chan-random", "user-003", "Just discovered the coolest integration with our CI pipeline 🚀"),
+        (
+            "chan-random",
+            "user-003",
+            "Just discovered the coolest integration with our CI pipeline 🚀",
+        ),
         ("chan-random", "user-004", "Share the repo link!"),
         ("chan-random", "user-003", "Will do — posting it in #dev shortly."),
         ("chan-dev", "user-002", "PR #142 is ready for review. It adds webhook retry logic."),
@@ -112,12 +137,16 @@ def _seed_mock_data() -> None:
         ("chan-general", "user-004", "The new dashboard looks amazing. Great work team!"),
         ("chan-general", "user-005", "Agreed! The dark mode is *chef's kiss*."),
         ("chan-help", "user-001", "How do I invite members to a private channel?"),
-        ("chan-help", "user-002", "Channel settings → Members → Invite. You need the 'manage' permission."),
+        (
+            "chan-help",
+            "user-002",
+            "Channel settings → Members → Invite. You need the 'manage' permission.",
+        ),
         ("chan-announcements", "user-001", "🏆 Community milestone: 1,000 members reached!"),
         ("chan-random", "user-005", "Friday meme thread is live. Drop your best ones!"),
     ]
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for i, (channel_id, user_id, content) in enumerate(sample_messages):
         ts = now.replace(minute=now.minute - (len(sample_messages) - i))
         msg = {
@@ -143,13 +172,14 @@ _seed_mock_data()
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("", response_model=MessageListResponse)
 async def list_messages(
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
-    channel_id: Optional[str] = Query(None, description="Filter by channel ID"),
-    user_id: Optional[str] = Query(None, description="Filter by user ID"),
-) -> Dict[str, Any]:
+    channel_id: str | None = Query(None, description="Filter by channel ID"),
+    user_id: str | None = Query(None, description="Filter by user ID"),
+) -> dict[str, Any]:
     """
     List messages with pagination and optional filtering by channel or user.
     """
@@ -176,7 +206,7 @@ async def list_messages(
 
 
 @router.post("", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
-async def create_message(payload: MessageCreate) -> Dict[str, Any]:
+async def create_message(payload: MessageCreate) -> dict[str, Any]:
     """
     Create a new message in a channel.
     """
@@ -208,7 +238,7 @@ async def create_message(payload: MessageCreate) -> Dict[str, Any]:
                 detail="Parent message must be in the same channel",
             )
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     new_message = {
         "id": str(uuid.uuid4()),
         "channel_id": payload.channel_id,

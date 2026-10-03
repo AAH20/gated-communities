@@ -318,9 +318,7 @@ class GovernanceExplainerAgent(BaseAgent[dict[str, Any], dict[str, Any]]):
             "and any additional relevant fields."
         )
 
-    def _build_explanation_prompt(
-        self, explanation_type: str, target_data: dict[str, Any]
-    ) -> str:
+    def _build_explanation_prompt(self, explanation_type: str, target_data: dict[str, Any]) -> str:
         """Build the explanation prompt for the LLM."""
         return f"""Explain the following {explanation_type}:
 

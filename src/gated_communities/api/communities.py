@@ -1,21 +1,20 @@
 """Community CRUD endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
 
+from ..auth import get_current_user
 from ..database import get_db
 from ..models import Community
 from ..schemas import CommunityCreate, CommunityResponse
-from ..auth import get_current_user
 
 router = APIRouter()
 
 
-@router.get("", response_model=List[CommunityResponse])
+@router.get("", response_model=list[CommunityResponse])
 def list_communities(
     include_private: bool = False,
-    tier_id: Optional[str] = None,
+    tier_id: str | None = None,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):

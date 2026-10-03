@@ -20,9 +20,7 @@ class HistoryAnalysisInput(BaseModel):
     """Input for reputation history analysis."""
 
     member_id: str = Field(..., description="Member identifier")
-    history_entries: list[dict[str, Any]] = Field(
-        ..., description="History entries to analyze"
-    )
+    history_entries: list[dict[str, Any]] = Field(..., description="History entries to analyze")
 
 
 class HistoryAnalysisOutput(BaseModel):
@@ -79,21 +77,15 @@ class ReputationHistoryAgent(BaseAgent[HistoryAnalysisInput, HistoryAnalysisOutp
             action = entry.get("action", "unknown")
             action_counts[action] = action_counts.get(action, 0) + 1
         most_common_action = (
-            max(action_counts, key=lambda k: action_counts[k])
-            if action_counts
-            else None
+            max(action_counts, key=lambda k: action_counts[k]) if action_counts else None
         )
 
         # Determine trend
         if len(entries) >= 2:
             first_half = entries[: len(entries) // 2]
             second_half = entries[len(entries) // 2 :]
-            first_avg = sum(e.get("score_change", 0) for e in first_half) / len(
-                first_half
-            )
-            second_avg = sum(e.get("score_change", 0) for e in second_half) / len(
-                second_half
-            )
+            first_avg = sum(e.get("score_change", 0) for e in first_half) / len(first_half)
+            second_avg = sum(e.get("score_change", 0) for e in second_half) / len(second_half)
 
             if second_avg > first_avg * 1.1:
                 trend = "improving"
@@ -147,8 +139,6 @@ class ReputationHistoryAgent(BaseAgent[HistoryAnalysisInput, HistoryAnalysisOutp
         # Check for rapid changes
         rapid_changes = [e for e in entries if abs(e.get("score_change", 0)) > 100]
         if rapid_changes:
-            insights.append(
-                f"{len(rapid_changes)} significant reputation changes detected"
-            )
+            insights.append(f"{len(rapid_changes)} significant reputation changes detected")
 
         return insights

@@ -78,9 +78,7 @@ Provide:
 3. Strengths
 4. Improvement recommendations
 """
-        result = await self.agent.ainvoke(
-            {"messages": [{"role": "user", "content": prompt}]}
-        )
+        result = await self.agent.ainvoke({"messages": [{"role": "user", "content": prompt}]})
         return {
             "evaluation": result,
             "policy_id": str(policy_id),

@@ -18,25 +18,17 @@ class AutoModerationInput(BaseModel):
     rules: dict[str, Any] = Field(
         default_factory=dict, description="Moderation rules configuration"
     )
-    threshold: float = Field(
-        default=0.7, ge=0.0, le=1.0, description="Confidence threshold"
-    )
+    threshold: float = Field(default=0.7, ge=0.0, le=1.0, description="Confidence threshold")
 
 
 class AutoModerationOutput(BaseModel):
     """Output from the Auto-Moderation Agent."""
 
-    action: str = Field(
-        ..., description="Moderation action: approve, reject, or escalate"
-    )
+    action: str = Field(..., description="Moderation action: approve, reject, or escalate")
     confidence: float = Field(..., ge=0.0, le=1.0, description="Decision confidence")
-    categories: list[str] = Field(
-        default_factory=list, description="Violation categories detected"
-    )
+    categories: list[str] = Field(default_factory=list, description="Violation categories detected")
     reasoning: str = Field(default="", description="Decision reasoning")
-    suggested_status: ModerationStatus = Field(
-        ..., description="Suggested moderation status"
-    )
+    suggested_status: ModerationStatus = Field(..., description="Suggested moderation status")
 
 
 SYSTEM_PROMPT = """You are an AI content moderator.

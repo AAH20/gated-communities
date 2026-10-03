@@ -117,8 +117,7 @@ class UpgradeNotEligibleError(TierManagementError):
         """
         super().__init__(
             message=(
-                f"Member '{member_id}' is not eligible for upgrade to "
-                f"'{target_tier_id}': {reason}"
+                f"Member '{member_id}' is not eligible for upgrade to '{target_tier_id}': {reason}"
             ),
             status_code=400,
             details={

@@ -6,9 +6,13 @@ from typing import TYPE_CHECKING
 
 from community_governance.api.dependencies import get_dispute_resolver
 from community_governance.config.logging_config import get_logger
-from community_governance.models.dispute import (Dispute, DisputeCreate,
-                                                 DisputeResolution,
-                                                 DisputeStatus, DisputeUpdate)
+from community_governance.models.dispute import (
+    Dispute,
+    DisputeCreate,
+    DisputeResolution,
+    DisputeStatus,
+    DisputeUpdate,
+)
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 if TYPE_CHECKING:
@@ -162,9 +166,7 @@ async def resolve_dispute(
         HTTPException: If the dispute is not found or resolution fails.
     """
     try:
-        resolution = await agent.execute(
-            {"dispute_id": dispute_id, "context": context or {}}
-        )
+        resolution = await agent.execute({"dispute_id": dispute_id, "context": context or {}})
         logger.info(f"Dispute resolved: {dispute_id}", dispute_id=str(dispute_id))
         return resolution
     except Exception as e:

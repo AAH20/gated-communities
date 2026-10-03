@@ -101,9 +101,7 @@ def _get_period_dates(period: str) -> tuple[datetime, datetime]:
     return start, end
 
 
-def _generate_category_distribution(
-    total: int, rng: random.Random
-) -> dict[str, int]:
+def _generate_category_distribution(total: int, rng: random.Random) -> dict[str, int]:
     """Generate a realistic distribution of reports across categories."""
     categories = [c.value for c in ReportCategory]
     weights = [0.25, 0.20, 0.15, 0.15, 0.10, 0.08, 0.07]
@@ -118,9 +116,7 @@ def _generate_category_distribution(
     return distribution
 
 
-def _generate_action_distribution(
-    resolved: int, rng: random.Random
-) -> dict[str, int]:
+def _generate_action_distribution(resolved: int, rng: random.Random) -> dict[str, int]:
     """Generate a realistic distribution of moderation actions."""
     actions = [a.value for a in ModerationAction]
     weights = [0.30, 0.20, 0.15, 0.05, 0.20, 0.10]
@@ -240,9 +236,7 @@ def analyze_moderation_trends(period: str = "week") -> TrendAnalysis:
     # Generate recommendations
     recommendations: list[str] = []
     if report_change > 10:
-        recommendations.append(
-            "Consider increasing moderator coverage during peak hours."
-        )
+        recommendations.append("Consider increasing moderator coverage during peak hours.")
     if resolution_change > 5:
         recommendations.append(
             "Resolution time is trending up. Review triage workflows and staffing."
@@ -260,9 +254,7 @@ def analyze_moderation_trends(period: str = "week") -> TrendAnalysis:
             "Spam reports growing significantly. Evaluate automated spam filters."
         )
     if not recommendations:
-        recommendations.append(
-            "Metrics are stable. Continue current moderation practices."
-        )
+        recommendations.append("Metrics are stable. Continue current moderation practices.")
 
     return TrendAnalysis(
         period=period,
@@ -483,10 +475,6 @@ def flag_moderation_anomaly(community_id: str) -> bool:
     change_percentage = trends.get("change_percentage", 0.0)
     pending_reports = metrics.get("pending_reports", 0)
 
-    is_anomaly = (
-        resolution_rate < 0.5
-        or change_percentage > 200.0
-        or pending_reports > 100
-    )
+    is_anomaly = resolution_rate < 0.5 or change_percentage > 200.0 or pending_reports > 100
 
     return is_anomaly

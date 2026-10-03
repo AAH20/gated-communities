@@ -6,7 +6,7 @@ Provides functions to create, query, and resolve community escalations.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 # In-memory store for demonstration purposes.
@@ -49,7 +49,7 @@ def create_escalation(issue_id: str, priority: str) -> dict:
         )
 
     escalation_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     escalation = {
         "escalation_id": escalation_id,
@@ -85,9 +85,7 @@ def get_escalation_status(escalation_id: str) -> dict:
         KeyError: If no escalation exists with the given ID.
     """
     if not isinstance(escalation_id, str):
-        raise TypeError(
-            f"escalation_id must be a string, got {type(escalation_id).__name__}"
-        )
+        raise TypeError(f"escalation_id must be a string, got {type(escalation_id).__name__}")
     if not escalation_id.strip():
         raise ValueError("escalation_id must not be empty or whitespace")
     if escalation_id not in _ESCALATIONS:
@@ -112,9 +110,7 @@ def resolve_escalation(escalation_id: str) -> bool:
         KeyError: If no escalation exists with the given ID.
     """
     if not isinstance(escalation_id, str):
-        raise TypeError(
-            f"escalation_id must be a string, got {type(escalation_id).__name__}"
-        )
+        raise TypeError(f"escalation_id must be a string, got {type(escalation_id).__name__}")
     if not escalation_id.strip():
         raise ValueError("escalation_id must not be empty or whitespace")
     if escalation_id not in _ESCALATIONS:
@@ -126,5 +122,5 @@ def resolve_escalation(escalation_id: str) -> bool:
         return False
 
     escalation["status"] = "resolved"
-    escalation["resolved_at"] = datetime.now(timezone.utc).isoformat()
+    escalation["resolved_at"] = datetime.now(UTC).isoformat()
     return True

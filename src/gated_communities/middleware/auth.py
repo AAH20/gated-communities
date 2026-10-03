@@ -9,8 +9,9 @@ Provides:
 
 import logging
 import time
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Union
+from typing import Any
 
 import jwt
 from fastapi import FastAPI, Request, Response
@@ -25,14 +26,15 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ---------------------------------------------------------------------------
 
+
 class AuthConfig:
     """Central configuration for authentication middleware."""
 
     # JWT settings
     JWT_SECRET_KEY: str = "your-secret-key-change-in-production"
     JWT_ALGORITHM: str = "HS256"
-    JWT_AUDIENCE: Optional[str] = None
-    JWT_ISSUER: Optional[str] = None
+    JWT_AUDIENCE: str | None = None
+    JWT_ISSUER: str | None = None
     JWT_LEEWAY_SECONDS: int = 30
     JWT_TOKEN_HEADER: str = "Authorization"
     JWT_TOKEN_PREFIX: str = "Bearer"
@@ -42,10 +44,10 @@ class AuthConfig:
     API_KEY_QUERY_PARAM: str = "api_key"
 
     # RBAC settings
-    RBAC_DEFAULT_ROLES: List[str] = ["viewer"]
+    RBAC_DEFAULT_ROLES: list[str] = ["viewer"]
 
     # Exempt paths (no auth required)
-    EXEMPT_PATHS: Set[str] = {
+    EXEMPT_PATHS: set[str] = {
         "/",
         "/health",
         "/docs",
@@ -57,7 +59,7 @@ class AuthConfig:
     }
 
     # Role hierarchy (higher inherits lower permissions)
-    ROLE_HIERARCHY: Dict[str, int] = {
+    ROLE_HIERARCHY: dict[str, int] = {
         "viewer": 0,
         "member": 1,
         "moderator": 2,
@@ -69,6 +71,7 @@ class AuthConfig:
 # ---------------------------------------------------------------------------
 # Custom Exceptions
 # ---------------------------------------------------------------------------
+
 
 class AuthenticationError(Exception):
     """Raised when authentication fails."""
@@ -100,6 +103,7 @@ class APIKeyError(AuthenticationError):
 # Role Definitions
 # ---------------------------------------------------------------------------
 
+
 class Role(str, Enum):
     """Standard roles for gated communities."""
 
@@ -114,6 +118,7 @@ class Role(str, Enum):
 # 1. JWT Token Validation Middleware
 # ---------------------------------------------------------------------------
 
+
 class JWTValidationMiddleware(BaseHTTPMiddleware):
     """
     Validates JWT tokens from the Authorization header.
@@ -125,12 +130,12 @@ class JWTValidationMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        secret_key: Optional[str] = None,
-        algorithm: Optional[str] = None,
-        audience: Optional[str] = None,
-        issuer: Optional[str] = None,
-        leeway: Optional[int] = None,
-        exempt_paths: Optional[Set[str]] = None,
+        secret_key: str | None = None,
+        algorithm: str | None = None,
+        audience: str | None = None,
+        issuer: str | None = None,
+        leeway: int | None = None,
+        exempt_paths: set[str] | None = None,
     ):
         super().__init__(app)
         self.secret_key = secret_key or AuthConfig.JWT_SECRET_KEY
@@ -181,9 +186,7 @@ class JWTValidationMiddleware(BaseHTTPMiddleware):
         auth_header = request.headers.get(AuthConfig.JWT_TOKEN_HEADER)
 
         if not auth_header:
-            raise JWTValidationError(
-                f"Missing {AuthConfig.JWT_TOKEN_HEADER} header"
-            )
+            raise JWTValidationError(f"Missing {AuthConfig.JWT_TOKEN_HEADER} header")
 
         parts = auth_header.split()
 
@@ -196,10 +199,10 @@ class JWTValidationMiddleware(BaseHTTPMiddleware):
 
         raise JWTValidationError("Invalid authorization header format")
 
-    def _validate_token(self, token: str) -> Dict[str, Any]:
+    def _validate_token(self, token: str) -> dict[str, Any]:
         """Validate JWT token and return decoded payload."""
         try:
-            options: Dict[str, Any] = {
+            options: dict[str, Any] = {
                 "verify_signature": True,
                 "verify_exp": True,
                 "verify_iat": True,
@@ -246,6 +249,7 @@ class JWTValidationMiddleware(BaseHTTPMiddleware):
 # 2. API Key Authentication Middleware
 # ---------------------------------------------------------------------------
 
+
 class APIKeyAuthMiddleware(BaseHTTPMiddleware):
     """
     Authenticates requests using API keys.
@@ -258,10 +262,10 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        api_key_store: Optional[Any] = None,
-        exempt_paths: Optional[Set[str]] = None,
-        header_name: Optional[str] = None,
-        query_param: Optional[str] = None,
+        api_key_store: Any | None = None,
+        exempt_paths: set[str] | None = None,
+        header_name: str | None = None,
+        query_param: str | None = None,
     ):
         super().__init__(app)
         self.api_key_store = api_key_store or self._default_key_store()
@@ -324,7 +328,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
             f"Missing API key (header: {self.header_name} or query param: {self.query_param})"
         )
 
-    async def _validate_api_key(self, api_key: str) -> Dict[str, Any]:
+    async def _validate_api_key(self, api_key: str) -> dict[str, Any]:
         """Validate API key against the key store."""
         if not api_key or not api_key.strip():
             raise APIKeyError("Empty API key")
@@ -355,7 +359,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
 
         return key_data
 
-    async def _lookup_key(self, api_key: str) -> Optional[Dict[str, Any]]:
+    async def _lookup_key(self, api_key: str) -> dict[str, Any] | None:
         """Look up API key in the store. Override for custom backends."""
         if hasattr(self.api_key_store, "get"):
             return self.api_key_store.get(api_key)
@@ -365,14 +369,14 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
             return self.api_key_store(api_key)
         return None
 
-    async def _check_rate_limit(self, api_key: str, rate_limit: Dict[str, Any]) -> None:
+    async def _check_rate_limit(self, api_key: str, rate_limit: dict[str, Any]) -> None:
         """Check if the API key has exceeded its rate limit."""
         # Placeholder for rate limiting logic
         # In production, use Redis or similar for distributed rate limiting
         pass
 
     @staticmethod
-    def _default_key_store() -> Dict[str, Dict[str, Any]]:
+    def _default_key_store() -> dict[str, dict[str, Any]]:
         """Default in-memory key store. Replace with database in production."""
         return {}
 
@@ -380,6 +384,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
 # ---------------------------------------------------------------------------
 # 3. Role-Based Access Control (RBAC) Middleware
 # ---------------------------------------------------------------------------
+
 
 class RBACMiddleware(BaseHTTPMiddleware):
     """
@@ -392,10 +397,10 @@ class RBACMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        role_hierarchy: Optional[Dict[str, int]] = None,
-        path_roles: Optional[Dict[str, List[str]]] = None,
-        default_required_roles: Optional[List[str]] = None,
-        exempt_paths: Optional[Set[str]] = None,
+        role_hierarchy: dict[str, int] | None = None,
+        path_roles: dict[str, list[str]] | None = None,
+        default_required_roles: list[str] | None = None,
+        exempt_paths: set[str] | None = None,
     ):
         super().__init__(app)
         self.role_hierarchy = role_hierarchy or AuthConfig.ROLE_HIERARCHY
@@ -458,7 +463,7 @@ class RBACMiddleware(BaseHTTPMiddleware):
         """Check if the request path is exempt from RBAC."""
         return path in self.exempt_paths
 
-    def _get_user_roles(self, request: Request) -> List[str]:
+    def _get_user_roles(self, request: Request) -> list[str]:
         """Extract user roles from request state."""
         roles = getattr(request.state, "user_roles", None)
         if roles is None:
@@ -467,7 +472,7 @@ class RBACMiddleware(BaseHTTPMiddleware):
             return [roles]
         return list(roles)
 
-    def _get_required_roles(self, path: str) -> List[str]:
+    def _get_required_roles(self, path: str) -> list[str]:
         """Get required roles for a given path."""
         # Direct path match
         if path in self.path_roles:
@@ -505,7 +510,7 @@ class RBACMiddleware(BaseHTTPMiddleware):
 
         return True
 
-    def _has_required_role(self, user_roles: List[str], required_roles: List[str]) -> bool:
+    def _has_required_role(self, user_roles: list[str], required_roles: list[str]) -> bool:
         """Check if user has at least one of the required roles (with hierarchy)."""
         for required in required_roles:
             for user_role in user_roles:
@@ -524,7 +529,7 @@ class RBACMiddleware(BaseHTTPMiddleware):
         # Higher or equal level satisfies the requirement
         return user_level >= required_level >= 0
 
-    def _get_matching_roles(self, user_roles: List[str], required_roles: List[str]) -> List[str]:
+    def _get_matching_roles(self, user_roles: list[str], required_roles: list[str]) -> list[str]:
         """Get the list of user roles that match the required roles."""
         matches = []
         for required in required_roles:
@@ -538,6 +543,7 @@ class RBACMiddleware(BaseHTTPMiddleware):
 # Combined Auth Middleware (convenience)
 # ---------------------------------------------------------------------------
 
+
 class CombinedAuthMiddleware(BaseHTTPMiddleware):
     """
     Combined authentication middleware supporting both JWT and API key auth.
@@ -548,10 +554,10 @@ class CombinedAuthMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: ASGIApp,
-        jwt_secret_key: Optional[str] = None,
-        jwt_algorithm: Optional[str] = None,
-        api_key_store: Optional[Any] = None,
-        exempt_paths: Optional[Set[str]] = None,
+        jwt_secret_key: str | None = None,
+        jwt_algorithm: str | None = None,
+        api_key_store: Any | None = None,
+        exempt_paths: set[str] | None = None,
     ):
         super().__init__(app)
         self.jwt_middleware = JWTValidationMiddleware(
@@ -587,20 +593,21 @@ class CombinedAuthMiddleware(BaseHTTPMiddleware):
 # Helper Functions
 # ---------------------------------------------------------------------------
 
+
 def create_jwt_token(
     user_id: str,
-    roles: List[str],
-    secret_key: Optional[str] = None,
-    algorithm: Optional[str] = None,
+    roles: list[str],
+    secret_key: str | None = None,
+    algorithm: str | None = None,
     expires_in_seconds: int = 3600,
-    additional_claims: Optional[Dict[str, Any]] = None,
+    additional_claims: dict[str, Any] | None = None,
 ) -> str:
     """Create a JWT token for a user."""
     secret = secret_key or AuthConfig.JWT_SECRET_KEY
     algo = algorithm or AuthConfig.JWT_ALGORITHM
 
     now = time.time()
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "sub": user_id,
         "roles": roles,
         "iat": now,
@@ -613,7 +620,7 @@ def create_jwt_token(
     return jwt.encode(payload, secret, algorithm=algo)
 
 
-def get_current_user(request: Request) -> Optional[Dict[str, Any]]:
+def get_current_user(request: Request) -> dict[str, Any] | None:
     """Get the current authenticated user from request state."""
     user_id = getattr(request.state, "user_id", None)
     roles = getattr(request.state, "user_roles", [])
@@ -640,7 +647,7 @@ def require_roles(*roles: str):
     """
     required = list(roles)
 
-    async def role_checker(request: Request) -> Dict[str, Any]:
+    async def role_checker(request: Request) -> dict[str, Any]:
         user = get_current_user(request)
         if not user:
             raise AuthenticationError("Not authenticated")
@@ -651,9 +658,7 @@ def require_roles(*roles: str):
                 if user_role == req_role:
                     return user
 
-        raise AuthorizationError(
-            f"Insufficient permissions. Required: {required}"
-        )
+        raise AuthorizationError(f"Insufficient permissions. Required: {required}")
 
     return role_checker
 
@@ -662,13 +667,14 @@ def require_roles(*roles: str):
 # FastAPI Application Setup Helper
 # ---------------------------------------------------------------------------
 
+
 def setup_auth_middleware(
     app: FastAPI,
-    jwt_secret_key: Optional[str] = None,
-    jwt_algorithm: Optional[str] = None,
-    api_key_store: Optional[Any] = None,
-    path_roles: Optional[Dict[str, List[str]]] = None,
-    exempt_paths: Optional[Set[str]] = None,
+    jwt_secret_key: str | None = None,
+    jwt_algorithm: str | None = None,
+    api_key_store: Any | None = None,
+    path_roles: dict[str, list[str]] | None = None,
+    exempt_paths: set[str] | None = None,
 ) -> FastAPI:
     """
     Set up all authentication middleware on a FastAPI application.

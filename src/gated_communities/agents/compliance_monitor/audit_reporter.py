@@ -69,9 +69,7 @@ Generate a comprehensive list of audit findings with:
 3. Recommended action
 4. Priority
 """
-        result = await self.agent.ainvoke(
-            {"messages": [{"role": "user", "content": prompt}]}
-        )
+        result = await self.agent.ainvoke({"messages": [{"role": "user", "content": prompt}]})
         return [str(result)]
 
     async def generate_executive_summary(self, report_data: dict[str, Any]) -> str:
@@ -90,13 +88,13 @@ Generate a comprehensive list of audit findings with:
 The summary should be concise, highlight key findings, and provide
 recommendations for leadership.
 """
-        result = await self.agent.ainvoke(
-            {"messages": [{"role": "user", "content": prompt}]}
-        )
+        result = await self.agent.ainvoke({"messages": [{"role": "user", "content": prompt}]})
         return str(result)
 
     async def export_report(
-        self, report: AuditReport, format: str = "json"  # noqa: A002
+        self,
+        report: AuditReport,
+        format: str = "json",  # noqa: A002
     ) -> dict[str, Any]:
         """Export an audit report in the specified format.
 

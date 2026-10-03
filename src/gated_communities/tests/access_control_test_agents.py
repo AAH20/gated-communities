@@ -5,9 +5,13 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from access_control.agents import (AccessAuditorAgent, AccessRecommenderAgent,
-                                   PermissionEvaluatorAgent,
-                                   PolicyEnforcerAgent, RoleManagerAgent)
+from access_control.agents import (
+    AccessAuditorAgent,
+    AccessRecommenderAgent,
+    PermissionEvaluatorAgent,
+    PolicyEnforcerAgent,
+    RoleManagerAgent,
+)
 from access_control.agents.base import AgentContext
 from access_control.config import Settings
 from access_control.models.enums import AccessDecision, AuditSeverity
@@ -59,17 +63,13 @@ class TestAgents:
         assert chain is not None
 
     @pytest.mark.asyncio
-    async def test_role_manager_agent_init(
-        self, mock_llm: MagicMock, settings: Settings
-    ) -> None:
+    async def test_role_manager_agent_init(self, mock_llm: MagicMock, settings: Settings) -> None:
         """Test role manager agent initialization."""
         agent = RoleManagerAgent(llm=mock_llm, settings=settings)
         assert agent.name == "role_manager"
 
     @pytest.mark.asyncio
-    async def test_access_auditor_agent_init(
-        self, mock_llm: MagicMock, settings: Settings
-    ) -> None:
+    async def test_access_auditor_agent_init(self, mock_llm: MagicMock, settings: Settings) -> None:
         """Test access auditor agent initialization."""
         agent = AccessAuditorAgent(llm=mock_llm, settings=settings)
         assert agent.name == "access_auditor"
@@ -97,17 +97,14 @@ class TestAgents:
         """Test permission evaluator agent run method."""
         # Mock the chain response
         mock_response = MagicMock()
-        mock_response.content = (
-            '{"decision": "allow", "reason": "Test allow", "confidence": 0.9}'
-        )
+        mock_response.content = '{"decision": "allow", "reason": "Test allow", "confidence": 0.9}'
         mock_chain = MagicMock()
         mock_chain.ainvoke = AsyncMock(return_value=mock_response)
 
         agent = PermissionEvaluatorAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.agents.permission_evaluator import \
-            PermissionEvaluatorInput
+        from access_control.agents.permission_evaluator import PermissionEvaluatorInput
 
         payload = PermissionEvaluatorInput(
             request=AccessRequest(principal_id="user-1", resource="docs", action="read")
@@ -123,9 +120,7 @@ class TestAgents:
     ) -> None:
         """Test access auditor agent run method."""
         mock_response = MagicMock()
-        mock_response.content = (
-            '{"severity": "info", "flagged": false, "anomaly_score": 0.1}'
-        )
+        mock_response.content = '{"severity": "info", "flagged": false, "anomaly_score": 0.1}'
         mock_chain = MagicMock()
         mock_chain.ainvoke = AsyncMock(return_value=mock_response)
 
@@ -149,9 +144,7 @@ class TestAgents:
     ) -> None:
         """Test role manager agent run method."""
         mock_response = MagicMock()
-        mock_response.content = (
-            '{"success": true, "role": {"name": "test"}, "message": "Created"}'
-        )
+        mock_response.content = '{"success": true, "role": {"name": "test"}, "message": "Created"}'
         mock_chain = MagicMock()
         mock_chain.ainvoke = AsyncMock(return_value=mock_response)
 
@@ -204,8 +197,7 @@ class TestAgents:
         agent = AccessRecommenderAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.agents.access_recommender import \
-            AccessRecommenderInput
+        from access_control.agents.access_recommender import AccessRecommenderInput
 
         payload = AccessRecommenderInput(principal_id="user-1")
         result = await agent.run(payload, agent_context)
@@ -226,8 +218,7 @@ class TestAgents:
         agent = PermissionEvaluatorAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.agents.permission_evaluator import \
-            PermissionEvaluatorInput
+        from access_control.agents.permission_evaluator import PermissionEvaluatorInput
 
         payload = PermissionEvaluatorInput(
             request=AccessRequest(principal_id="user-1", resource="docs", action="read")

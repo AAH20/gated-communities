@@ -10,7 +10,6 @@ import hashlib
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
@@ -283,12 +282,7 @@ def evaluate_governance(community_id: str) -> GovernanceScore:
     enforcement = float(community["enforcement_consistency"])
     satisfaction = float(community["member_satisfaction"]) * 20.0  # scale to 0-100
 
-    overall = (
-        transparency * 0.30
-        + participation * 0.25
-        + enforcement * 0.25
-        + satisfaction * 0.20
-    )
+    overall = transparency * 0.30 + participation * 0.25 + enforcement * 0.25 + satisfaction * 0.20
     overall = round(max(0.0, min(100.0, overall)), 2)
 
     open_incidents = int(community["open_incidents"])
@@ -396,9 +390,7 @@ def get_governance_policies(community_id: str) -> list[dict]:
 
     try:
         return [
-            policy
-            for policy in _POLICY_STORE.values()
-            if policy["community_id"] == community_id
+            policy for policy in _POLICY_STORE.values() if policy["community_id"] == community_id
         ]
     except Exception as exc:
         raise RuntimeError(f"Failed to retrieve governance policies: {exc}") from exc
@@ -426,6 +418,4 @@ def enforce_governance_policy(policy_id: str) -> bool:
         _POLICY_STORE[policy_id]["status"] = "enforced"
         return True
     except Exception as exc:
-        raise RuntimeError(
-            f"Failed to enforce governance policy {policy_id}: {exc}"
-        ) from exc
+        raise RuntimeError(f"Failed to enforce governance policy {policy_id}: {exc}") from exc

@@ -48,9 +48,7 @@ class BaseAgent(ABC, Generic[InputT, OutputT]):
         self._agent: Any = None
 
     @abstractmethod
-    async def run(
-        self, payload: InputT, context: AgentContext | None = None
-    ) -> OutputT:
+    async def run(self, payload: InputT, context: AgentContext | None = None) -> OutputT:
         """Execute the agent with the given input payload.
 
         Args:

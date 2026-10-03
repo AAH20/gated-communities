@@ -83,9 +83,7 @@ class TestDowngrade:
     def test_all_types_dropped(self, engine):
         """Test that all enum types are dropped after downgrade."""
         with engine.connect() as conn:
-            result = conn.execute(
-                text("SELECT typname FROM pg_type WHERE typtype = 'e'")
-            )
+            result = conn.execute(text("SELECT typname FROM pg_type WHERE typtype = 'e'"))
             types = {row[0] for row in result}
             expected_types = {
                 "community_visibility",
@@ -359,7 +357,8 @@ class TestSchemaConsistency:
         """Test that all foreign keys are created."""
         inspector = inspect(engine)
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT tc.constraint_name, tc.table_name, kcu.column_name,
                        ccu.table_name AS foreign_table_name
                 FROM information_schema.table_constraints AS tc
@@ -368,7 +367,8 @@ class TestSchemaConsistency:
                 JOIN information_schema.constraint_column_usage AS ccu
                     ON ccu.constraint_name = tc.constraint_name
                 WHERE tc.constraint_type = 'FOREIGN KEY'
-            """))
+            """)
+            )
             fks = {(row[1], row[2]) for row in result}
             expected_fks = {
                 ("tiers", "community_id"),
@@ -400,10 +400,12 @@ class TestSchemaConsistency:
         """Test that all indexes are created."""
         inspector = inspect(engine)
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT tablename, indexname FROM pg_indexes
                 WHERE schemaname = 'public'
-            """))
+            """)
+            )
             indexes = {(row[0], row[1]) for row in result}
             expected_indexes = {
                 ("communities", "idx_communities_slug"),
@@ -427,9 +429,7 @@ class TestSchemaConsistency:
     def test_enum_types_exist(self, engine):
         """Test that all enum types are created."""
         with engine.connect() as conn:
-            result = conn.execute(
-                text("SELECT typname FROM pg_type WHERE typtype = 'e'")
-            )
+            result = conn.execute(text("SELECT typname FROM pg_type WHERE typtype = 'e'"))
             types = {row[0] for row in result}
             expected_types = {
                 "community_visibility",
@@ -463,9 +463,7 @@ class TestSchemaConsistency:
         """Test that views are created."""
         inspector = inspect(engine)
         with engine.connect() as conn:
-            result = conn.execute(
-                text("SELECT viewname FROM pg_views WHERE schemaname = 'public'")
-            )
+            result = conn.execute(text("SELECT viewname FROM pg_views WHERE schemaname = 'public'"))
             views = {row[0] for row in result}
             expected = {"v_community_summary", "v_member_detail", "v_content_detail"}
             assert expected.issubset(views)
@@ -473,10 +471,12 @@ class TestSchemaConsistency:
     def test_triggers_exist(self, engine):
         """Test that triggers are created."""
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT trigger_name FROM information_schema.triggers
                 WHERE trigger_schema = 'public'
-            """))
+            """)
+            )
             triggers = {row[0] for row in result}
             expected_triggers = {
                 "trg_communities_updated_at",
@@ -499,10 +499,12 @@ class TestSchemaConsistency:
     def test_functions_exist(self, engine):
         """Test that functions are created."""
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT routine_name FROM information_schema.routines
                 WHERE routine_schema = 'public'
-            """))
+            """)
+            )
             functions = {row[0] for row in result}
             expected = {"update_updated_at_column", "audit_trigger_func"}
             assert expected.issubset(functions)
@@ -511,11 +513,13 @@ class TestSchemaConsistency:
         """Test that unique constraints are created."""
         inspector = inspect(engine)
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT tc.constraint_name, tc.table_name
                 FROM information_schema.table_constraints tc
                 WHERE tc.constraint_type = 'UNIQUE' AND tc.table_schema = 'public'
-            """))
+            """)
+            )
             constraints = {(row[1], row[0]) for row in result}
             expected = {
                 ("communities", "uq_communities_slug"),
@@ -529,10 +533,12 @@ class TestSchemaConsistency:
         """Test that check constraints are created."""
         inspector = inspect(engine)
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT conname FROM pg_constraint
                 WHERE contype = 'c' AND connamespace = 'public'::regnamespace
-            """))
+            """)
+            )
             constraints = {row[0] for row in result}
             expected = {
                 "chk_communities_name_not_empty",
@@ -642,9 +648,9 @@ class TestMigrationValidation:
             "audit_log",
         ]
         for table in expected_tables:
-            assert (
-                f"'{table}'" in source or f'"{table}"' in source
-            ), f"Table {table} not found in migration"
+            assert f"'{table}'" in source or f'"{table}"' in source, (
+                f"Table {table} not found in migration"
+            )
 
     def test_migration_drops_all_tables(self):
         """Test that migration drops all expected tables in downgrade."""
@@ -671,6 +677,6 @@ class TestMigrationValidation:
             "audit_log",
         ]
         for table in expected_tables:
-            assert (
-                f"'{table}'" in source or f'"{table}"' in source
-            ), f"Table {table} not found in downgrade migration"
+            assert f"'{table}'" in source or f'"{table}"' in source, (
+                f"Table {table} not found in downgrade migration"
+            )

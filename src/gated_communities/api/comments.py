@@ -9,8 +9,8 @@ Provides:
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field, field_validator
@@ -21,7 +21,7 @@ router = APIRouter()
 # Mock data store (in-memory for demonstration)
 # ---------------------------------------------------------------------------
 
-MOCK_COMMENTS: List[Dict[str, Any]] = [
+MOCK_COMMENTS: list[dict[str, Any]] = [
     {
         "id": "cmt_001",
         "post_id": "post_alpha",
@@ -169,12 +169,17 @@ MOCK_COMMENTS: List[Dict[str, Any]] = [
 # Pydantic models
 # ---------------------------------------------------------------------------
 
+
 class CommentCreate(BaseModel):
     """Schema for creating a new comment."""
 
-    post_id: str = Field(..., min_length=1, max_length=64, description="ID of the post this comment belongs to")
+    post_id: str = Field(
+        ..., min_length=1, max_length=64, description="ID of the post this comment belongs to"
+    )
     content: str = Field(..., min_length=1, max_length=5000, description="Comment body text")
-    parent_id: Optional[str] = Field(None, max_length=64, description="Parent comment ID for threaded replies")
+    parent_id: str | None = Field(
+        None, max_length=64, description="Parent comment ID for threaded replies"
+    )
 
     @field_validator("content")
     @classmethod
@@ -199,7 +204,7 @@ class CommentResponse(BaseModel):
     author_id: str
     author_name: str
     content: str
-    parent_id: Optional[str] = None
+    parent_id: str | None = None
     created_at: str
     updated_at: str
     upvotes: int = 0
@@ -211,7 +216,7 @@ class CommentResponse(BaseModel):
 class CommentListResponse(BaseModel):
     """Paginated list of comments."""
 
-    data: List[CommentResponse]
+    data: list[CommentResponse]
     total: int
     page: int
     page_size: int
@@ -222,13 +227,14 @@ class CommentListResponse(BaseModel):
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("/comments", response_model=CommentListResponse, tags=["comments"])
 async def list_comments(
     request: Request,
-    post_id: Optional[str] = Query(None, description="Filter comments by post ID"),
+    post_id: str | None = Query(None, description="Filter comments by post ID"),
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(10, ge=1, le=100, description="Number of comments per page"),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     List comments with optional post filtering and pagination.
 
@@ -266,7 +272,7 @@ async def list_comments(
     status_code=status.HTTP_201_CREATED,
     tags=["comments"],
 )
-async def create_comment(payload: CommentCreate, request: Request) -> Dict[str, Any]:
+async def create_comment(payload: CommentCreate, request: Request) -> dict[str, Any]:
     """
     Create a new comment.
 
@@ -290,8 +296,8 @@ async def create_comment(payload: CommentCreate, request: Request) -> Dict[str, 
                 detail=f"Parent comment with id '{payload.parent_id}' not found",
             )
 
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    new_comment: Dict[str, Any] = {
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    new_comment: dict[str, Any] = {
         "id": f"cmt_{uuid.uuid4().hex[:8]}",
         "post_id": payload.post_id,
         "author_id": "user_current",  # Would come from auth context in production

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Protocol
 
 
@@ -54,8 +54,8 @@ class Post:
     author_id: str
     title: str
     content: str
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_pinned: bool = False
     is_locked: bool = False
     tags: list[str] = field(default_factory=list)
@@ -68,9 +68,7 @@ class PostRepository(Protocol):
 
     async def get_by_id(self, post_id: str) -> Post | None: ...
 
-    async def list_by_community(
-        self, community_id: str, offset: int, limit: int
-    ) -> list[Post]: ...
+    async def list_by_community(self, community_id: str, offset: int, limit: int) -> list[Post]: ...
 
     async def count_by_community(self, community_id: str) -> int: ...
 
@@ -151,9 +149,7 @@ class PostService:
 
         community_id = data["community_id"]
         if not await self._community_repo.exists(community_id):
-            raise CommunityNotFoundError(
-                f"Community '{community_id}' not found"
-            )
+            raise CommunityNotFoundError(f"Community '{community_id}' not found")
 
         post = Post(
             id="",
@@ -219,16 +215,12 @@ class PostService:
             raise ValidationError("community_id must be a non-empty string")
 
         if not await self._community_repo.exists(community_id):
-            raise CommunityNotFoundError(
-                f"Community '{community_id}' not found"
-            )
+            raise CommunityNotFoundError(f"Community '{community_id}' not found")
 
         pag = pagination or Pagination()
 
         try:
-            posts = await self._post_repo.list_by_community(
-                community_id, pag.offset, pag.limit
-            )
+            posts = await self._post_repo.list_by_community(community_id, pag.offset, pag.limit)
             total = await self._post_repo.count_by_community(community_id)
         except Exception as exc:
             raise RepositoryError(f"Failed to list posts: {exc}") from exc
@@ -296,7 +288,7 @@ class PostService:
         if "is_locked" in data:
             post.is_locked = bool(data["is_locked"])
 
-        post.updated_at = datetime.now(timezone.utc)
+        post.updated_at = datetime.now(UTC)
 
         try:
             return await self._post_repo.update(post)

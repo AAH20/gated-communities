@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -48,9 +48,7 @@ class CommentService:
 
         return dict(comment)
 
-    def list_comments(
-        self, filters: dict, page: int, page_size: int
-    ) -> list[dict]:
+    def list_comments(self, filters: dict, page: int, page_size: int) -> list[dict]:
         """List comments with optional filtering and pagination.
 
         Args:
@@ -72,11 +70,7 @@ class CommentService:
         filtered = list(self._comments.values())
 
         if filters:
-            filtered = [
-                c
-                for c in filtered
-                if all(c.get(k) == v for k, v in filters.items())
-            ]
+            filtered = [c for c in filtered if all(c.get(k) == v for k, v in filters.items())]
 
         start = (page - 1) * page_size
         end = start + page_size
@@ -104,9 +98,7 @@ class CommentService:
         required_fields = ["post_id", "author_id", "content"]
         missing = [f for f in required_fields if f not in data or data[f] is None]
         if missing:
-            raise CommentValidationError(
-                f"Missing required fields: {', '.join(missing)}"
-            )
+            raise CommentValidationError(f"Missing required fields: {', '.join(missing)}")
 
         content = str(data["content"]).strip()
         if not content:
@@ -118,7 +110,7 @@ class CommentService:
             )
 
         comment_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         comment = {
             "id": comment_id,
@@ -163,7 +155,7 @@ class CommentService:
             if key not in protected:
                 comment[key] = value
 
-        comment["updated_at"] = datetime.now(timezone.utc).isoformat()
+        comment["updated_at"] = datetime.now(UTC).isoformat()
         comment["is_edited"] = True
         return dict(comment)
 

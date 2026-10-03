@@ -7,11 +7,12 @@ from typing import TYPE_CHECKING, Any
 
 from community_governance.agents.base import BaseAgent
 from community_governance.config.logging_config import get_logger
-from community_governance.exceptions import (AgentExecutionError,
-                                             DisputeNotFoundError,
-                                             DisputeResolutionError)
-from community_governance.models.dispute import (Dispute, DisputeResolution,
-                                                 DisputeStatus)
+from community_governance.exceptions import (
+    AgentExecutionError,
+    DisputeNotFoundError,
+    DisputeResolutionError,
+)
+from community_governance.models.dispute import Dispute, DisputeResolution, DisputeStatus
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -245,7 +246,7 @@ Dispute:
 - Priority: {dispute.priority.value}
 - Status: {dispute.status.value}
 - Initiator: {dispute.initiator_id}
-- Respondent: {dispute.respondent_id or 'N/A'}
+- Respondent: {dispute.respondent_id or "N/A"}
 
 Context:
 {json.dumps(context, indent=2)}
@@ -262,9 +263,7 @@ Propose a fair and balanced resolution. Respond with JSON only."""
             Health status dictionary.
         """
         base_health = await super().health_check()
-        open_disputes = len(
-            [d for d in self.disputes if d.status == DisputeStatus.OPEN]
-        )
+        open_disputes = len([d for d in self.disputes if d.status == DisputeStatus.OPEN])
         base_health.update(
             {
                 "total_disputes": len(self.disputes),

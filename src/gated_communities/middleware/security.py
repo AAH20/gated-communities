@@ -45,8 +45,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         )
 
         # Permissions Policy
-        response.headers["Permissions-Policy"] = (
-            "camera=(), microphone=(), geolocation=()"
-        )
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
 
         return response

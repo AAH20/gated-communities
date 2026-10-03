@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -48,8 +48,8 @@ class Comment(Base):
         nullable=False,
     )
 
-    post: Mapped["Post"] = relationship("Post", back_populates="comments")
-    author: Mapped["User"] = relationship("User", back_populates="comments")
+    post: Mapped[Post] = relationship("Post", back_populates="comments")
+    author: Mapped[User] = relationship("User", back_populates="comments")
 
     def __repr__(self) -> str:
         return f"<Comment(id={self.id}, post_id={self.post_id}, author_id={self.author_id})>"

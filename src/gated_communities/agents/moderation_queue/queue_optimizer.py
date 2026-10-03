@@ -17,9 +17,7 @@ class QueueOptimizerInput(BaseModel):
     """Input for the Queue Optimizer Agent."""
 
     queues: list[Queue] = Field(..., description="List of queues to optimize")
-    metrics: list[QueueMetrics] = Field(
-        default_factory=list, description="Current queue metrics"
-    )
+    metrics: list[QueueMetrics] = Field(default_factory=list, description="Current queue metrics")
     pending_items: list[dict[str, Any]] = Field(
         default_factory=list, description="Pending items awaiting assignment"
     )
@@ -121,9 +119,7 @@ Respond with JSON only."""
         # Fallback: basic load balancing
         return self._fallback_optimize(input_data)
 
-    def _fallback_optimize(
-        self, input_data: QueueOptimizerInput
-    ) -> QueueOptimizerOutput:
+    def _fallback_optimize(self, input_data: QueueOptimizerInput) -> QueueOptimizerOutput:
         """Fallback optimization when AI is unavailable.
 
         Args:

@@ -16,9 +16,7 @@ class HealthResponse(BaseModel):
     status: str = Field(..., description="Service status")
     version: str = Field(..., description="Application version")
     environment: str = Field(..., description="Deployment environment")
-    agents: dict[str, str] = Field(
-        default_factory=dict, description="Agent health status"
-    )
+    agents: dict[str, str] = Field(default_factory=dict, description="Agent health status")
 
 
 @router.get("/health", response_model=HealthResponse)

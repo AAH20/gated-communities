@@ -53,9 +53,7 @@ class MemberService:
             logger.error("Error fetching member '%s': %s", member_id, exc)
             raise MemberServiceError(f"Failed to fetch member '{member_id}': {exc}") from exc
 
-    def list_members(
-        self, filters: dict, page: int, page_size: int
-    ) -> list[dict]:
+    def list_members(self, filters: dict, page: int, page_size: int) -> list[dict]:
         """List members with optional filters and pagination.
 
         Args:

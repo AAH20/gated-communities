@@ -19,9 +19,7 @@ upgrades_router = APIRouter()
 _upgrades_store: dict[UUID, UpgradeRequest] = {}
 
 
-@upgrades_router.post(
-    "", response_model=UpgradeRequest, status_code=status.HTTP_201_CREATED
-)
+@upgrades_router.post("", response_model=UpgradeRequest, status_code=status.HTTP_201_CREATED)
 async def create_upgrade_request(
     request_data: dict[str, Any],
     settings: Settings = Depends(get_settings),  # noqa: B008

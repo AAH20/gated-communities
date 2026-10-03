@@ -18,9 +18,7 @@ evaluation_router = APIRouter()
 _evaluations_store: dict[UUID, TierEvaluation] = {}
 
 
-@evaluation_router.post(
-    "", response_model=TierEvaluation, status_code=status.HTTP_201_CREATED
-)
+@evaluation_router.post("", response_model=TierEvaluation, status_code=status.HTTP_201_CREATED)
 async def create_evaluation(
     evaluation_data: dict[str, Any],
     settings: Settings = Depends(get_settings),  # noqa: B008

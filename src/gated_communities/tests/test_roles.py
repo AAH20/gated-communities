@@ -48,9 +48,7 @@ class TestRoles:
         assert role.status == RoleStatus.ACTIVE
 
     @pytest.mark.asyncio
-    async def test_create_role_failure(
-        self, mock_llm: MagicMock, settings: Settings
-    ) -> None:
+    async def test_create_role_failure(self, mock_llm: MagicMock, settings: Settings) -> None:
         """Test role creation failure."""
         mock_response = MagicMock()
         mock_response.content = '{"success": false, "message": "Invalid permissions"}'
@@ -100,9 +98,7 @@ class TestRoles:
         assert errors == []
 
     @pytest.mark.asyncio
-    async def test_suggest_permissions(
-        self, mock_llm: MagicMock, settings: Settings
-    ) -> None:
+    async def test_suggest_permissions(self, mock_llm: MagicMock, settings: Settings) -> None:
         """Test permission suggestions."""
         mock_response = MagicMock()
         mock_response.content = '{"success": true, "role": {"permissions": [{"resource": "documents", "action": "read"}]}}'  # noqa: E501

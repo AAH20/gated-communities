@@ -60,9 +60,7 @@ async def get_policy(policy_id: UUID) -> Policy:
     """
     policy = store.get_policy(policy_id)
     if not policy:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Policy not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Policy not found")
     return policy
 
 
@@ -77,6 +75,4 @@ async def delete_policy(policy_id: UUID) -> None:
         HTTPException: If policy not found.
     """
     if not store.delete_policy(policy_id):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Policy not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Policy not found")

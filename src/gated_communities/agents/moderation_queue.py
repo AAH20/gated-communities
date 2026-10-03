@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -199,9 +199,7 @@ def get_queue_status() -> QueueMetrics:
     # Count by community
     items_by_community: dict[str, int] = {}
     for item in _MOCK_QUEUE_ITEMS:
-        items_by_community[item.community_id] = (
-            items_by_community.get(item.community_id, 0) + 1
-        )
+        items_by_community[item.community_id] = items_by_community.get(item.community_id, 0) + 1
 
     return QueueMetrics(
         total_items=total,
@@ -262,7 +260,7 @@ def add_to_queue(content_id: str, reason: str) -> dict:
         raise ValueError("reason must be a non-empty string")
 
     queue_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     queue_item = {
         "queue_id": queue_id,
@@ -332,7 +330,7 @@ def process_queue_item(queue_id: str, decision: str) -> bool:
             f"with decision '{queue_item['decision']}'"
         )
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     queue_item["status"] = "processed"
     queue_item["decision"] = decision
     queue_item["decided_at"] = now

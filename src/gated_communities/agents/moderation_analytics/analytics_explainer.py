@@ -114,9 +114,7 @@ class AnalyticsExplainerAgent(BaseAgent[str]):
         if "total_actions" in data:
             parts.append(f"Total actions taken: {data['total_actions']}")
         if "average_response_time_seconds" in data:
-            parts.append(
-                f"Average response time: {data['average_response_time_seconds']:.2f}s"
-            )
+            parts.append(f"Average response time: {data['average_response_time_seconds']:.2f}s")
 
         if "trends" in data and data["trends"]:
             parts.extend(["", "Key Trends:"])

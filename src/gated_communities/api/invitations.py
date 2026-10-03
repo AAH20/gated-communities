@@ -5,10 +5,9 @@ Provides endpoints to list and create community invitations.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/invitations", tags=["invitations"])
@@ -18,13 +17,14 @@ router = APIRouter(prefix="/invitations", tags=["invitations"])
 # Pydantic Schemas
 # ---------------------------------------------------------------------------
 
+
 class InvitationCreate(BaseModel):
     """Schema for creating a new invitation."""
 
     community_id: str = Field(..., description="ID of the community to invite to")
     email: EmailStr = Field(..., description="Email address of the invitee")
     role: str = Field(default="member", description="Role to assign upon acceptance")
-    message: Optional[str] = Field(
+    message: str | None = Field(
         default=None, max_length=500, description="Optional personal message"
     )
     expires_in_days: int = Field(
@@ -41,7 +41,7 @@ class InvitationResponse(BaseModel):
     email: str
     role: str
     status: str
-    message: Optional[str] = None
+    message: str | None = None
     created_at: datetime
     expires_at: datetime
     invited_by: str
@@ -82,20 +82,23 @@ MOCK_INVITATIONS = [
         "expires_at": datetime(2026, 9, 20 + (i % 10), 10, 30, 0) + timedelta(days=7),
         "invited_by": MOCK_COMMUNITIES[comm_id]["owner"],
     }
-    for i, (comm_id, role, status_val, msg) in enumerate([
-        ("comm-001", "member", "pending", "Join our engineering community!"),
-        ("comm-001", "moderator", "accepted", None),
-        ("comm-002", "member", "pending", "We'd love your design expertise."),
-        ("comm-002", "member", "expired", None),
-        ("comm-003", "admin", "pending", "Leadership team invitation."),
-        ("comm-003", "member", "revoked", None),
-        ("comm-004", "member", "accepted", "Data team onboarding."),
-        ("comm-004", "moderator", "pending", None),
-        ("comm-005", "member", "pending", "Marketing sync invite."),
-        ("comm-005", "member", "declined", None),
-        ("comm-001", "member", "pending", "Second invite to engineering."),
-        ("comm-002", "member", "accepted", "Welcome to the circle!"),
-    ], start=1)
+    for i, (comm_id, role, status_val, msg) in enumerate(
+        [
+            ("comm-001", "member", "pending", "Join our engineering community!"),
+            ("comm-001", "moderator", "accepted", None),
+            ("comm-002", "member", "pending", "We'd love your design expertise."),
+            ("comm-002", "member", "expired", None),
+            ("comm-003", "admin", "pending", "Leadership team invitation."),
+            ("comm-003", "member", "revoked", None),
+            ("comm-004", "member", "accepted", "Data team onboarding."),
+            ("comm-004", "moderator", "pending", None),
+            ("comm-005", "member", "pending", "Marketing sync invite."),
+            ("comm-005", "member", "declined", None),
+            ("comm-001", "member", "pending", "Second invite to engineering."),
+            ("comm-002", "member", "accepted", "Welcome to the circle!"),
+        ],
+        start=1,
+    )
 ]
 
 
@@ -103,19 +106,18 @@ MOCK_INVITATIONS = [
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("", response_model=InvitationListResponse)
 async def list_invitations(
     page: int = Query(default=1, ge=1, description="Page number"),
     page_size: int = Query(default=10, ge=1, le=100, description="Items per page"),
-    status_filter: Optional[str] = Query(
+    status_filter: str | None = Query(
         default=None,
         alias="status",
         description="Filter by invitation status",
         pattern="^(pending|accepted|declined|expired|revoked)$",
     ),
-    community_id: Optional[str] = Query(
-        default=None, description="Filter by community ID"
-    ),
+    community_id: str | None = Query(default=None, description="Filter by community ID"),
 ) -> dict:
     """
     List invitations with pagination and optional filtering.

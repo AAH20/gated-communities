@@ -121,9 +121,7 @@ class ModerationPredictorAgent(BaseAgent[list[ModerationPrediction]]):
             factors=["historical average", "growth trend"],
         )
 
-    def _predict_risk(
-        self, data: list[dict[str, Any]], target: datetime
-    ) -> ModerationPrediction:
+    def _predict_risk(self, data: list[dict[str, Any]], target: datetime) -> ModerationPrediction:
         """Predict future risk levels.
 
         Args:
@@ -148,9 +146,7 @@ class ModerationPredictorAgent(BaseAgent[list[ModerationPrediction]]):
             factors=["severity trend", "historical patterns"],
         )
 
-    def _predict_trend(
-        self, data: list[dict[str, Any]], target: datetime
-    ) -> ModerationPrediction:
+    def _predict_trend(self, data: list[dict[str, Any]], target: datetime) -> ModerationPrediction:
         """Predict trend direction.
 
         Args:

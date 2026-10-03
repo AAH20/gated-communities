@@ -40,20 +40,14 @@ class Rule(BaseModel):
     name: str = Field(..., min_length=1, max_length=200, description="Rule name")
     description: str = Field(..., min_length=1, description="Rule description")
     category: RuleCategory = Field(..., description="Rule category")
-    severity: RuleSeverity = Field(
-        default=RuleSeverity.MEDIUM, description="Rule severity"
-    )
+    severity: RuleSeverity = Field(default=RuleSeverity.MEDIUM, description="Rule severity")
     conditions: dict[str, Any] = Field(
         default_factory=dict, description="Rule conditions for evaluation"
     )
-    actions: list[str] = Field(
-        default_factory=list, description="Actions to take on violation"
-    )
+    actions: list[str] = Field(default_factory=list, description="Actions to take on violation")
     is_active: bool = Field(default=True, description="Whether the rule is active")
     priority: int = Field(default=0, ge=0, le=100, description="Rule priority (0-100)")
-    created_at: datetime = Field(
-        default_factory=datetime.utcnow, description="Creation timestamp"
-    )
+    created_at: datetime = Field(default_factory=datetime.utcnow, description="Creation timestamp")
     updated_at: datetime = Field(
         default_factory=datetime.utcnow, description="Last update timestamp"
     )
@@ -67,15 +61,11 @@ class RuleCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200, description="Rule name")
     description: str = Field(..., min_length=1, description="Rule description")
     category: RuleCategory = Field(..., description="Rule category")
-    severity: RuleSeverity = Field(
-        default=RuleSeverity.MEDIUM, description="Rule severity"
-    )
+    severity: RuleSeverity = Field(default=RuleSeverity.MEDIUM, description="Rule severity")
     conditions: dict[str, Any] = Field(
         default_factory=dict, description="Rule conditions for evaluation"
     )
-    actions: list[str] = Field(
-        default_factory=list, description="Actions to take on violation"
-    )
+    actions: list[str] = Field(default_factory=list, description="Actions to take on violation")
     priority: int = Field(default=0, ge=0, le=100, description="Rule priority (0-100)")
     created_by: str | None = Field(default=None, description="Creator identifier")
 

@@ -12,8 +12,7 @@ from uuid import UUID
 
 from tier_management.agents.base import BaseAgent
 from tier_management.config.logging_config import get_logger
-from tier_management.models.schemas import (TierLevel, UpgradeEligibility,
-                                            UpgradeRequest)
+from tier_management.models.schemas import TierLevel, UpgradeEligibility, UpgradeRequest
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
@@ -126,16 +125,10 @@ class UpgradeRecommenderAgent(BaseAgent[dict[str, Any], UpgradeRequest]):
             id=uuid4(),
             member_id=UUID(str(member_id)),
             current_tier_id=UUID(str(current_tier_id)),
-            target_tier_id=(
-                UUID(str(target_tier_id)) if target_tier_id else current_tier_id
-            ),
+            target_tier_id=(UUID(str(target_tier_id)) if target_tier_id else current_tier_id),
             reason=reason,
             eligibility=eligibility,
-            status=(
-                "recommended"
-                if eligibility == UpgradeEligibility.ELIGIBLE
-                else "pending"
-            ),
+            status=("recommended" if eligibility == UpgradeEligibility.ELIGIBLE else "pending"),
             requested_at=datetime.now(UTC),
         )
 

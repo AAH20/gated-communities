@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ def send_notification(user_id: str, message: str) -> dict[str, Any]:
         "user_id": user_id,
         "message": message,
         "read": False,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
     }
 
     try:
@@ -105,16 +105,14 @@ def mark_as_read(notification_id: str) -> dict[str, Any]:
             for notification in user_notifications:
                 if notification.get("id") == notification_id:
                     notification["read"] = True
-                    notification["read_at"] = datetime.now(timezone.utc).isoformat()
+                    notification["read_at"] = datetime.now(UTC).isoformat()
                     logger.info("Notification %s marked as read", notification_id)
                     return notification
     except Exception as exc:
         logger.error("Failed to mark notification %s as read: %s", notification_id, exc)
         raise NotificationError(f"Failed to mark notification as read: {exc}") from exc
 
-    raise NotificationNotFoundError(
-        f"Notification with id '{notification_id}' not found"
-    )
+    raise NotificationNotFoundError(f"Notification with id '{notification_id}' not found")
 
 
 def _generate_id() -> str:

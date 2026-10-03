@@ -10,7 +10,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Enums & Data Classes
 # ---------------------------------------------------------------------------
@@ -238,8 +237,7 @@ def evaluate_tier_upgrade(member_id: str) -> UpgradeRecommendation:
     """
     if member_id not in _MOCK_MEMBERS:
         raise ValueError(
-            f"Member '{member_id}' not found. "
-            f"Available members: {list(_MOCK_MEMBERS.keys())}"
+            f"Member '{member_id}' not found. Available members: {list(_MOCK_MEMBERS.keys())}"
         )
 
     data = _MOCK_MEMBERS[member_id]
@@ -348,15 +346,11 @@ def calculate_tier_benefits(tier: str | TierLevel) -> TierBenefits:
             tier_enum = TierLevel(tier.lower())
         except ValueError:
             valid = ", ".join(t.value for t in TierLevel)
-            raise ValueError(
-                f"Unknown tier '{tier}'. Valid tiers: {valid}"
-            ) from None
+            raise ValueError(f"Unknown tier '{tier}'. Valid tiers: {valid}") from None
     elif isinstance(tier, TierLevel):
         tier_enum = tier
     else:
-        raise TypeError(
-            f"Expected str or TierLevel, got {type(tier).__name__}"
-        )
+        raise TypeError(f"Expected str or TierLevel, got {type(tier).__name__}")
 
     return _TIER_BENEFITS[tier_enum]
 
@@ -393,7 +387,7 @@ def get_member_tier(member_id: str) -> TierLevel:
 # ---------------------------------------------------------------------------
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 # In-memory store keyed by tier_id. In production this would be a database.
 _tier_store: dict[str, dict[str, Any]] = {}
@@ -401,7 +395,7 @@ _tier_store: dict[str, dict[str, Any]] = {}
 
 def _now_iso() -> str:
     """Return the current UTC timestamp in ISO 8601 format."""
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def create_tier(community_id: str, tier_config: dict) -> dict:

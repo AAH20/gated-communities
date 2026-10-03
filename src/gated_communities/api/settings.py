@@ -4,10 +4,10 @@ Settings API endpoints for gated communities.
 Provides GET and PUT /settings for retrieving and updating community settings.
 """
 
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import Optional, List
-from datetime import datetime
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -57,9 +57,10 @@ MOCK_SETTINGS = {
 
 # ─── Pydantic Models ─────────────────────────────────────────────────────────
 
+
 class ContentModerationSettings(BaseModel):
     enabled: bool = True
-    auto_flag_keywords: List[str] = Field(default_factory=list)
+    auto_flag_keywords: list[str] = Field(default_factory=list)
     require_post_approval: bool = False
     max_daily_posts_per_member: int = Field(default=25, ge=1, le=100)
 
@@ -73,15 +74,15 @@ class NotificationSettings(BaseModel):
 
 class BrandingSettings(BaseModel):
     primary_color: str = Field(default="#6366F1", pattern="^#[0-9A-Fa-f]{6}$")
-    logo_url: Optional[str] = None
-    banner_url: Optional[str] = None
-    custom_domain: Optional[str] = None
+    logo_url: str | None = None
+    banner_url: str | None = None
+    custom_domain: str | None = None
 
 
 class IntegrationSettings(BaseModel):
-    discord_webhook: Optional[str] = None
-    slack_channel: Optional[str] = None
-    github_org: Optional[str] = None
+    discord_webhook: str | None = None
+    slack_channel: str | None = None
+    github_org: str | None = None
 
 
 class LimitSettings(BaseModel):
@@ -93,16 +94,17 @@ class LimitSettings(BaseModel):
 
 class SettingsUpdateRequest(BaseModel):
     """Partial update — only provided fields are changed."""
-    community_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    description: Optional[str] = Field(default=None, max_length=500)
-    visibility: Optional[str] = Field(default=None, pattern="^(public|private|unlisted)$")
-    join_policy: Optional[str] = Field(default=None, pattern="^(open|invite_only|application|closed)$")
-    member_approval_required: Optional[bool] = None
-    content_moderation: Optional[ContentModerationSettings] = None
-    notifications: Optional[NotificationSettings] = None
-    branding: Optional[BrandingSettings] = None
-    integrations: Optional[IntegrationSettings] = None
-    limits: Optional[LimitSettings] = None
+
+    community_name: str | None = Field(default=None, min_length=1, max_length=100)
+    description: str | None = Field(default=None, max_length=500)
+    visibility: str | None = Field(default=None, pattern="^(public|private|unlisted)$")
+    join_policy: str | None = Field(default=None, pattern="^(open|invite_only|application|closed)$")
+    member_approval_required: bool | None = None
+    content_moderation: ContentModerationSettings | None = None
+    notifications: NotificationSettings | None = None
+    branding: BrandingSettings | None = None
+    integrations: IntegrationSettings | None = None
+    limits: LimitSettings | None = None
 
 
 class SettingsResponse(BaseModel):
@@ -128,6 +130,7 @@ _settings_store: dict = {**MOCK_SETTINGS}
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
+
 def _deep_update(base: dict, updates: dict) -> dict:
     """Recursively merge updates into base dict."""
     for key, value in updates.items():
@@ -139,6 +142,7 @@ def _deep_update(base: dict, updates: dict) -> dict:
 
 
 # ─── Endpoints ───────────────────────────────────────────────────────────────
+
 
 @router.get("", response_model=SettingsResponse)
 async def get_settings() -> dict:

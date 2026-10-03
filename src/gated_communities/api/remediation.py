@@ -6,8 +6,7 @@ from typing import TYPE_CHECKING
 
 from compliance_monitor.api.dependencies import get_remediation_agent
 from compliance_monitor.api.store import store
-from compliance_monitor.models.schemas import (RemediationAction,
-                                               RemediationRequest)
+from compliance_monitor.models.schemas import RemediationAction, RemediationRequest
 from fastapi import APIRouter, Depends, HTTPException, status
 
 if TYPE_CHECKING:
@@ -39,9 +38,7 @@ async def remediate_violation(
     """
     violation = store.get_violation(violation_id)
     if not violation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Violation not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Violation not found")
 
     action = await agent.run(data)
     action.violation_id = violation_id

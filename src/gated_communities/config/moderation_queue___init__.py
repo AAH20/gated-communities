@@ -40,23 +40,15 @@ class Settings(BaseSettings):
     )
 
     # Redis
-    redis_url: str = Field(
-        default="redis://localhost:6379/0", description="Redis connection URL"
-    )
+    redis_url: str = Field(default="redis://localhost:6379/0", description="Redis connection URL")
 
     # OpenAI / LangChain
     openai_api_key: str | None = Field(default=None, description="OpenAI API key")
-    langchain_model: str = Field(
-        default="gpt-4o-mini", description="LangChain model name"
-    )
-    langchain_temperature: float = Field(
-        default=0.1, description="LangChain model temperature"
-    )
+    langchain_model: str = Field(default="gpt-4o-mini", description="LangChain model name")
+    langchain_temperature: float = Field(default=0.1, description="LangChain model temperature")
 
     # Moderation
-    auto_moderation_enabled: bool = Field(
-        default=True, description="Enable auto-moderation"
-    )
+    auto_moderation_enabled: bool = Field(default=True, description="Enable auto-moderation")
     auto_moderation_threshold: float = Field(
         default=0.7, description="Confidence threshold for auto-moderation"
     )

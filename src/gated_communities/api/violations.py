@@ -60,7 +60,5 @@ async def get_violation(violation_id: UUID) -> Violation:
     """
     violation = store.get_violation(violation_id)
     if not violation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Violation not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Violation not found")
     return violation

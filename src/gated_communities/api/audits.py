@@ -60,7 +60,5 @@ async def get_audit(audit_id: UUID) -> AuditReport:
     """
     audit = store.get_audit(audit_id)
     if not audit:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Audit report not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Audit report not found")
     return audit

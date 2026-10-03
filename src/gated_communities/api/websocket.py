@@ -1,14 +1,13 @@
 """WebSocket endpoint for real-time communication."""
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import Dict, List, Set
 
 router = APIRouter()
 
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: Dict[str, List[WebSocket]] = {}
+        self.active_connections: dict[str, list[WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket, community_id: str):
         await websocket.accept()

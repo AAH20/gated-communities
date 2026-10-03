@@ -32,18 +32,12 @@ class EscalationOutput(BaseModel):
 
     escalation_id: str = Field(..., description="Escalation record ID")
     assigned_team: str = Field(..., description="Assigned team ID")
-    assigned_reviewer: str | None = Field(
-        default=None, description="Assigned reviewer ID"
-    )
+    assigned_reviewer: str | None = Field(default=None, description="Assigned reviewer ID")
     priority: PriorityLevel = Field(..., description="Escalation priority")
     sla_minutes: int = Field(..., description="SLA in minutes")
-    required_actions: list[str] = Field(
-        default_factory=list, description="Required actions"
-    )
+    required_actions: list[str] = Field(default_factory=list, description="Required actions")
     reasoning: str = Field(default="", description="Escalation reasoning")
-    notify_channels: list[str] = Field(
-        default_factory=list, description="Channels to notify"
-    )
+    notify_channels: list[str] = Field(default_factory=list, description="Channels to notify")
 
 
 SYSTEM_PROMPT = """You are an AI escalation manager for content moderation.

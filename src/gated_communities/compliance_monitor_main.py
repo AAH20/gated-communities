@@ -6,8 +6,7 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
 import structlog
-from compliance_monitor.api.routes import (audits, policies, remediation,
-                                           scores, violations)
+from compliance_monitor.api.routes import audits, policies, remediation, scores, violations
 from compliance_monitor.config.settings import get_settings
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,9 +22,7 @@ logger = structlog.get_logger(__name__)
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager for startup/shutdown events."""
     settings = get_settings()
-    logger.info(
-        "Starting compliance monitor", env=settings.app_env, debug=settings.debug
-    )
+    logger.info("Starting compliance monitor", env=settings.app_env, debug=settings.debug)
     yield
     logger.info("Shutting down compliance monitor")
 
@@ -54,9 +51,7 @@ def create_app() -> FastAPI:
     )
 
     @app.exception_handler(Exception)
-    async def global_exception_handler(
-        request: Request, exc: Exception
-    ) -> JSONResponse:
+    async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         """Handle unexpected exceptions globally."""
         logger.error("Unhandled exception", error=str(exc), path=request.url.path)
         return JSONResponse(
@@ -71,9 +66,7 @@ def create_app() -> FastAPI:
 
     # API routes
     app.include_router(policies.router, prefix="/api/v1/policies", tags=["policies"])
-    app.include_router(
-        violations.router, prefix="/api/v1/violations", tags=["violations"]
-    )
+    app.include_router(violations.router, prefix="/api/v1/violations", tags=["violations"])
     app.include_router(audits.router, prefix="/api/v1/audits", tags=["audits"])
     app.include_router(scores.router, prefix="/api/v1/scores", tags=["scores"])
     app.include_router(remediation.router, prefix="/api/v1", tags=["remediation"])

@@ -4,11 +4,11 @@ Reports API endpoints for gated-communities.
 Provides endpoints to list available reports and generate new reports.
 """
 
+import uuid
+from datetime import datetime
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import List, Optional
-from datetime import datetime, timedelta
-import uuid
 
 router = APIRouter()
 
@@ -61,12 +61,13 @@ AVAILABLE_REPORTS = [
 
 # ─── Request / Response Models ───────────────────────────────────────────────
 
+
 class GenerateReportRequest(BaseModel):
     report_id: str = Field(..., description="ID of the report to generate.")
-    start_date: Optional[str] = Field(None, description="Start date (ISO 8601).")
-    end_date: Optional[str] = Field(None, description="End date (ISO 8601).")
-    community_id: Optional[str] = Field(None, description="Filter by community ID.")
-    format: Optional[str] = Field("pdf", description="Output format: pdf, csv, xlsx.")
+    start_date: str | None = Field(None, description="Start date (ISO 8601).")
+    end_date: str | None = Field(None, description="End date (ISO 8601).")
+    community_id: str | None = Field(None, description="Filter by community ID.")
+    format: str | None = Field("pdf", description="Output format: pdf, csv, xlsx.")
 
 
 class GenerateReportResponse(BaseModel):
@@ -76,13 +77,14 @@ class GenerateReportResponse(BaseModel):
     status: str
     format: str
     created_at: str
-    download_url: Optional[str] = None
+    download_url: str | None = None
     message: str
 
 
 # ─── Endpoints ───────────────────────────────────────────────────────────────
 
-@router.get("/reports", response_model=List[dict])
+
+@router.get("/reports", response_model=list[dict])
 async def list_reports():
     """
     GET /reports — List all available report types.

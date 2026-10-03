@@ -6,11 +6,8 @@ from typing import TYPE_CHECKING, Any
 
 from community_governance.api.dependencies import get_rule_enforcer
 from community_governance.config.logging_config import get_logger
-from community_governance.models.governance_action import (
-    GovernanceAction, GovernanceActionCreate)
-from community_governance.models.rule import (Rule, RuleCreate,
-                                              RuleEnforcementResult,
-                                              RuleUpdate)
+from community_governance.models.governance_action import GovernanceAction, GovernanceActionCreate
+from community_governance.models.rule import Rule, RuleCreate, RuleEnforcementResult, RuleUpdate
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 if TYPE_CHECKING:
@@ -82,7 +79,8 @@ async def list_rules(
 
 @router.get("/{rule_id}", response_model=Rule)
 async def get_rule(
-    rule_id: UUID, agent: RuleEnforcerAgent = Depends(get_rule_enforcer)  # noqa: B008,
+    rule_id: UUID,
+    agent: RuleEnforcerAgent = Depends(get_rule_enforcer),  # noqa: B008,
 ) -> Rule:
     """Get a specific rule by ID.
 
@@ -139,15 +137,14 @@ async def update_rule(
     from datetime import datetime
 
     rule.updated_at = datetime.utcnow()
-    logger.info(
-        f"Rule updated: {rule.name}", rule_id=str(rule.id), version=rule.version
-    )
+    logger.info(f"Rule updated: {rule.name}", rule_id=str(rule.id), version=rule.version)
     return rule
 
 
 @router.delete("/{rule_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_rule(
-    rule_id: UUID, agent: RuleEnforcerAgent = Depends(get_rule_enforcer)  # noqa: B008,
+    rule_id: UUID,
+    agent: RuleEnforcerAgent = Depends(get_rule_enforcer),  # noqa: B008,
 ) -> None:
     """Delete a rule.
 

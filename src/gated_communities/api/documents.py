@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, status
 from member_verification.api.dependencies import verify_api_key
-from member_verification.models.schemas import (DocumentVerificationResult,
-                                                DocumentVerifyRequest)
+from member_verification.models.schemas import DocumentVerificationResult, DocumentVerifyRequest
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -28,16 +27,13 @@ async def verify_document(
     Returns:
         The document verification result.
     """
-    from member_verification.agents.document_checker import \
-        DocumentCheckerAgent
+    from member_verification.agents.document_checker import DocumentCheckerAgent
 
     agent = DocumentCheckerAgent()
     result = await agent.run(
         {
             "document": request.document.model_dump(),
-            "identity": (
-                {"government_id": request.member_id} if request.cross_reference else {}
-            ),
+            "identity": ({"government_id": request.member_id} if request.cross_reference else {}),
             "cross_reference": request.cross_reference,
         }
     )

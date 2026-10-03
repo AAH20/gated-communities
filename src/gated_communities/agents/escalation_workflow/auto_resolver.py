@@ -70,7 +70,7 @@ Escalation Title: {escalation.title}
 Description: {escalation.description}
 Category: {escalation.category}
 Priority: {escalation.priority}
-Tags: {', '.join(escalation.tags)}
+Tags: {", ".join(escalation.tags)}
 
 Auto-resolve enabled: {input_data.auto_resolve_enabled}
 Confidence threshold: {input_data.confidence_threshold}

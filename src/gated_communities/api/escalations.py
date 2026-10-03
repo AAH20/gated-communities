@@ -25,9 +25,7 @@ class CreateEscalationRequest(BaseModel):
     reason: str = Field(..., description="Escalation reason")
     to_queue_id: UUID | None = Field(default=None, description="Destination queue")
     assigned_to: str | None = Field(default=None, description="Assigned reviewer")
-    priority: PriorityLevel = Field(
-        default=PriorityLevel.HIGH, description="Escalation priority"
-    )
+    priority: PriorityLevel = Field(default=PriorityLevel.HIGH, description="Escalation priority")
 
 
 class EscalationListResponse(BaseModel):
@@ -77,9 +75,7 @@ async def create_escalation(
 )
 async def list_escalations(
     status_filter: str | None = Query(default=None, description="Filter by status"),
-    priority: PriorityLevel | None = Query(
-        default=None, description="Filter by priority"
-    ),  # noqa: B008
+    priority: PriorityLevel | None = Query(default=None, description="Filter by priority"),  # noqa: B008
     logger=Depends(get_logger),  # noqa: B008
 ) -> EscalationListResponse:
     """List escalations with optional filters.

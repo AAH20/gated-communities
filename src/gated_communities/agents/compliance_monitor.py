@@ -9,10 +9,9 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
-
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Enums & Data Classes
@@ -57,8 +56,8 @@ class PolicyViolation:
     severity: PolicySeverity
     description: str
     detected_at: datetime
-    resolved_at: Optional[datetime] = None
-    remediation: Optional[str] = None
+    resolved_at: datetime | None = None
+    remediation: str | None = None
 
     @property
     def is_resolved(self) -> bool:
@@ -77,8 +76,8 @@ class ComplianceCheckResult:
     total_policies: int
     passed_policies: int
     failed_policies: int
-    violations: List[PolicyViolation] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
+    violations: list[PolicyViolation] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -94,22 +93,22 @@ class ComplianceReport:
     overall_status: ComplianceStatus
     overall_score: float
     summary: str
-    category_breakdown: Dict[str, Dict[str, Any]]
-    violations: List[PolicyViolation]
-    recommendations: List[str]
+    category_breakdown: dict[str, dict[str, Any]]
+    violations: list[PolicyViolation]
+    recommendations: list[str]
     next_review_date: datetime
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
 # Mock Data Store
 # ---------------------------------------------------------------------------
 
-_MOCK_COMMUNITIES: Dict[str, Dict[str, Any]] = {
+_MOCK_COMMUNITIES: dict[str, dict[str, Any]] = {
     "comm_001": {
         "name": "Engineering Guild",
         "member_count": 342,
-        "created_at": datetime(2024, 3, 15, tzinfo=timezone.utc),
+        "created_at": datetime(2024, 3, 15, tzinfo=UTC),
         "policies": {
             PolicyCategory.DATA_PRIVACY: {"passed": True, "last_audit": "2026-09-15"},
             PolicyCategory.ACCESS_CONTROL: {"passed": True, "last_audit": "2026-09-20"},
@@ -123,7 +122,7 @@ _MOCK_COMMUNITIES: Dict[str, Dict[str, Any]] = {
     "comm_002": {
         "name": "Product Leaders Forum",
         "member_count": 89,
-        "created_at": datetime(2025, 1, 10, tzinfo=timezone.utc),
+        "created_at": datetime(2025, 1, 10, tzinfo=UTC),
         "policies": {
             PolicyCategory.DATA_PRIVACY: {"passed": True, "last_audit": "2026-09-12"},
             PolicyCategory.ACCESS_CONTROL: {"passed": False, "last_audit": "2026-09-28"},
@@ -138,7 +137,7 @@ _MOCK_COMMUNITIES: Dict[str, Dict[str, Any]] = {
                 category=PolicyCategory.ACCESS_CONTROL,
                 severity=PolicySeverity.HIGH,
                 description="Inactive admin accounts not deactivated within 30 days",
-                detected_at=datetime(2026, 9, 28, 14, 30, tzinfo=timezone.utc),
+                detected_at=datetime(2026, 9, 28, 14, 30, tzinfo=UTC),
                 remediation="Review and deactivate inactive admin accounts",
             ),
             PolicyViolation(
@@ -146,7 +145,7 @@ _MOCK_COMMUNITIES: Dict[str, Dict[str, Any]] = {
                 category=PolicyCategory.AUDIT_TRAIL,
                 severity=PolicySeverity.MEDIUM,
                 description="Audit log retention period below 90-day minimum",
-                detected_at=datetime(2026, 9, 28, 14, 30, tzinfo=timezone.utc),
+                detected_at=datetime(2026, 9, 28, 14, 30, tzinfo=UTC),
                 remediation="Extend audit log retention to meet 90-day policy",
             ),
         ],
@@ -154,7 +153,7 @@ _MOCK_COMMUNITIES: Dict[str, Dict[str, Any]] = {
     "comm_003": {
         "name": "Design Circle",
         "member_count": 156,
-        "created_at": datetime(2024, 8, 22, tzinfo=timezone.utc),
+        "created_at": datetime(2024, 8, 22, tzinfo=UTC),
         "policies": {
             PolicyCategory.DATA_PRIVACY: {"passed": False, "last_audit": "2026-09-30"},
             PolicyCategory.ACCESS_CONTROL: {"passed": True, "last_audit": "2026-09-25"},
@@ -169,7 +168,7 @@ _MOCK_COMMUNITIES: Dict[str, Dict[str, Any]] = {
                 category=PolicyCategory.DATA_PRIVACY,
                 severity=PolicySeverity.CRITICAL,
                 description="Member PII stored without encryption at rest",
-                detected_at=datetime(2026, 9, 30, 9, 0, tzinfo=timezone.utc),
+                detected_at=datetime(2026, 9, 30, 9, 0, tzinfo=UTC),
                 remediation="Enable AES-256 encryption for all PII data stores",
             ),
             PolicyViolation(
@@ -177,7 +176,7 @@ _MOCK_COMMUNITIES: Dict[str, Dict[str, Any]] = {
                 category=PolicyCategory.CONTENT_MODERATION,
                 severity=PolicySeverity.HIGH,
                 description="Content moderation queue backlog exceeds 48 hours",
-                detected_at=datetime(2026, 9, 30, 9, 0, tzinfo=timezone.utc),
+                detected_at=datetime(2026, 9, 30, 9, 0, tzinfo=UTC),
                 remediation="Increase moderation staff or implement automated triage",
             ),
             PolicyViolation(
@@ -185,7 +184,7 @@ _MOCK_COMMUNITIES: Dict[str, Dict[str, Any]] = {
                 category=PolicyCategory.RETENTION,
                 severity=PolicySeverity.MEDIUM,
                 description="Data retention schedule not enforced for deleted content",
-                detected_at=datetime(2026, 9, 30, 9, 0, tzinfo=timezone.utc),
+                detected_at=datetime(2026, 9, 30, 9, 0, tzinfo=UTC),
                 remediation="Implement automated retention policy enforcement",
             ),
         ],
@@ -198,7 +197,7 @@ _MOCK_COMMUNITIES: Dict[str, Dict[str, Any]] = {
 # ---------------------------------------------------------------------------
 
 
-def _get_community_mock(community_id: str) -> Dict[str, Any]:
+def _get_community_mock(community_id: str) -> dict[str, Any]:
     """Retrieve mock community data, generating defaults for unknown IDs."""
     if community_id in _MOCK_COMMUNITIES:
         return _MOCK_COMMUNITIES[community_id]
@@ -206,11 +205,8 @@ def _get_community_mock(community_id: str) -> Dict[str, Any]:
     return {
         "name": f"Community {community_id}",
         "member_count": 50,
-        "created_at": datetime(2025, 6, 1, tzinfo=timezone.utc),
-        "policies": {
-            cat: {"passed": True, "last_audit": "2026-09-15"}
-            for cat in PolicyCategory
-        },
+        "created_at": datetime(2025, 6, 1, tzinfo=UTC),
+        "policies": {cat: {"passed": True, "last_audit": "2026-09-15"} for cat in PolicyCategory},
         "violations": [],
     }
 
@@ -222,9 +218,11 @@ def _calculate_score(passed: int, total: int) -> float:
     return round((passed / total) * 100, 1)
 
 
-def _determine_status(score: float, violations: List[PolicyViolation]) -> ComplianceStatus:
+def _determine_status(score: float, violations: list[PolicyViolation]) -> ComplianceStatus:
     """Determine overall compliance status from score and violations."""
-    has_critical = any(v.severity == PolicySeverity.CRITICAL and not v.is_resolved for v in violations)
+    has_critical = any(
+        v.severity == PolicySeverity.CRITICAL and not v.is_resolved for v in violations
+    )
     has_high = any(v.severity == PolicySeverity.HIGH and not v.is_resolved for v in violations)
 
     if has_critical or score < 50:
@@ -236,9 +234,9 @@ def _determine_status(score: float, violations: List[PolicyViolation]) -> Compli
     return ComplianceStatus.COMPLIANT
 
 
-def _generate_recommendations(violations: List[PolicyViolation]) -> List[str]:
+def _generate_recommendations(violations: list[PolicyViolation]) -> list[str]:
     """Generate remediation recommendations from violations."""
-    recommendations: List[str] = []
+    recommendations: list[str] = []
     for v in violations:
         if not v.is_resolved and v.remediation:
             recommendations.append(f"[{v.severity.value.upper()}] {v.remediation}")
@@ -268,8 +266,8 @@ def check_compliance(community_id: str) -> ComplianceCheckResult:
         raise ValueError("community_id must be a non-empty string")
 
     community = _get_community_mock(community_id)
-    policies: Dict[PolicyCategory, Dict[str, Any]] = community["policies"]
-    violations: List[PolicyViolation] = community.get("violations", [])
+    policies: dict[PolicyCategory, dict[str, Any]] = community["policies"]
+    violations: list[PolicyViolation] = community.get("violations", [])
 
     total = len(policies)
     passed = sum(1 for p in policies.values() if p["passed"])
@@ -282,7 +280,7 @@ def check_compliance(community_id: str) -> ComplianceCheckResult:
         community_id=community_id,
         community_name=community["name"],
         status=status,
-        checked_at=datetime.now(timezone.utc),
+        checked_at=datetime.now(UTC),
         score=score,
         total_policies=total,
         passed_policies=passed,
@@ -309,12 +307,12 @@ def generate_compliance_report(community_id: str) -> ComplianceReport:
 
     check_result = check_compliance(community_id)
     community = _get_community_mock(community_id)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     period_start = now - timedelta(days=30)
 
     # Build category breakdown
-    category_breakdown: Dict[str, Dict[str, Any]] = {}
-    policies: Dict[PolicyCategory, Dict[str, Any]] = community["policies"]
+    category_breakdown: dict[str, dict[str, Any]] = {}
+    policies: dict[PolicyCategory, dict[str, Any]] = community["policies"]
     for cat, info in policies.items():
         cat_violations = [v for v in check_result.violations if v.category == cat]
         category_breakdown[cat.value] = {
@@ -507,7 +505,7 @@ def flag_compliance_issue(community_id: str, issue: str) -> bool:
         category=PolicyCategory.CONTENT_MODERATION,
         severity=PolicySeverity.MEDIUM,
         description=issue,
-        detected_at=datetime.now(timezone.utc),
+        detected_at=datetime.now(UTC),
         remediation="Review and address the flagged compliance issue.",
     )
 

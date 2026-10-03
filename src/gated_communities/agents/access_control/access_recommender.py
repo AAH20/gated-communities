@@ -34,9 +34,7 @@ class AccessRecommenderOutput(BaseModel):
     summary: str = ""
 
 
-class AccessRecommenderAgent(
-    BaseAgent[AccessRecommenderInput, AccessRecommenderOutput]
-):
+class AccessRecommenderAgent(BaseAgent[AccessRecommenderInput, AccessRecommenderOutput]):
     """Agent that generates access recommendations.
 
     Uses LangChain DeepAgents to analyze access patterns, peer behavior,

@@ -80,9 +80,7 @@ class BaseAgent(ABC, Generic[T, R]):
             "llm_configured": self.llm is not None,
         }
 
-    def _build_messages(
-        self, system_prompt: str, user_message: str
-    ) -> list[BaseMessage]:
+    def _build_messages(self, system_prompt: str, user_message: str) -> list[BaseMessage]:
         """Build a message list for LLM invocation.
 
         Args:

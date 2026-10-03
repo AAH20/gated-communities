@@ -53,9 +53,7 @@ class Settings(BaseSettings):
     enable_metrics: bool = Field(default=True)
     enable_tracing: bool = Field(default=False)
 
-    @field_validator(
-        "engagement_weight", "toxicity_weight", "growth_weight", "churn_weight"
-    )
+    @field_validator("engagement_weight", "toxicity_weight", "growth_weight", "churn_weight")
     @classmethod
     def validate_weight(cls, v: float) -> float:
         """Validate that weights are between 0 and 1."""
@@ -81,10 +79,7 @@ class Settings(BaseSettings):
     def weights_sum(self) -> float:
         """Sum of all scoring weights."""
         return (
-            self.engagement_weight
-            + self.toxicity_weight
-            + self.growth_weight
-            + self.churn_weight
+            self.engagement_weight + self.toxicity_weight + self.growth_weight + self.churn_weight
         )
 
 

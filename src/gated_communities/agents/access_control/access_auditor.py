@@ -156,9 +156,7 @@ Respond with a JSON object containing: severity, flagged, anomaly_score, finding
             user_agent=request.context.get("user_agent"),
         )
 
-    async def detect_anomalies(
-        self, events: list[dict[str, Any]]
-    ) -> list[AccessAuditorOutput]:
+    async def detect_anomalies(self, events: list[dict[str, Any]]) -> list[AccessAuditorOutput]:
         """Detect anomalies across a batch of access events.
 
         Args:

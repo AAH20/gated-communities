@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class CommunityError(Exception):
@@ -39,7 +39,7 @@ class Community:
     status: CommunityStatus
     created_at: datetime
     updated_at: datetime
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -60,7 +60,7 @@ class PaginationParams:
 class PaginatedResult:
     """Paginated result wrapper."""
 
-    items: List[Community]
+    items: list[Community]
     total: int
     page: int
     page_size: int
@@ -74,9 +74,9 @@ class CommunityService:
     """Service for managing gated communities."""
 
     def __init__(self) -> None:
-        self._communities: Dict[str, Community] = {}
+        self._communities: dict[str, Community] = {}
 
-    def create_community(self, data: Dict[str, Any]) -> Community:
+    def create_community(self, data: dict[str, Any]) -> Community:
         """Create a new community with validation.
 
         Args:
@@ -120,7 +120,7 @@ class CommunityService:
         if not isinstance(metadata, dict):
             raise ValidationError("metadata must be a dictionary")
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         community = Community(
             id=str(uuid.uuid4()),
             name=name.strip(),
@@ -158,8 +158,8 @@ class CommunityService:
 
     def list_communities(
         self,
-        filters: Optional[Dict[str, Any]] = None,
-        pagination: Optional[PaginationParams] = None,
+        filters: dict[str, Any] | None = None,
+        pagination: PaginationParams | None = None,
     ) -> PaginatedResult:
         """List communities with optional filtering and pagination.
 
@@ -205,7 +205,7 @@ class CommunityService:
             page_size=pagination.page_size,
         )
 
-    def update_community(self, community_id: str, data: Dict[str, Any]) -> Community:
+    def update_community(self, community_id: str, data: dict[str, Any]) -> Community:
         """Update an existing community.
 
         Args:
@@ -260,7 +260,7 @@ class CommunityService:
                 raise ValidationError("metadata must be a dictionary")
             community.metadata = dict(metadata)
 
-        community.updated_at = datetime.now(timezone.utc)
+        community.updated_at = datetime.now(UTC)
         return community
 
     def delete_community(self, community_id: str) -> bool:

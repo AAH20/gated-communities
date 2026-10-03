@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -45,9 +45,7 @@ class InvitationService:
 
         invitation = self._invitations.get(invitation_id)
         if invitation is None:
-            raise InvitationNotFoundError(
-                f"Invitation with id '{invitation_id}' not found"
-            )
+            raise InvitationNotFoundError(f"Invitation with id '{invitation_id}' not found")
         return dict(invitation)
 
     def list_invitations(
@@ -106,7 +104,7 @@ class InvitationService:
             raise InvitationValidationError("community_id is required")
 
         invitation_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         invitation: dict[str, Any] = {
             "id": invitation_id,
@@ -144,16 +142,14 @@ class InvitationService:
 
         invitation = self._invitations.get(invitation_id)
         if invitation is None:
-            raise InvitationNotFoundError(
-                f"Invitation with id '{invitation_id}' not found"
-            )
+            raise InvitationNotFoundError(f"Invitation with id '{invitation_id}' not found")
 
         allowed_fields = {"email", "role", "status", "expires_at", "metadata"}
         for key, value in data.items():
             if key in allowed_fields:
                 invitation[key] = value
 
-        invitation["updated_at"] = datetime.now(timezone.utc).isoformat()
+        invitation["updated_at"] = datetime.now(UTC).isoformat()
         return dict(invitation)
 
     def delete_invitation(self, invitation_id: str) -> bool:
@@ -176,9 +172,7 @@ class InvitationService:
             return True
         return False
 
-    def _matches_filters(
-        self, invitation: dict[str, Any], filters: dict[str, Any]
-    ) -> bool:
+    def _matches_filters(self, invitation: dict[str, Any], filters: dict[str, Any]) -> bool:
         """Check if an invitation matches the given filter criteria.
 
         Args:

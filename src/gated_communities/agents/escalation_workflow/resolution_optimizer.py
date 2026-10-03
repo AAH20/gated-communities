@@ -61,7 +61,7 @@ Escalation Title: {escalation.title}
 Description: {escalation.description}
 Category: {escalation.category}
 Priority: {escalation.priority}
-Tags: {', '.join(escalation.tags)}
+Tags: {", ".join(escalation.tags)}
 
 Previous Resolutions: {input_data.previous_resolutions}
 Available Tools: {input_data.available_tools}

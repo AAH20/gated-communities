@@ -7,9 +7,12 @@ from typing import Any
 from uuid import UUID
 
 from compliance_monitor.agents.base import BaseComplianceAgent
-from compliance_monitor.models.schemas import (RemediationAction,
-                                               RemediationRequest,
-                                               RemediationStatus, Violation)
+from compliance_monitor.models.schemas import (
+    RemediationAction,
+    RemediationRequest,
+    RemediationStatus,
+    Violation,
+)
 
 
 class RemediationAgent(BaseComplianceAgent[RemediationRequest, RemediationAction]):
@@ -65,9 +68,7 @@ Provide a prioritized list of remediation actions with:
 3. Estimated effort
 4. Expected outcome
 """
-        result = await self.agent.ainvoke(
-            {"messages": [{"role": "user", "content": prompt}]}
-        )
+        result = await self.agent.ainvoke({"messages": [{"role": "user", "content": prompt}]})
         return [{"recommendation": result, "violation_id": str(violation.id)}]
 
     async def execute_remediation(self, action: RemediationAction) -> RemediationAction:

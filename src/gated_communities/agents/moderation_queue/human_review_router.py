@@ -18,9 +18,7 @@ class HumanReviewRouterInput(BaseModel):
     available_reviewers: list[dict[str, Any]] = Field(
         default_factory=list, description="Available reviewers with metadata"
     )
-    queue_info: dict[str, Any] = Field(
-        default_factory=dict, description="Queue information"
-    )
+    queue_info: dict[str, Any] = Field(default_factory=dict, description="Queue information")
     reviewer_workloads: dict[str, int] = Field(
         default_factory=dict, description="Current workload per reviewer"
     )
@@ -51,9 +49,7 @@ Consider:
 Always respond with valid JSON matching the expected schema."""
 
 
-class HumanReviewRouterAgent(
-    BaseAgent[HumanReviewRouterInput, HumanReviewRouterOutput]
-):
+class HumanReviewRouterAgent(BaseAgent[HumanReviewRouterInput, HumanReviewRouterOutput]):
     """Agent that routes moderation items to human reviewers intelligently.
 
     This agent matches items with reviewers based on expertise, workload,
@@ -74,9 +70,7 @@ class HumanReviewRouterAgent(
         )
         super().__init__(config, settings)
 
-    async def process(
-        self, input_data: HumanReviewRouterInput
-    ) -> HumanReviewRouterOutput:
+    async def process(self, input_data: HumanReviewRouterInput) -> HumanReviewRouterOutput:
         """Route a moderation item to a human reviewer.
 
         Args:
@@ -121,9 +115,7 @@ Respond with JSON only."""
         # Fallback: assign to least loaded reviewer
         return self._fallback_route(input_data)
 
-    def _fallback_route(
-        self, input_data: HumanReviewRouterInput
-    ) -> HumanReviewRouterOutput:
+    def _fallback_route(self, input_data: HumanReviewRouterInput) -> HumanReviewRouterOutput:
         """Fallback routing when AI is unavailable.
 
         Args:

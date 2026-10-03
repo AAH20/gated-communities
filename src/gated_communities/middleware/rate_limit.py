@@ -11,7 +11,8 @@ from __future__ import annotations
 import functools
 import logging
 import time
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 import redis
 from fastapi import Request, Response
@@ -50,10 +51,13 @@ class TokenBucket:
         bucket = result[0]
         if not bucket:
             # Initialize new bucket
-            pipe.hset(key, mapping={
-                "tokens": self.capacity - tokens,
-                "last_refill": now,
-            })
+            pipe.hset(
+                key,
+                mapping={
+                    "tokens": self.capacity - tokens,
+                    "last_refill": now,
+                },
+            )
             pipe.expire(key, int(self.capacity / self.refill_rate) + 1)
             pipe.execute()
             return True
@@ -67,18 +71,24 @@ class TokenBucket:
         new_tokens = min(self.capacity, current_tokens + tokens_to_add)
 
         if new_tokens >= tokens:
-            pipe.hset(key, mapping={
-                "tokens": new_tokens - tokens,
-                "last_refill": now,
-            })
+            pipe.hset(
+                key,
+                mapping={
+                    "tokens": new_tokens - tokens,
+                    "last_refill": now,
+                },
+            )
             pipe.expire(key, int(self.capacity / self.refill_rate) + 1)
             pipe.execute()
             return True
         else:
-            pipe.hset(key, mapping={
-                "tokens": new_tokens,
-                "last_refill": now,
-            })
+            pipe.hset(
+                key,
+                mapping={
+                    "tokens": new_tokens,
+                    "last_refill": now,
+                },
+            )
             pipe.execute()
             return False
 
@@ -124,9 +134,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
         response.headers["X-RateLimit-Limit"] = str(self.requests_per_minute)
-        response.headers["X-RateLimit-Remaining"] = str(
-            self.bucket.get_remaining(client_ip)
-        )
+        response.headers["X-RateLimit-Remaining"] = str(self.bucket.get_remaining(client_ip))
         return response
 
 
@@ -145,20 +153,18 @@ def rate_limit(requests: int, window: int):
     """
 
     def decorator(func: Callable) -> Callable:
-        _redis: Optional[redis.Redis] = None
+        _redis: redis.Redis | None = None
 
         def _get_redis() -> redis.Redis:
             nonlocal _redis
             if _redis is None:
-                _redis = redis.from_url(
-                    "redis://localhost:6379/0", decode_responses=False
-                )
+                _redis = redis.from_url("redis://localhost:6379/0", decode_responses=False)
             return _redis
 
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Extract request from args (FastAPI/Starlette style)
-            request: Optional[Request] = None
+            request: Request | None = None
             for arg in args:
                 if isinstance(arg, Request):
                     request = arg

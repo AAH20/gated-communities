@@ -6,10 +6,9 @@ Provides:
   POST /posts  — create a post with validation
 """
 
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -19,8 +18,10 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 # Pydantic schemas
 # ---------------------------------------------------------------------------
 
+
 class PostCreate(BaseModel):
     """Payload for creating a new post."""
+
     community_id: int = Field(..., gt=0, description="ID of the community this post belongs to")
     author_id: int = Field(..., gt=0, description="ID of the post author")
     title: str = Field(..., min_length=1, max_length=200)
@@ -30,6 +31,7 @@ class PostCreate(BaseModel):
 
 class PostResponse(BaseModel):
     """Response model for a single post."""
+
     id: int
     community_id: int
     author_id: int
@@ -42,6 +44,7 @@ class PostResponse(BaseModel):
 
 class PostListResponse(BaseModel):
     """Paginated list of posts."""
+
     items: list[PostResponse]
     total: int
     page: int
@@ -122,10 +125,11 @@ MOCK_POSTS: list[dict] = [
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("", response_model=PostListResponse)
 async def list_posts(
-    community_id: Optional[int] = Query(None, gt=0, description="Filter by community ID"),
-    author_id: Optional[int] = Query(None, gt=0, description="Filter by author ID"),
+    community_id: int | None = Query(None, gt=0, description="Filter by community ID"),
+    author_id: int | None = Query(None, gt=0, description="Filter by author ID"),
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(10, ge=1, le=100, description="Items per page"),
 ) -> dict:
@@ -165,7 +169,7 @@ async def create_post(payload: PostCreate) -> dict:
     Validates the payload and returns the created post.
     """
     new_id = max(p["id"] for p in MOCK_POSTS) + 1 if MOCK_POSTS else 1
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     post = {
         "id": new_id,

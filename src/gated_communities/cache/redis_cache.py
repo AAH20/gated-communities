@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import redis
 
@@ -17,7 +17,7 @@ class RedisCache:
         host: str = "localhost",
         port: int = 6379,
         db: int = 0,
-        password: Optional[str] = None,
+        password: str | None = None,
         key_prefix: str = "gated_communities:",
         socket_timeout: float = 5.0,
         socket_connect_timeout: float = 5.0,
@@ -40,7 +40,7 @@ class RedisCache:
         """Prefix a key with the namespace prefix."""
         return f"{self._key_prefix}{key}"
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get a cached value by key. Returns None if not found or on error."""
         try:
             raw = self._client.get(self._make_key(key))

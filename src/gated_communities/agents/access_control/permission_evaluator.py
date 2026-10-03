@@ -36,9 +36,7 @@ class PermissionEvaluatorOutput(BaseModel):
     policy_ids: list[str] = Field(default_factory=list)
 
 
-class PermissionEvaluatorAgent(
-    BaseAgent[PermissionEvaluatorInput, PermissionEvaluatorOutput]
-):
+class PermissionEvaluatorAgent(BaseAgent[PermissionEvaluatorInput, PermissionEvaluatorOutput]):
     """Agent that evaluates whether a principal should be granted access.
 
     Uses LangChain DeepAgents to perform contextual reasoning about the

@@ -5,8 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from escalation_workflow.agents.base import BaseAgent
-from escalation_workflow.models.priority import (PriorityAssessment,
-                                                 PriorityLevel)
+from escalation_workflow.models.priority import PriorityAssessment, PriorityLevel
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
@@ -61,7 +60,7 @@ Escalation Title: {escalation.title}
 Description: {escalation.description}
 Category: {escalation.category}
 Source: {escalation.source}
-Tags: {', '.join(escalation.tags)}
+Tags: {", ".join(escalation.tags)}
 Metadata: {input_data.context}
 
 Assess the priority and provide:

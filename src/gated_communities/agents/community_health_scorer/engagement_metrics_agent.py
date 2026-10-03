@@ -17,9 +17,7 @@ class EngagementMetricsAgent:
     """
 
     name: str = "engagement_metrics_agent"
-    description: str = (
-        "Analyzes community engagement patterns and produces engagement scores"
-    )
+    description: str = "Analyzes community engagement patterns and produces engagement scores"
 
     def __init__(self) -> None:
         """Initialize the Engagement Metrics Agent."""
@@ -134,9 +132,7 @@ class EngagementMetricsAgent:
             score=round(score, 2),
         )
 
-    async def run(
-        self, community_id: str, metrics_data: dict[str, Any]
-    ) -> EngagementMetrics:
+    async def run(self, community_id: str, metrics_data: dict[str, Any]) -> EngagementMetrics:
         """Run the engagement metrics analysis.
 
         Args:

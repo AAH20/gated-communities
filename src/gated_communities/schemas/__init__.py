@@ -7,10 +7,10 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-
 # ---------------------------------------------------------------------------
 # Community
 # ---------------------------------------------------------------------------
+
 
 class CommunityCreate(BaseModel):
     """Schema for creating a new community."""
@@ -42,14 +42,14 @@ class CommunityCreate(BaseModel):
 class CommunityUpdate(BaseModel):
     """Schema for updating an existing community."""
 
-    name: Optional[str] = Field(None, min_length=1, max_length=100)
-    description: Optional[str] = Field(None, min_length=1, max_length=2000)
-    is_private: Optional[bool] = None
-    tags: Optional[list[str]] = None
+    name: str | None = Field(None, min_length=1, max_length=100)
+    description: str | None = Field(None, min_length=1, max_length=2000)
+    is_private: bool | None = None
+    tags: list[str] | None = None
 
     @field_validator("name")
     @classmethod
-    def name_not_blank(cls, v: Optional[str]) -> Optional[str]:
+    def name_not_blank(cls, v: str | None) -> str | None:
         if v is not None and not v.strip():
             raise ValueError("name must not be blank")
         return v.strip() if v is not None else v
@@ -74,6 +74,7 @@ class CommunityResponse(BaseModel):
 # Member
 # ---------------------------------------------------------------------------
 
+
 class MemberCreate(BaseModel):
     """Schema for adding a member to a community."""
 
@@ -92,12 +93,12 @@ class MemberCreate(BaseModel):
 class MemberUpdate(BaseModel):
     """Schema for updating a member's role or status."""
 
-    role: Optional[str] = Field(None, pattern="^(member|moderator|admin)$")
-    is_active: Optional[bool] = None
+    role: str | None = Field(None, pattern="^(member|moderator|admin)$")
+    is_active: bool | None = None
 
     @field_validator("role")
     @classmethod
-    def role_valid(cls, v: Optional[str]) -> Optional[str]:
+    def role_valid(cls, v: str | None) -> str | None:
         if v is None:
             return v
         allowed = {"member", "moderator", "admin"}
@@ -123,6 +124,7 @@ class MemberResponse(BaseModel):
 # Post
 # ---------------------------------------------------------------------------
 
+
 class PostCreate(BaseModel):
     """Schema for creating a new post."""
 
@@ -141,13 +143,13 @@ class PostCreate(BaseModel):
 class PostUpdate(BaseModel):
     """Schema for updating an existing post."""
 
-    title: Optional[str] = Field(None, min_length=1, max_length=300)
-    content: Optional[str] = Field(None, min_length=1, max_length=50_000)
-    is_pinned: Optional[bool] = None
+    title: str | None = Field(None, min_length=1, max_length=300)
+    content: str | None = Field(None, min_length=1, max_length=50_000)
+    is_pinned: bool | None = None
 
     @field_validator("title")
     @classmethod
-    def title_not_blank(cls, v: Optional[str]) -> Optional[str]:
+    def title_not_blank(cls, v: str | None) -> str | None:
         if v is not None and not v.strip():
             raise ValueError("title must not be blank")
         return v.strip() if v is not None else v
@@ -173,11 +175,12 @@ class PostResponse(BaseModel):
 # Comment
 # ---------------------------------------------------------------------------
 
+
 class CommentCreate(BaseModel):
     """Schema for creating a new comment."""
 
     content: str = Field(..., min_length=1, max_length=10_000)
-    parent_id: Optional[int] = Field(None, gt=0)
+    parent_id: int | None = Field(None, gt=0)
 
     @field_validator("content")
     @classmethod
@@ -190,11 +193,11 @@ class CommentCreate(BaseModel):
 class CommentUpdate(BaseModel):
     """Schema for updating an existing comment."""
 
-    content: Optional[str] = Field(None, min_length=1, max_length=10_000)
+    content: str | None = Field(None, min_length=1, max_length=10_000)
 
     @field_validator("content")
     @classmethod
-    def content_not_blank(cls, v: Optional[str]) -> Optional[str]:
+    def content_not_blank(cls, v: str | None) -> str | None:
         if v is not None and not v.strip():
             raise ValueError("content must not be blank")
         return v.strip() if v is not None else v
@@ -209,7 +212,7 @@ class CommentResponse(BaseModel):
     post_id: int
     author_id: int
     content: str
-    parent_id: Optional[int] = None
+    parent_id: int | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -218,12 +221,13 @@ class CommentResponse(BaseModel):
 # Event
 # ---------------------------------------------------------------------------
 
+
 class EventCreate(BaseModel):
     """Schema for creating a new event."""
 
     title: str = Field(..., min_length=1, max_length=200)
     description: str = Field(..., min_length=1, max_length=5_000)
-    location: Optional[str] = Field(None, max_length=300)
+    location: str | None = Field(None, max_length=300)
     starts_at: datetime
     ends_at: datetime
 
@@ -245,22 +249,22 @@ class EventCreate(BaseModel):
 class EventUpdate(BaseModel):
     """Schema for updating an existing event."""
 
-    title: Optional[str] = Field(None, min_length=1, max_length=200)
-    description: Optional[str] = Field(None, min_length=1, max_length=5_000)
-    location: Optional[str] = Field(None, max_length=300)
-    starts_at: Optional[datetime] = None
-    ends_at: Optional[datetime] = None
+    title: str | None = Field(None, min_length=1, max_length=200)
+    description: str | None = Field(None, min_length=1, max_length=5_000)
+    location: str | None = Field(None, max_length=300)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
 
     @field_validator("title")
     @classmethod
-    def title_not_blank(cls, v: Optional[str]) -> Optional[str]:
+    def title_not_blank(cls, v: str | None) -> str | None:
         if v is not None and not v.strip():
             raise ValueError("title must not be blank")
         return v.strip() if v is not None else v
 
     @field_validator("ends_at")
     @classmethod
-    def ends_after_start(cls, v: Optional[datetime], info) -> Optional[datetime]:
+    def ends_after_start(cls, v: datetime | None, info) -> datetime | None:
         if v is None:
             return v
         if "starts_at" in info.data and info.data["starts_at"] is not None:
@@ -278,7 +282,7 @@ class EventResponse(BaseModel):
     community_id: int
     title: str
     description: str
-    location: Optional[str] = None
+    location: str | None = None
     starts_at: datetime
     ends_at: datetime
     created_at: datetime

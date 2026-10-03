@@ -16,9 +16,7 @@ class ScoringInput(BaseModel):
     negative_feedback: int = Field(default=0, description="Negative feedback count")
     account_age_days: int = Field(default=0, description="Account age in days")
     badge_count: int = Field(default=0, description="Number of badges earned")
-    recent_activity_score: float = Field(
-        default=0.0, description="Recent activity score (0-1)"
-    )
+    recent_activity_score: float = Field(default=0.0, description="Recent activity score (0-1)")
     quality_score: float = Field(default=0.0, description="Quality score (0-1)")
 
 

@@ -96,9 +96,7 @@ class BenefitManagerAgent(BaseAgent[dict[str, Any], Benefit]):
         benefit = Benefit(
             id=uuid4(),
             name=benefit_data.get("name", "Unnamed Benefit"),
-            benefit_type=BenefitType(
-                benefit_data.get("benefit_type", "percentage_discount")
-            ),
+            benefit_type=BenefitType(benefit_data.get("benefit_type", "percentage_discount")),
             description=benefit_data.get("description"),
             value=float(benefit_data.get("value", 0.0)),
             tier_ids=[UUID(str(t)) for t in benefit_data.get("tier_ids", [])],

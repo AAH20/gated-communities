@@ -7,9 +7,8 @@ Provides:
 """
 
 from datetime import date, datetime, timedelta
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 from pydantic import BaseModel, Field, field_validator
 
 router = APIRouter(prefix="/events", tags=["events"])
@@ -19,6 +18,7 @@ router = APIRouter(prefix="/events", tags=["events"])
 # Pydantic schemas
 # ---------------------------------------------------------------------------
 
+
 class EventCreate(BaseModel):
     """Payload for creating a new event."""
 
@@ -26,14 +26,14 @@ class EventCreate(BaseModel):
     description: str = Field(..., min_length=10, max_length=5000)
     community_id: int = Field(..., gt=0)
     start_date: date
-    end_date: Optional[date] = None
-    location: Optional[str] = Field(None, max_length=300)
-    max_attendees: Optional[int] = Field(None, gt=0, le=10_000)
+    end_date: date | None = None
+    location: str | None = Field(None, max_length=300)
+    max_attendees: int | None = Field(None, gt=0, le=10_000)
     is_public: bool = False
 
     @field_validator("end_date")
     @classmethod
-    def end_after_start(cls, v: Optional[date], info) -> Optional[date]:
+    def end_after_start(cls, v: date | None, info) -> date | None:
         if v is not None:
             start = info.data.get("start_date")
             if start and v < start:
@@ -49,9 +49,9 @@ class EventResponse(BaseModel):
     description: str
     community_id: int
     start_date: date
-    end_date: Optional[date] = None
-    location: Optional[str] = None
-    max_attendees: Optional[int] = None
+    end_date: date | None = None
+    location: str | None = None
+    max_attendees: int | None = None
     attendee_count: int = 0
     is_public: bool = False
     created_at: datetime
@@ -144,14 +144,19 @@ def _seed_mock_data() -> None:
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("", response_model=PaginatedEvents)
 async def list_events(
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
-    community_id: Optional[int] = Query(None, gt=0, description="Filter by community ID"),
-    start_after: Optional[date] = Query(None, description="Filter events starting on or after this date"),
-    start_before: Optional[date] = Query(None, description="Filter events starting on or before this date"),
-    is_public: Optional[bool] = Query(None, description="Filter by public/private visibility"),
+    community_id: int | None = Query(None, gt=0, description="Filter by community ID"),
+    start_after: date | None = Query(
+        None, description="Filter events starting on or after this date"
+    ),
+    start_before: date | None = Query(
+        None, description="Filter events starting on or before this date"
+    ),
+    is_public: bool | None = Query(None, description="Filter by public/private visibility"),
 ) -> PaginatedEvents:
     """
     List events with pagination and optional filtering.

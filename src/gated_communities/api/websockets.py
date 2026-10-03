@@ -74,11 +74,7 @@ class ConnectionManager:
         """Broadcast a presence update to all connected clients."""
         message = {"type": "presence", "user_id": user_id, "status": status}
         async with self._lock:
-            all_connections = [
-                ws
-                for conns in self.active_connections.values()
-                for ws in conns
-            ]
+            all_connections = [ws for conns in self.active_connections.values() for ws in conns]
         disconnected: list[WebSocket] = []
         for connection in all_connections:
             try:
@@ -140,9 +136,7 @@ async def websocket_messages(websocket: WebSocket) -> None:
 
             elif msg_type == "message":
                 if not user_id or not room:
-                    await websocket.send_json(
-                        {"type": "error", "message": "Join a room first"}
-                    )
+                    await websocket.send_json({"type": "error", "message": "Join a room first"})
                     continue
                 await manager.broadcast(
                     {
@@ -167,9 +161,7 @@ async def websocket_messages(websocket: WebSocket) -> None:
     except WebSocketDisconnect:
         if user_id and room:
             await manager.disconnect(websocket, room, user_id)
-            await manager.broadcast(
-                {"type": "system", "content": f"{user_id} left {room}"}, room
-            )
+            await manager.broadcast({"type": "system", "content": f"{user_id} left {room}"}, room)
             await manager.broadcast_presence(user_id, "offline")
     except Exception:
         logger.exception("Error in messages websocket")
@@ -208,9 +200,7 @@ async def websocket_presence(websocket: WebSocket) -> None:
             elif msg_type == "register":
                 user_id = data.get("user_id")
                 if not user_id:
-                    await websocket.send_json(
-                        {"type": "error", "message": "user_id is required"}
-                    )
+                    await websocket.send_json({"type": "error", "message": "user_id is required"})
                     continue
                 async with manager._lock:
                     manager.presence[user_id] = {

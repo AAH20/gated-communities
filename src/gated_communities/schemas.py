@@ -1,8 +1,8 @@
 """Pydantic schemas for request/response validation."""
 
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
 from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class CommunityCreate(BaseModel):
@@ -20,7 +20,7 @@ class CommunityResponse(BaseModel):
     is_private: bool
     tier_id: str
     capacity: int
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
     class Config:
         from_attributes = True
@@ -40,7 +40,7 @@ class MemberResponse(BaseModel):
     role: str
     community_id: int
     is_active: bool
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
     class Config:
         from_attributes = True
@@ -58,37 +58,37 @@ class ModerationItemResponse(BaseModel):
     author: str
     reason: str
     status: str
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
     class Config:
         from_attributes = True
 
 
 class AuditLogCreate(BaseModel):
-    user_id: Optional[str] = None
+    user_id: str | None = None
     action: str = Field(..., min_length=1, max_length=100)
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
+    resource_type: str | None = None
+    resource_id: str | None = None
     details: str = ""
 
 
 class AuditLogResponse(BaseModel):
     id: int
-    user_id: Optional[str]
+    user_id: str | None
     action: str
-    resource_type: Optional[str]
-    resource_id: Optional[str]
+    resource_type: str | None
+    resource_id: str | None
     details: str
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
     class Config:
         from_attributes = True
 
 
 class BulkMemberUpdate(BaseModel):
-    member_ids: List[int] = Field(..., min_length=1)
+    member_ids: list[int] = Field(..., min_length=1)
     action: str = Field(..., pattern="^(add|remove|update)$")
-    role: Optional[str] = None
+    role: str | None = None
 
 
 class HealthResponse(BaseModel):

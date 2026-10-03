@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import List
 
 from ..database import get_db
 from ..models import ModerationItem
@@ -11,13 +10,19 @@ from ..schemas import ModerationItemCreate, ModerationItemResponse
 router = APIRouter()
 
 
-@router.get("/queue", response_model=List[ModerationItemResponse])
+@router.get("/queue", response_model=list[ModerationItemResponse])
 def get_moderation_queue(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
 ):
-    return db.query(ModerationItem).filter(ModerationItem.status == "pending").offset(skip).limit(limit).all()
+    return (
+        db.query(ModerationItem)
+        .filter(ModerationItem.status == "pending")
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.post("/items", response_model=ModerationItemResponse, status_code=201)

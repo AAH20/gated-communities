@@ -1,6 +1,8 @@
 """Main application entry point with health checks and route registration."""
+
 from fastapi import FastAPI
-from . import moderation, export, search, audit
+
+from . import audit, export, moderation, search
 
 app = FastAPI(title="Gated Communities API", version="1.0.0")
 

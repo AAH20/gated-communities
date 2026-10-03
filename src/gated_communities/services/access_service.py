@@ -7,12 +7,11 @@ for members on community resources.
 from __future__ import annotations
 
 import logging
-from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
 # In-memory store: {(member_id, resource): set(permissions)}
-_access_store: Dict[tuple[str, str], set[str]] = {}
+_access_store: dict[tuple[str, str], set[str]] = {}
 
 
 def check_access(member_id: str, resource: str) -> dict:
@@ -64,9 +63,7 @@ def grant_access(member_id: str, resource: str, permissions: list[str]) -> bool:
         raise ValueError("member_id must be a non-empty string")
     if not resource:
         raise ValueError("resource must be a non-empty string")
-    if not isinstance(permissions, list) or not all(
-        isinstance(p, str) for p in permissions
-    ):
+    if not isinstance(permissions, list) or not all(isinstance(p, str) for p in permissions):
         raise ValueError("permissions must be a list of strings")
 
     key = (member_id, resource)
@@ -104,14 +101,10 @@ def revoke_access(member_id: str, resource: str) -> bool:
     key = (member_id, resource)
     if key in _access_store:
         del _access_store[key]
-        logger.info(
-            "Revoked access: member=%s resource=%s", member_id, resource
-        )
+        logger.info("Revoked access: member=%s resource=%s", member_id, resource)
         return True
 
-    logger.info(
-        "No access to revoke: member=%s resource=%s", member_id, resource
-    )
+    logger.info("No access to revoke: member=%s resource=%s", member_id, resource)
     return True
 
 

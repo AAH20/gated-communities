@@ -117,9 +117,7 @@ class TierAnalyticsAgent(BaseAgent[dict[str, Any], TierAnalytics]):
         revenue = metrics.get("monthly_fee", 0.0) * total_members
 
         # Generate insights
-        insights = self._generate_insights(
-            metrics, total_members, active_members, churned_members
-        )
+        insights = self._generate_insights(metrics, total_members, active_members, churned_members)
 
         return TierAnalytics(
             id=uuid4(),
@@ -196,27 +194,17 @@ class TierAnalyticsAgent(BaseAgent[dict[str, Any], TierAnalytics]):
                     f"Low activity rate: {activity_rate:.1%}. Consider engagement campaigns."
                 )
             elif activity_rate > 0.7:
-                insights.append(
-                    f"Strong engagement: {activity_rate:.1%} activity rate."
-                )
+                insights.append(f"Strong engagement: {activity_rate:.1%} activity rate.")
 
         # Growth analysis
         if total_members > 0:
-            growth_rate = (
-                metrics.get("new_members", 0) - churned_members
-            ) / total_members
+            growth_rate = (metrics.get("new_members", 0) - churned_members) / total_members
             if growth_rate > 0.05:
-                insights.append(
-                    f"Healthy growth: {growth_rate:.1%} net member increase."
-                )
+                insights.append(f"Healthy growth: {growth_rate:.1%} net member increase.")
             elif growth_rate < 0:
-                insights.append(
-                    f"Declining membership: {growth_rate:.1%} net decrease."
-                )
+                insights.append(f"Declining membership: {growth_rate:.1%} net decrease.")
 
         if not insights:
-            insights.append(
-                "Tier performance is stable. No significant changes detected."
-            )
+            insights.append("Tier performance is stable. No significant changes detected.")
 
         return insights

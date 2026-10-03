@@ -93,9 +93,7 @@ class VerificationExplainerAgent(BaseAgent):
         finally:
             self._status = "available"
 
-    def _generate_summary(
-        self, status: str, confidence: float, failures: list[str]
-    ) -> str:
+    def _generate_summary(self, status: str, confidence: float, failures: list[str]) -> str:
         """Generate a human-readable summary.
 
         Args:
@@ -112,25 +110,19 @@ class VerificationExplainerAgent(BaseAgent):
                 "You now have full access to community features."
             )
         elif status == "needs_review":
-            reasons = (
-                "; ".join(failures) if failures else "additional information required"
-            )
+            reasons = "; ".join(failures) if failures else "additional information required"
             return (
                 f"Your verification is under review. {reasons}. "
                 "This typically resolves within 1-2 business days."
             )
         else:
-            reasons = (
-                "; ".join(failures) if failures else "verification requirements not met"
-            )
+            reasons = "; ".join(failures) if failures else "verification requirements not met"
             return (
                 f"Unable to complete verification at this time. {reasons}. "
                 "Please review the requirements and try again."
             )
 
-    def _generate_factors(
-        self, result: dict[str, Any], detail_level: str
-    ) -> list[dict[str, Any]]:
+    def _generate_factors(self, result: dict[str, Any], detail_level: str) -> list[dict[str, Any]]:
         """Generate decision factors.
 
         Args:
@@ -198,33 +190,17 @@ class VerificationExplainerAgent(BaseAgent):
 
         if status == "verified":
             recommendations.append("Keep your verification documents up to date.")
-            recommendations.append(
-                "Enable two-factor authentication for added security."
-            )
+            recommendations.append("Enable two-factor authentication for added security.")
         elif status == "needs_review":
-            recommendations.append(
-                "Ensure all submitted documents are clear and legible."
-            )
-            recommendations.append(
-                "Verify that your personal information matches your documents."
-            )
-            recommendations.append(
-                "Wait for the review process to complete before re-applying."
-            )
+            recommendations.append("Ensure all submitted documents are clear and legible.")
+            recommendations.append("Verify that your personal information matches your documents.")
+            recommendations.append("Wait for the review process to complete before re-applying.")
         else:
-            recommendations.append(
-                "Double-check that all information entered is accurate."
-            )
-            recommendations.append(
-                "Ensure documents are not expired and are clearly visible."
-            )
-            recommendations.append(
-                "Use a high-quality camera or scanner for document submission."
-            )
+            recommendations.append("Double-check that all information entered is accurate.")
+            recommendations.append("Ensure documents are not expired and are clearly visible.")
+            recommendations.append("Use a high-quality camera or scanner for document submission.")
             if failures:
-                recommendations.append(
-                    f"Address the following issues: {'; '.join(failures)}"
-                )
+                recommendations.append(f"Address the following issues: {'; '.join(failures)}")
 
         return recommendations
 

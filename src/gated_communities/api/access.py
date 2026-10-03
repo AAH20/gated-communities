@@ -8,8 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from tier_management.agents.access_controller import AccessControllerAgent
 from tier_management.config.settings import Settings, get_settings
-from tier_management.models.schemas import (AccessCheckRequest,
-                                            AccessCheckResponse, AccessPolicy)
+from tier_management.models.schemas import AccessCheckRequest, AccessCheckResponse, AccessPolicy
 
 access_router = APIRouter()
 
@@ -58,9 +57,7 @@ async def check_access(
     return await agent.execute(request)
 
 
-@access_router.post(
-    "/policies", response_model=AccessPolicy, status_code=status.HTTP_201_CREATED
-)
+@access_router.post("/policies", response_model=AccessPolicy, status_code=status.HTTP_201_CREATED)
 async def create_policy(
     policy_data: dict,
     settings: Settings = Depends(get_settings),  # noqa: B008  # noqa: B008

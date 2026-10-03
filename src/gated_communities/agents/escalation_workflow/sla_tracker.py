@@ -53,9 +53,7 @@ service level agreements and provide:
 
         now = input_data.current_time or datetime.utcnow()
         response_remaining = (input_data.response_deadline - now).total_seconds() / 60
-        resolution_remaining = (
-            input_data.resolution_deadline - now
-        ).total_seconds() / 60
+        resolution_remaining = (input_data.resolution_deadline - now).total_seconds() / 60
 
         status = self._determine_status(response_remaining, resolution_remaining)
         elapsed = (now - input_data.started_at).total_seconds() / 60
@@ -67,12 +65,10 @@ service level agreements and provide:
             escalation_id=input_data.escalation_id,
             priority=input_data.priority,
             response_time_minutes=int(
-                (input_data.response_deadline - input_data.started_at).total_seconds()
-                / 60
+                (input_data.response_deadline - input_data.started_at).total_seconds() / 60
             ),
             resolution_time_minutes=int(
-                (input_data.resolution_deadline - input_data.started_at).total_seconds()
-                / 60
+                (input_data.resolution_deadline - input_data.started_at).total_seconds() / 60
             ),
             status=status,
             started_at=input_data.started_at,
@@ -137,9 +133,7 @@ Assess the breach risk and provide recommendations.
             self.logger.error("Risk assessment failed", error=str(exc))
             return "Risk assessment unavailable"
 
-    def calculate_breach(
-        self, sla: SLA, breach_time: datetime | None = None
-    ) -> SLABreach:
+    def calculate_breach(self, sla: SLA, breach_time: datetime | None = None) -> SLABreach:
         """Calculate and record an SLA breach.
 
         Args:

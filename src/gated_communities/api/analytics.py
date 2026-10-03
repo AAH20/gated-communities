@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -18,9 +19,7 @@ analytics_router = APIRouter()
 _analytics_store: dict[UUID, TierAnalytics] = {}
 
 
-@analytics_router.post(
-    "", response_model=TierAnalytics, status_code=status.HTTP_201_CREATED
-)
+@analytics_router.post("", response_model=TierAnalytics, status_code=status.HTTP_201_CREATED)
 async def generate_analytics(
     analytics_data: dict[str, Any],
     settings: Settings = Depends(get_settings),  # noqa: B008
@@ -151,9 +150,9 @@ async def get_dashboard_metrics(
         Community health metrics including member counts, growth, activity,
         and retention statistics.
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start_date = now - timedelta(days=days)
 
     return {
@@ -222,9 +221,9 @@ async def get_engagement_metrics(
         Detailed engagement analytics including activity trends,
         user interaction patterns, and content performance metrics.
     """
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start_date = now - timedelta(days=days)
 
     # Generate time series data points
@@ -253,14 +252,16 @@ async def get_engagement_metrics(
 
         activity = int(base_activity * weekend_factor * trend_factor * noise)
 
-        data_points.append({
-            "timestamp": point_time.isoformat(),
-            "active_users": activity,
-            "posts_created": int(activity * 0.12),
-            "comments_created": int(activity * 0.45),
-            "reactions_given": int(activity * 1.8),
-            "new_members": int(activity * 0.03),
-        })
+        data_points.append(
+            {
+                "timestamp": point_time.isoformat(),
+                "active_users": activity,
+                "posts_created": int(activity * 0.12),
+                "comments_created": int(activity * 0.45),
+                "reactions_given": int(activity * 1.8),
+                "new_members": int(activity * 0.03),
+            }
+        )
 
     return {
         "status": "success",
@@ -277,9 +278,7 @@ async def get_engagement_metrics(
                 "unique_active_users": 8934,
                 "avg_interactions_per_user": 38.3,
                 "peak_concurrent_users": 847,
-                "peak_concurrent_timestamp": (
-                    now - timedelta(hours=3)
-                ).isoformat(),
+                "peak_concurrent_timestamp": (now - timedelta(hours=3)).isoformat(),
                 "avg_response_time_minutes": 12.4,
                 "content_views": 1234567,
                 "content_shares": 45678,

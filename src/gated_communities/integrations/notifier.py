@@ -113,9 +113,7 @@ class Notifier:
             msg["From"] = self.settings.smtp_user
             msg["To"] = ", ".join(recipients)
 
-            with smtplib.SMTP(
-                self.settings.smtp_host, self.settings.smtp_port
-            ) as server:
+            with smtplib.SMTP(self.settings.smtp_host, self.settings.smtp_port) as server:
                 if self.settings.smtp_user and self.settings.smtp_password:
                     server.starttls()
                     server.login(self.settings.smtp_user, self.settings.smtp_password)

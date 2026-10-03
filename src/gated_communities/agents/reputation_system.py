@@ -108,9 +108,7 @@ def update_reputation(member_id: str, action: str) -> bool:
         raise ValueError("member_id must be a non-empty string")
 
     if not isinstance(action, str) or action not in _ACTION_DELTAS:
-        raise ValueError(
-            f"Unknown action '{action}'. Valid actions: {list(_ACTION_DELTAS.keys())}"
-        )
+        raise ValueError(f"Unknown action '{action}'. Valid actions: {list(_ACTION_DELTAS.keys())}")
 
     delta = _ACTION_DELTAS[action]
     current = _reputation_store.get(member_id, 0.0)

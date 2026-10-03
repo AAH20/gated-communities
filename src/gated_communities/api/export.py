@@ -2,12 +2,13 @@
 
 import csv
 import io
+
 from fastapi import APIRouter, Depends, Query
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Member, Community
+from ..models import Community, Member
 
 router = APIRouter()
 

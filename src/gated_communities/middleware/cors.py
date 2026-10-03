@@ -36,16 +36,10 @@ class CORSValidationMiddleware(BaseHTTPMiddleware):
         # Handle preflight requests
         if request.method == "OPTIONS":
             response = Response(status_code=204)
-            if origin and (
-                origin in self.allowed_origins or "*" in self.allowed_origins
-            ):
+            if origin and (origin in self.allowed_origins or "*" in self.allowed_origins):
                 response.headers["Access-Control-Allow-Origin"] = origin
-                response.headers["Access-Control-Allow-Methods"] = ", ".join(
-                    self.allowed_methods
-                )
-                response.headers["Access-Control-Allow-Headers"] = ", ".join(
-                    self.allowed_headers
-                )
+                response.headers["Access-Control-Allow-Methods"] = ", ".join(self.allowed_methods)
+                response.headers["Access-Control-Allow-Headers"] = ", ".join(self.allowed_headers)
                 response.headers["Access-Control-Allow-Credentials"] = str(
                     self.allow_credentials
                 ).lower()

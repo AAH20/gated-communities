@@ -8,11 +8,12 @@ from typing import TYPE_CHECKING, Any
 
 from community_governance.agents.base import BaseAgent
 from community_governance.config.logging_config import get_logger
-from community_governance.exceptions import (AgentExecutionError,
-                                             PolicyEnforcementError,
-                                             PolicyNotFoundError)
-from community_governance.models.policy import (Policy, PolicyCreate,
-                                                PolicyStatus, PolicyUpdate)
+from community_governance.exceptions import (
+    AgentExecutionError,
+    PolicyEnforcementError,
+    PolicyNotFoundError,
+)
+from community_governance.models.policy import Policy, PolicyCreate, PolicyStatus, PolicyUpdate
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -112,9 +113,7 @@ class PolicyManagerAgent(BaseAgent[dict[str, Any], Policy]):
         """
         try:
             operation = input_data.get("operation", "create")
-            logger.info(
-                f"Executing policy operation: {operation}", agent_name=self.name
-            )
+            logger.info(f"Executing policy operation: {operation}", agent_name=self.name)
 
             if operation == "create":
                 return await self._create_policy(input_data)
@@ -234,9 +233,7 @@ class PolicyManagerAgent(BaseAgent[dict[str, Any], Policy]):
             created_by="policy_manager_agent",
         )
 
-    async def _enhance_policy_with_llm(
-        self, policy_create: PolicyCreate
-    ) -> dict[str, Any]:
+    async def _enhance_policy_with_llm(self, policy_create: PolicyCreate) -> dict[str, Any]:
         """Enhance policy data using the LLM.
 
         Args:
@@ -332,9 +329,7 @@ Provide a policy recommendation that addresses the identified issues."""
             Health status dictionary.
         """
         base_health = await super().health_check()
-        active_policies = len(
-            [p for p in self.policies if p.status == PolicyStatus.ACTIVE]
-        )
+        active_policies = len([p for p in self.policies if p.status == PolicyStatus.ACTIVE])
         base_health.update(
             {
                 "total_policies": len(self.policies),

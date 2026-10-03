@@ -118,14 +118,10 @@ class MetricsMiddleware:
         async def send_wrapper(message: dict) -> None:
             if message["type"] == "http.response.start":
                 status = message["status"]
-                http_requests_total.labels(
-                    method=method, endpoint=path, status=status
-                ).inc()
+                http_requests_total.labels(method=method, endpoint=path, status=status).inc()
             await send(message)
 
         await self.app(scope, receive, send_wrapper)
 
         duration = time.time() - start_time
-        http_request_duration_seconds.labels(method=method, endpoint=path).observe(
-            duration
-        )
+        http_request_duration_seconds.labels(method=method, endpoint=path).observe(duration)

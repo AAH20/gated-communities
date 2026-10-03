@@ -75,7 +75,7 @@ class Community(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     tier: Mapped[CommunityTier] = mapped_column(
         Enum(CommunityTier, name="community_tier"),
         nullable=False,
@@ -99,15 +99,15 @@ class Community(Base):
     )
 
     # Relationships
-    members: Mapped[List["Member"]] = relationship(
+    members: Mapped[list[Member]] = relationship(
         back_populates="community",
         cascade="all, delete-orphan",
     )
-    posts: Mapped[List["Post"]] = relationship(
+    posts: Mapped[list[Post]] = relationship(
         back_populates="community",
         cascade="all, delete-orphan",
     )
-    events: Mapped[List["Event"]] = relationship(
+    events: Mapped[list[Event]] = relationship(
         back_populates="community",
         cascade="all, delete-orphan",
     )
@@ -142,7 +142,7 @@ class Member(Base):
     )
 
     # Relationships
-    community: Mapped["Community"] = relationship(back_populates="members")
+    community: Mapped[Community] = relationship(back_populates="members")
 
 
 class Post(Base):
@@ -176,8 +176,8 @@ class Post(Base):
     )
 
     # Relationships
-    community: Mapped["Community"] = relationship(back_populates="posts")
-    comments: Mapped[List["Comment"]] = relationship(
+    community: Mapped[Community] = relationship(back_populates="posts")
+    comments: Mapped[list[Comment]] = relationship(
         back_populates="post",
         cascade="all, delete-orphan",
     )
@@ -213,7 +213,7 @@ class Comment(Base):
     )
 
     # Relationships
-    post: Mapped["Post"] = relationship(back_populates="comments")
+    post: Mapped[Post] = relationship(back_populates="comments")
 
 
 class Event(Base):
@@ -227,7 +227,7 @@ class Event(Base):
         nullable=False,
     )
     title: Mapped[str] = mapped_column(String(500), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     start_time: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
@@ -249,4 +249,4 @@ class Event(Base):
     )
 
     # Relationships
-    community: Mapped["Community"] = relationship(back_populates="events")
+    community: Mapped[Community] = relationship(back_populates="events")

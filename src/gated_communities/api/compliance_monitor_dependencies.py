@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from compliance_monitor.agents import (AuditReporterAgent,
-                                       ComplianceScorerAgent,
-                                       PolicyTrackerAgent, RemediationAgent,
-                                       ViolationDetectorAgent)
+from compliance_monitor.agents import (
+    AuditReporterAgent,
+    ComplianceScorerAgent,
+    PolicyTrackerAgent,
+    RemediationAgent,
+    ViolationDetectorAgent,
+)
 
 
 def get_policy_tracker() -> PolicyTrackerAgent:

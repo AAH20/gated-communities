@@ -10,13 +10,9 @@ class BadgeEvaluationInput(BaseModel):
     """Input for badge evaluation."""
 
     member_id: str = Field(..., description="Member identifier")
-    badge_criteria: dict[str, Any] = Field(
-        ..., description="Badge criteria to evaluate"
-    )
+    badge_criteria: dict[str, Any] = Field(..., description="Badge criteria to evaluate")
     member_stats: dict[str, Any] = Field(..., description="Member statistics")
-    current_badges: list[str] = Field(
-        default_factory=list, description="Current badge IDs"
-    )
+    current_badges: list[str] = Field(default_factory=list, description="Current badge IDs")
 
 
 class BadgeEvaluationOutput(BaseModel):
@@ -78,9 +74,7 @@ class BadgeManagerAgent(BaseAgent[BadgeEvaluationInput, BadgeEvaluationOutput]):
             recommendations=recommendations,
         )
 
-    def _evaluate_criterion(
-        self, criterion: dict[str, Any], stats: dict[str, Any]
-    ) -> bool:
+    def _evaluate_criterion(self, criterion: dict[str, Any], stats: dict[str, Any]) -> bool:
         """Evaluate if a member meets a badge criterion.
 
         Args:

@@ -23,9 +23,7 @@ class AgentConfig(BaseModel):
     name: str = Field(..., description="Agent name")
     description: str = Field(default="", description="Agent description")
     model: Any = Field(default=None, description="LangChain model")
-    temperature: float = Field(
-        default=0.1, ge=0.0, le=2.0, description="Model temperature"
-    )
+    temperature: float = Field(default=0.1, ge=0.0, le=2.0, description="Model temperature")
     max_tokens: int = Field(default=1000, ge=1, description="Max tokens for response")
     timeout_seconds: int = Field(default=30, ge=1, description="Timeout in seconds")
 

@@ -137,9 +137,7 @@ class DocumentCheckerAgent(BaseAgent):
         finally:
             self._status = "available"
 
-    def _cross_reference(
-        self, document: dict[str, Any], identity: dict[str, Any]
-    ) -> bool:
+    def _cross_reference(self, document: dict[str, Any], identity: dict[str, Any]) -> bool:
         """Cross-reference document data with identity data.
 
         Args:

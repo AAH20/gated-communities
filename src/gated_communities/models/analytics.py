@@ -28,12 +28,8 @@ class GovernanceHealthScore(BaseModel):
     average_resolution_time_hours: float = Field(
         ..., ge=0, description="Average resolution time in hours"
     )
-    active_violations_count: int = Field(
-        ..., ge=0, description="Number of active violations"
-    )
-    pending_disputes_count: int = Field(
-        ..., ge=0, description="Number of pending disputes"
-    )
+    active_violations_count: int = Field(..., ge=0, description="Number of active violations")
+    pending_disputes_count: int = Field(..., ge=0, description="Number of pending disputes")
     calculated_at: datetime = Field(
         default_factory=datetime.utcnow, description="Calculation timestamp"
     )
@@ -65,9 +61,7 @@ class GovernanceAnalytics(BaseModel):
     resolution_time_trend: list[dict[str, Any]] = Field(
         default_factory=list, description="Resolution time trend data"
     )
-    health_score: GovernanceHealthScore = Field(
-        ..., description="Governance health score"
-    )
+    health_score: GovernanceHealthScore = Field(..., description="Governance health score")
     recommendations: list[str] = Field(
         default_factory=list, description="AI-generated recommendations"
     )
@@ -82,17 +76,11 @@ class GovernanceSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     total_active_rules: int = Field(default=0, ge=0, description="Total active rules")
-    total_active_policies: int = Field(
-        default=0, ge=0, description="Total active policies"
-    )
+    total_active_policies: int = Field(default=0, ge=0, description="Total active policies")
     open_disputes: int = Field(default=0, ge=0, description="Open disputes count")
     pending_actions: int = Field(default=0, ge=0, description="Pending actions count")
-    violations_last_24h: int = Field(
-        default=0, ge=0, description="Violations in the last 24 hours"
-    )
-    health_score: float = Field(
-        default=0, ge=0, le=100, description="Current health score"
-    )
+    violations_last_24h: int = Field(default=0, ge=0, description="Violations in the last 24 hours")
+    health_score: float = Field(default=0, ge=0, le=100, description="Current health score")
     last_updated: datetime = Field(
         default_factory=datetime.utcnow, description="Last update timestamp"
     )

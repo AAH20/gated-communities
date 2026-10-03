@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -56,17 +56,13 @@ def get_moderation_item(item_id: str) -> dict[str, Any]:
     try:
         item = _moderation_store.get(item_id)
         if item is None:
-            raise ModerationItemNotFoundError(
-                f"Moderation item '{item_id}' not found"
-            )
+            raise ModerationItemNotFoundError(f"Moderation item '{item_id}' not found")
         return dict(item)
     except ModerationItemNotFoundError:
         raise
     except Exception as exc:
         logger.error("Failed to get moderation item %s: %s", item_id, exc)
-        raise ModerationError(
-            f"Failed to retrieve moderation item '{item_id}'"
-        ) from exc
+        raise ModerationError(f"Failed to retrieve moderation item '{item_id}'") from exc
 
 
 def list_moderation_items(
@@ -140,7 +136,7 @@ def create_moderation_item(data: dict[str, Any]) -> dict[str, Any]:
 
     try:
         item_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         item: dict[str, Any] = {
             "id": item_id,
@@ -191,15 +187,13 @@ def resolve_moderation_item(item_id: str, decision: str) -> dict[str, Any]:
     try:
         item = _moderation_store.get(item_id)
         if item is None:
-            raise ModerationItemNotFoundError(
-                f"Moderation item '{item_id}' not found"
-            )
+            raise ModerationItemNotFoundError(f"Moderation item '{item_id}' not found")
         if item.get("status") == "resolved":
             raise ModerationItemAlreadyResolvedError(
                 f"Moderation item '{item_id}' is already resolved"
             )
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item["status"] = "resolved"
         item["decision"] = decision.lower()
         item["resolved_at"] = now
@@ -209,9 +203,7 @@ def resolve_moderation_item(item_id: str, decision: str) -> dict[str, Any]:
         raise
     except Exception as exc:
         logger.error("Failed to resolve moderation item %s: %s", item_id, exc)
-        raise ModerationError(
-            f"Failed to resolve moderation item '{item_id}'"
-        ) from exc
+        raise ModerationError(f"Failed to resolve moderation item '{item_id}'") from exc
 
 
 def delete_moderation_item(item_id: str) -> bool:
@@ -233,15 +225,11 @@ def delete_moderation_item(item_id: str) -> bool:
 
     try:
         if item_id not in _moderation_store:
-            raise ModerationItemNotFoundError(
-                f"Moderation item '{item_id}' not found"
-            )
+            raise ModerationItemNotFoundError(f"Moderation item '{item_id}' not found")
         del _moderation_store[item_id]
         return True
     except ModerationItemNotFoundError:
         raise
     except Exception as exc:
         logger.error("Failed to delete moderation item %s: %s", item_id, exc)
-        raise ModerationError(
-            f"Failed to delete moderation item '{item_id}'"
-        ) from exc
+        raise ModerationError(f"Failed to delete moderation item '{item_id}'") from exc

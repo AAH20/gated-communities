@@ -1,23 +1,18 @@
 """Authentication and authorization module."""
 
-import uuid
 import hashlib
 import time
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+import uuid
+from typing import Any
 
-from fastapi import HTTPException, Depends, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr
 
-from .database import get_db
-from .models import Member
-
-
 # Simple in-memory user store for demo (in production, use proper DB)
-_users: Dict[str, Dict[str, Any]] = {}
-_tokens: Dict[str, Dict[str, Any]] = {}  # token -> {user_id, expires_at}
-_refresh_tokens: Dict[str, str] = {}  # refresh_token -> access_token
+_users: dict[str, dict[str, Any]] = {}
+_tokens: dict[str, dict[str, Any]] = {}  # token -> {user_id, expires_at}
+_refresh_tokens: dict[str, str] = {}  # refresh_token -> access_token
 
 SECRET_KEY = "dev-secret-key-change-in-production"
 TOKEN_EXPIRE_MINUTES = 30
@@ -40,7 +35,7 @@ class RegisterRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
-    refresh_token: Optional[str] = None
+    refresh_token: str | None = None
 
 
 class PasswordChangeRequest(BaseModel):
@@ -62,7 +57,7 @@ def _generate_token() -> str:
     return hashlib.sha256(f"{uuid.uuid4()}{time.time()}".encode()).hexdigest()
 
 
-def register_user(username: str, email: str, password: str) -> Dict[str, Any]:
+def register_user(username: str, email: str, password: str) -> dict[str, Any]:
     """Register a new user."""
     if username in _users:
         raise HTTPException(status_code=409, detail="Username already exists")
@@ -76,7 +71,7 @@ def register_user(username: str, email: str, password: str) -> Dict[str, Any]:
     return {"id": user_id, "username": username, "email": email}
 
 
-def authenticate_user(username: str, password: str) -> Optional[Dict[str, Any]]:
+def authenticate_user(username: str, password: str) -> dict[str, Any] | None:
     """Authenticate a user and return user data if valid."""
     user = _users.get(username)
     if not user:
@@ -101,7 +96,7 @@ def create_refresh_token(user_id: str) -> str:
     return token
 
 
-def verify_token(token: str) -> Optional[str]:
+def verify_token(token: str) -> str | None:
     """Verify an access token and return user_id if valid."""
     token_data = _tokens.get(token)
     if not token_data:
@@ -112,7 +107,7 @@ def verify_token(token: str) -> Optional[str]:
     return token_data["user_id"]
 
 
-def refresh_access_token(refresh_token: str) -> Optional[str]:
+def refresh_access_token(refresh_token: str) -> str | None:
     """Create new access token from refresh token."""
     user_id = _refresh_tokens.get(refresh_token)
     if not user_id:
@@ -127,7 +122,7 @@ def revoke_token(token: str):
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Dependency to get the current authenticated user."""
     if not credentials:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -143,7 +138,7 @@ def get_current_user(
 
 def get_current_user_optional(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> Optional[Dict[str, Any]]:
+) -> dict[str, Any] | None:
     """Dependency to optionally get the current user."""
     if not credentials:
         return None

@@ -2,18 +2,17 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional
 
 from ..database import get_db
-from ..models import Member, Community
+from ..models import Community, Member
 from ..schemas import MemberCreate, MemberResponse
 
 router = APIRouter()
 
 
-@router.get("", response_model=List[MemberResponse])
+@router.get("", response_model=list[MemberResponse])
 def list_members(
-    community_id: Optional[int] = None,
+    community_id: int | None = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: Session = Depends(get_db),

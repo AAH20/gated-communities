@@ -2,7 +2,6 @@
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import List
 
 from ..database import get_db
 from ..models import Community, Member
@@ -23,20 +22,12 @@ def search(
 
     if type in ("all", "communities"):
         communities = (
-            db.query(Community)
-            .filter(Community.name.ilike(search_pattern))
-            .limit(limit)
-            .all()
+            db.query(Community).filter(Community.name.ilike(search_pattern)).limit(limit).all()
         )
         results["communities"] = [CommunityResponse.model_validate(c) for c in communities]
 
     if type in ("all", "members"):
-        members = (
-            db.query(Member)
-            .filter(Member.name.ilike(search_pattern))
-            .limit(limit)
-            .all()
-        )
+        members = db.query(Member).filter(Member.name.ilike(search_pattern)).limit(limit).all()
         results["members"] = [MemberResponse.model_validate(m) for m in members]
 
     return results

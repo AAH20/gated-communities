@@ -1,8 +1,8 @@
 """Rate limiting middleware."""
 
 import time
-from typing import Dict, Tuple, Optional
-from fastapi import Request, HTTPException
+
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -11,8 +11,8 @@ class RateLimiter:
     """Simple in-memory rate limiter."""
 
     def __init__(self):
-        self._requests: Dict[str, list] = {}
-        self._limits: Dict[str, Tuple[int, int]] = {
+        self._requests: dict[str, list] = {}
+        self._limits: dict[str, tuple[int, int]] = {
             "default": (50, 60),
             "auth": (5, 60),
             "health": (50, 2),
@@ -32,7 +32,7 @@ class RateLimiter:
         else:
             return f"default:{client_ip}"
 
-    def _get_limit(self, request: Request) -> Tuple[int, int]:
+    def _get_limit(self, request: Request) -> tuple[int, int]:
         path = request.url.path
         if path.startswith("/auth"):
             return self._limits["auth"]
@@ -40,7 +40,7 @@ class RateLimiter:
             return self._limits["health"]
         return self._limits["default"]
 
-    def is_allowed(self, request: Request) -> Tuple[bool, Dict[str, str]]:
+    def is_allowed(self, request: Request) -> tuple[bool, dict[str, str]]:
         key = self._get_key(request)
         limit, window = self._get_limit(request)
         now = time.time()
@@ -51,7 +51,9 @@ class RateLimiter:
         self._requests[key] = [t for t in self._requests[key] if now - t < window]
 
         if len(self._requests[key]) >= limit:
-            reset_time = int(self._requests[key][0] + window) if self._requests[key] else int(now + window)
+            reset_time = (
+                int(self._requests[key][0] + window) if self._requests[key] else int(now + window)
+            )
             headers = {
                 "X-RateLimit-Limit": str(limit),
                 "X-RateLimit-Remaining": "0",
@@ -62,7 +64,9 @@ class RateLimiter:
 
         self._requests[key].append(now)
         remaining = limit - len(self._requests[key])
-        reset_time = int(self._requests[key][0] + window) if self._requests[key] else int(now + window)
+        reset_time = (
+            int(self._requests[key][0] + window) if self._requests[key] else int(now + window)
+        )
         headers = {
             "X-RateLimit-Limit": str(limit),
             "X-RateLimit-Remaining": str(remaining),

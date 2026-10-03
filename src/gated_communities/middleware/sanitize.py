@@ -24,9 +24,7 @@ def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
         elif isinstance(value, dict):
             sanitized[key] = sanitize_dict(value)
         elif isinstance(value, list):
-            sanitized[key] = [
-                sanitize_string(v) if isinstance(v, str) else v for v in value
-            ]
+            sanitized[key] = [sanitize_string(v) if isinstance(v, str) else v for v in value]
         else:
             sanitized[key] = value
     return sanitized

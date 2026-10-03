@@ -6,8 +6,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from compliance_monitor.agents.base import BaseComplianceAgent
-from compliance_monitor.models.schemas import (Violation, ViolationCreate,
-                                               ViolationSeverity)
+from compliance_monitor.models.schemas import Violation, ViolationCreate, ViolationSeverity
 
 if TYPE_CHECKING:
     from uuid import UUID
@@ -48,9 +47,7 @@ class ViolationDetectorAgent(BaseComplianceAgent[ViolationCreate, Violation]):
         )
         return violation
 
-    async def analyze_event(
-        self, event: dict[str, Any], policy_rules: list[str]
-    ) -> dict[str, Any]:
+    async def analyze_event(self, event: dict[str, Any], policy_rules: list[str]) -> dict[str, Any]:
         """Analyze an event for potential policy violations.
 
         Args:
@@ -70,18 +67,14 @@ class ViolationDetectorAgent(BaseComplianceAgent[ViolationCreate, Violation]):
             "3. What evidence supports this?\n"
             "4. Recommended actions\n"
         )
-        result = await self.agent.ainvoke(
-            {"messages": [{"role": "user", "content": prompt}]}
-        )
+        result = await self.agent.ainvoke({"messages": [{"role": "user", "content": prompt}]})
         return {
             "analysis": result,
             "event_id": event.get("id"),
             "timestamp": datetime.now(tz=UTC).isoformat(),
         }
 
-    async def detect_from_logs(
-        self, logs: list[str], policy_id: UUID
-    ) -> list[Violation]:
+    async def detect_from_logs(self, logs: list[str], policy_id: UUID) -> list[Violation]:
         """Detect violations from system logs.
 
         Args:
