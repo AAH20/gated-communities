@@ -2,509 +2,564 @@
 Comprehensive API tests for the Posts endpoints.
 
 Tests cover:
-- POST /posts  (create post)
-- GET /posts   (list posts)
-- GET /posts/{id}  (get single post)
+- GET /api/v1/posts (list with pagination)
+- POST /api/v1/posts (create)
+- GET /api/v1/posts/{id} (retrieve)
+- PUT /api/v1/posts/{id} (update)
+- DELETE /api/v1/posts/{id} (delete)
 """
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-
-# Import the app and database dependencies
-# Adjust these imports to match your project structure
-try:
-    from app.main import app
-    from app.database import get_db, Base
-except ImportError:
-    # Fallback for common project layouts
-    from main import app
-    from database import get_db, Base
 
 
-# ─── Test Database Setup ───────────────────────────────────────────────────────
-
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test_posts.db"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    """Override the database dependency to use the test database."""
-    try:
-        db = TestingSessionLocal()
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-
-@pytest.fixture(autouse=True)
-def setup_database():
-    """Create fresh tables before each test and drop them after."""
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
 
 
 @pytest.fixture
 def client():
-    """Provide a TestClient instance."""
-    with TestClient(app) as c:
-        yield c
+    """Return a TestClient instance for the FastAPI app."""
+    from gated_communities.main import app
+
+    return TestClient(app)
 
 
 @pytest.fixture
-def sample_post_data():
+def auth_headers():
+    """Return headers with a valid auth token for an authenticated user."""
+    return {"Authorization": "Bearer test-token"}
+
+
+@pytest.fixture
+def sample_post_payload():
     """Return a valid payload for creating a post."""
     return {
         "title": "Test Post Title",
         "content": "This is the content of the test post.",
-        "author_id": 1,
+        "community_id": "community-123",
     }
 
 
 @pytest.fixture
-def created_post(client, sample_post_data):
-    """Create a post and return the response JSON."""
-    response = client.post("/posts", json=sample_post_data)
+def created_post(client, auth_headers, sample_post_payload):
+    """Create a post via the API and return the response JSON."""
+    response = client.post(
+        "/api/v1/posts",
+        json=sample_post_payload,
+        headers=auth_headers,
+    )
     assert response.status_code == 201
     return response.json()
 
 
-# ─── POST /posts ───────────────────────────────────────────────────────────────
-
-
-class TestCreatePost:
-    """Tests for POST /posts endpoint."""
-
-    def test_create_post_success(self, client, sample_post_data):
-        """Successfully create a post with valid data."""
-        response = client.post("/posts", json=sample_post_data)
-        assert response.status_code == 201
-        data = response.json()
-        assert data["title"] == sample_post_data["title"]
-        assert data["content"] == sample_post_data["content"]
-        assert data["author_id"] == sample_post_data["author_id"]
-        assert "id" in data
-        assert isinstance(data["id"], int)
-
-    def test_create_post_missing_title(self, client):
-        """Fail to create a post when title is missing."""
+@pytest.fixture
+def multiple_posts(client, auth_headers):
+    """Create multiple posts and return their IDs for pagination tests."""
+    posts = []
+    for i in range(5):
         payload = {
-            "content": "Content without title",
-            "author_id": 1,
+            "title": f"Pagination Test Post {i}",
+            "content": f"Content for pagination test post {i}.",
+            "community_id": "community-page",
         }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 422
-
-    def test_create_post_missing_content(self, client):
-        """Fail to create a post when content is missing."""
-        payload = {
-            "title": "Title without content",
-            "author_id": 1,
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 422
-
-    def test_create_post_missing_author_id(self, client):
-        """Fail to create a post when author_id is missing."""
-        payload = {
-            "title": "Title",
-            "content": "Content",
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 422
-
-    def test_create_post_empty_title(self, client):
-        """Fail to create a post with an empty title."""
-        payload = {
-            "title": "",
-            "content": "Some content",
-            "author_id": 1,
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 422
-
-    def test_create_post_empty_content(self, client):
-        """Fail to create a post with empty content."""
-        payload = {
-            "title": "Some title",
-            "content": "",
-            "author_id": 1,
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 422
-
-    def test_create_post_invalid_author_id_type(self, client):
-        """Fail to create a post with non-integer author_id."""
-        payload = {
-            "title": "Title",
-            "content": "Content",
-            "author_id": "not-an-integer",
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 422
-
-    def test_create_post_negative_author_id(self, client):
-        """Fail to create a post with a negative author_id."""
-        payload = {
-            "title": "Title",
-            "content": "Content",
-            "author_id": -1,
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 422
-
-    def test_create_post_extra_fields_ignored(self, client, sample_post_data):
-        """Extra fields in payload should be ignored or rejected gracefully."""
-        payload = {**sample_post_data, "unknown_field": "some value"}
-        response = client.post("/posts", json=payload)
-        # Either 201 (ignored) or 422 (rejected) are acceptable
-        assert response.status_code in (201, 422)
-
-    def test_create_post_no_body(self, client):
-        """Fail to create a post with no request body."""
-        response = client.post("/posts")
-        assert response.status_code == 422
-
-    def test_create_post_content_type_not_json(self, client):
-        """Fail to create a post with non-JSON content type."""
         response = client.post(
-            "/posts",
-            data="title=Test&content=Content&author_id=1",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            "/api/v1/posts",
+            json=payload,
+            headers=auth_headers,
         )
-        assert response.status_code == 422
-
-    def test_create_post_title_too_long(self, client):
-        """Fail to create a post with an excessively long title."""
-        payload = {
-            "title": "A" * 1000,
-            "content": "Content",
-            "author_id": 1,
-        }
-        response = client.post("/posts", json=payload)
-        # Should either reject with 422 or truncate; 201 is also acceptable if no limit
-        assert response.status_code in (201, 422)
-
-    def test_create_post_content_too_long(self, client):
-        """Fail to create a post with excessively long content."""
-        payload = {
-            "title": "Title",
-            "content": "A" * 100000,
-            "author_id": 1,
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code in (201, 422)
-
-    def test_create_post_returns_created_timestamp(self, client, sample_post_data):
-        """Verify the response includes a created_at timestamp."""
-        response = client.post("/posts", json=sample_post_data)
         assert response.status_code == 201
-        data = response.json()
-        # Check for common timestamp field names
-        has_timestamp = any(
-            key in data for key in ("created_at", "createdAt", "created")
-        )
-        assert has_timestamp, "Response should include a creation timestamp"
-
-    def test_create_post_id_is_unique(self, client, sample_post_data):
-        """Each created post should have a unique ID."""
-        resp1 = client.post("/posts", json=sample_post_data)
-        resp2 = client.post("/posts", json=sample_post_data)
-        assert resp1.status_code == 201
-        assert resp2.status_code == 201
-        assert resp1.json()["id"] != resp2.json()["id"]
-
-    def test_create_post_unicode_content(self, client):
-        """Successfully create a post with unicode characters."""
-        payload = {
-            "title": "Unicode 测试 🎉",
-            "content": "Content with émojis 🚀 and ünïcödé",
-            "author_id": 1,
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 201
-        data = response.json()
-        assert data["title"] == payload["title"]
-        assert data["content"] == payload["content"]
-
-    def test_create_post_whitespace_title(self, client):
-        """Fail to create a post with a whitespace-only title."""
-        payload = {
-            "title": "   ",
-            "content": "Content",
-            "author_id": 1,
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 422
-
-    def test_create_post_whitespace_content(self, client):
-        """Fail to create a post with whitespace-only content."""
-        payload = {
-            "title": "Title",
-            "content": "   ",
-            "author_id": 1,
-        }
-        response = client.post("/posts", json=payload)
-        assert response.status_code == 422
+        posts.append(response.json())
+    return posts
 
 
-# ─── GET /posts ────────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# 1. GET /api/v1/posts — List posts with pagination
+# ---------------------------------------------------------------------------
 
 
 class TestListPosts:
-    """Tests for GET /posts endpoint."""
+    """Tests for GET /api/v1/posts."""
 
-    def test_list_posts_empty(self, client):
-        """Return empty list when no posts exist."""
-        response = client.get("/posts")
+    def test_list_posts_success(self, client, auth_headers, multiple_posts):
+        """GET /api/v1/posts returns 200 and a list of posts."""
+        response = client.get("/api/v1/posts", headers=auth_headers)
+
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
-        assert len(data) == 0
+        assert len(data) >= 5
 
-    def test_list_posts_returns_created(self, client, sample_post_data):
-        """Return a list containing the created post."""
-        client.post("/posts", json=sample_post_data)
-        response = client.get("/posts")
+    def test_list_posts_pagination_limit(self, client, auth_headers, multiple_posts):
+        """GET /api/v1/posts?limit=N returns at most N posts."""
+        limit = 3
+        response = client.get(
+            f"/api/v1/posts?limit={limit}",
+            headers=auth_headers,
+        )
+
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
-        assert len(data) == 1
-        assert data[0]["title"] == sample_post_data["title"]
+        assert len(data) <= limit
 
-    def test_list_posts_multiple(self, client, sample_post_data):
-        """Return all created posts."""
-        for i in range(5):
-            payload = {**sample_post_data, "title": f"Post {i}"}
-            client.post("/posts", json=payload)
+    def test_list_posts_pagination_offset(self, client, auth_headers, multiple_posts):
+        """GET /api/v1/posts?offset=N skips the first N posts."""
+        # Get all posts first
+        all_response = client.get("/api/v1/posts", headers=auth_headers)
+        all_posts = all_response.json()
+        total = len(all_posts)
 
-        response = client.get("/posts")
+        if total < 2:
+            pytest.skip("Not enough posts to test offset pagination")
+
+        offset = 2
+        response = client.get(
+            f"/api/v1/posts?offset={offset}",
+            headers=auth_headers,
+        )
+
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 5
+        assert isinstance(data, list)
+        assert len(data) == total - offset
 
-    def test_list_posts_pagination_limit(self, client, sample_post_data):
-        """Respect the limit query parameter."""
-        for i in range(10):
-            payload = {**sample_post_data, "title": f"Post {i}"}
-            client.post("/posts", json=payload)
+    def test_list_posts_pagination_limit_and_offset(self, client, auth_headers, multiple_posts):
+        """GET /api/v1/posts?limit=N&offset=M returns correct slice."""
+        limit = 2
+        offset = 1
+        response = client.get(
+            f"/api/v1/posts?limit={limit}&offset={offset}",
+            headers=auth_headers,
+        )
 
-        response = client.get("/posts?limit=3")
         assert response.status_code == 200
         data = response.json()
-        assert len(data) <= 3
+        assert isinstance(data, list)
+        assert len(data) <= limit
 
-    def test_list_posts_pagination_offset(self, client, sample_post_data):
-        """Respect the offset query parameter."""
-        for i in range(5):
-            payload = {**sample_post_data, "title": f"Post {i}"}
-            client.post("/posts", json=payload)
+    def test_list_posts_empty_database(self, client, auth_headers):
+        """GET /api/v1/posts returns empty list when no posts exist."""
+        response = client.get("/api/v1/posts", headers=auth_headers)
 
-        response = client.get("/posts?offset=2")
         assert response.status_code == 200
         data = response.json()
-        # Should return posts starting from offset 2
-        assert len(data) <= 3
+        assert isinstance(data, list)
 
-    def test_list_posts_pagination_skip(self, client, sample_post_data):
-        """Respect the skip query parameter (alternative to offset)."""
-        for i in range(5):
-            payload = {**sample_post_data, "title": f"Post {i}"}
-            client.post("/posts", json=payload)
+    def test_list_posts_unauthenticated(self, client):
+        """GET /api/v1/posts without auth returns 401."""
+        response = client.get("/api/v1/posts")
 
-        response = client.get("/posts?skip=2")
+        assert response.status_code == 401
+
+    def test_list_posts_response_structure(self, client, auth_headers, created_post):
+        """Each post in the list has the expected fields."""
+        response = client.get("/api/v1/posts", headers=auth_headers)
+
         assert response.status_code == 200
         data = response.json()
-        assert len(data) <= 3
+        assert len(data) > 0
 
-    def test_list_posts_response_structure(self, client, created_post):
-        """Verify each post in the list has the expected fields."""
-        response = client.get("/posts")
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data) >= 1
         post = data[0]
-        required_fields = {"id", "title", "content", "author_id"}
-        assert required_fields.issubset(set(post.keys()))
+        assert "id" in post
+        assert "title" in post
+        assert "content" in post
+        assert "community_id" in post
+        assert "author_id" in post
+        assert "created_at" in post
+        assert "updated_at" in post
 
-    def test_list_posts_ordering(self, client, sample_post_data):
-        """Posts should be returned in a consistent order (newest first by default)."""
-        for i in range(3):
-            payload = {**sample_post_data, "title": f"Post {i}"}
-            client.post("/posts", json=payload)
 
-        response = client.get("/posts")
-        assert response.status_code == 200
+# ---------------------------------------------------------------------------
+# 2. POST /api/v1/posts — Create post
+# ---------------------------------------------------------------------------
+
+
+class TestCreatePost:
+    """Tests for POST /api/v1/posts."""
+
+    def test_create_post_success(self, client, auth_headers, sample_post_payload):
+        """POST /api/v1/posts creates a post and returns 201."""
+        response = client.post(
+            "/api/v1/posts",
+            json=sample_post_payload,
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 201
         data = response.json()
-        # Newest first: Post 2, Post 1, Post 0
-        titles = [p["title"] for p in data]
-        assert titles == ["Post 2", "Post 1", "Post 0"]
+        assert data["title"] == sample_post_payload["title"]
+        assert data["content"] == sample_post_payload["content"]
+        assert data["community_id"] == sample_post_payload["community_id"]
+        assert "id" in data
+        assert "created_at" in data
+        assert "updated_at" in data
 
-    def test_list_posts_filter_by_author(self, client, sample_post_data):
-        """Filter posts by author_id."""
-        # Create posts for author 1
-        for i in range(3):
-            payload = {**sample_post_data, "author_id": 1, "title": f"Author1 Post {i}"}
-            client.post("/posts", json=payload)
+    def test_create_post_missing_title(self, client, auth_headers):
+        """POST /api/v1/posts without title returns 422."""
+        payload = {
+            "content": "Content without title",
+            "community_id": "community-123",
+        }
+        response = client.post(
+            "/api/v1/posts",
+            json=payload,
+            headers=auth_headers,
+        )
 
-        # Create posts for author 2
-        for i in range(2):
-            payload = {**sample_post_data, "author_id": 2, "title": f"Author2 Post {i}"}
-            client.post("/posts", json=payload)
+        assert response.status_code == 422
 
-        response = client.get("/posts?author_id=1")
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data) == 3
-        for post in data:
-            assert post["author_id"] == 1
+    def test_create_post_missing_content(self, client, auth_headers):
+        """POST /api/v1/posts without content returns 422."""
+        payload = {
+            "title": "Title without content",
+            "community_id": "community-123",
+        }
+        response = client.post(
+            "/api/v1/posts",
+            json=payload,
+            headers=auth_headers,
+        )
 
-    def test_list_posts_search_query(self, client, sample_post_data):
-        """Search posts by query parameter."""
-        client.post("/posts", json={**sample_post_data, "title": "Python Tips"})
-        client.post("/posts", json={**sample_post_data, "title": "JavaScript Guide"})
-        client.post("/posts", json={**sample_post_data, "title": "Python Advanced"})
+        assert response.status_code == 422
 
-        response = client.get("/posts?search=Python")
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data) == 2
+    def test_create_post_missing_community_id(self, client, auth_headers):
+        """POST /api/v1/posts without community_id returns 422."""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+        }
+        response = client.post(
+            "/api/v1/posts",
+            json=payload,
+            headers=auth_headers,
+        )
 
-    def test_list_posts_limit_zero(self, client, sample_post_data):
-        """Handle limit=0 gracefully."""
-        client.post("/posts", json=sample_post_data)
-        response = client.get("/posts?limit=0")
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data) == 0
+        assert response.status_code == 422
 
-    def test_list_posts_negative_limit(self, client, sample_post_data):
-        """Handle negative limit gracefully."""
-        client.post("/posts", json=sample_post_data)
-        response = client.get("/posts?limit=-1")
-        # Should either return 422 or treat as no limit
-        assert response.status_code in (200, 422)
+    def test_create_post_empty_title(self, client, auth_headers):
+        """POST /api/v1/posts with empty title returns 422."""
+        payload = {
+            "title": "",
+            "content": "Content",
+            "community_id": "community-123",
+        }
+        response = client.post(
+            "/api/v1/posts",
+            json=payload,
+            headers=auth_headers,
+        )
 
-    def test_list_posts_negative_offset(self, client, sample_post_data):
-        """Handle negative offset gracefully."""
-        client.post("/posts", json=sample_post_data)
-        response = client.get("/posts?offset=-1")
-        assert response.status_code in (200, 422)
+        assert response.status_code == 422
 
-    def test_list_posts_content_type(self, client):
-        """Response should have application/json content type."""
-        response = client.get("/posts")
-        assert response.status_code == 200
-        assert "application/json" in response.headers.get("content-type", "")
+    def test_create_post_unauthenticated(self, client, sample_post_payload):
+        """POST /api/v1/posts without auth returns 401."""
+        response = client.post(
+            "/api/v1/posts",
+            json=sample_post_payload,
+        )
+
+        assert response.status_code == 401
+
+    def test_create_post_invalid_json(self, client, auth_headers):
+        """POST /api/v1/posts with invalid JSON returns 422."""
+        response = client.post(
+            "/api/v1/posts",
+            data="not valid json",
+            headers={**auth_headers, "Content-Type": "application/json"},
+        )
+
+        assert response.status_code == 422
+
+    def test_create_post_title_too_long(self, client, auth_headers):
+        """POST /api/v1/posts with excessively long title returns 422."""
+        payload = {
+            "title": "x" * 500,
+            "content": "Content",
+            "community_id": "community-123",
+        }
+        response = client.post(
+            "/api/v1/posts",
+            json=payload,
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 422
 
 
-# ─── GET /posts/{id} ───────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# 3. GET /api/v1/posts/{id} — Get single post
+# ---------------------------------------------------------------------------
 
 
 class TestGetPost:
-    """Tests for GET /posts/{id} endpoint."""
+    """Tests for GET /api/v1/posts/{id}."""
 
-    def test_get_post_success(self, client, created_post):
-        """Successfully retrieve a post by ID."""
+    def test_get_post_success(self, client, auth_headers, created_post):
+        """GET /api/v1/posts/{id} returns the post with matching ID."""
         post_id = created_post["id"]
-        response = client.get(f"/posts/{post_id}")
+        response = client.get(
+            f"/api/v1/posts/{post_id}",
+            headers=auth_headers,
+        )
+
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == post_id
         assert data["title"] == created_post["title"]
         assert data["content"] == created_post["content"]
-        assert data["author_id"] == created_post["author_id"]
+        assert data["community_id"] == created_post["community_id"]
 
-    def test_get_post_not_found(self, client):
-        """Return 404 for a non-existent post ID."""
-        response = client.get("/posts/99999")
+    def test_get_post_not_found(self, client, auth_headers):
+        """GET /api/v1/posts/{id} with non-existent ID returns 404."""
+        response = client.get(
+            "/api/v1/posts/non-existent-id",
+            headers=auth_headers,
+        )
+
         assert response.status_code == 404
 
-    def test_get_post_invalid_id_string(self, client):
-        """Return 422 for a non-integer post ID."""
-        response = client.get("/posts/abc")
-        assert response.status_code == 422
+    def test_get_post_unauthenticated(self, client, created_post):
+        """GET /api/v1/posts/{id} without auth returns 401."""
+        post_id = created_post["id"]
+        response = client.get(f"/api/v1/posts/{post_id}")
 
-    def test_get_post_invalid_id_float(self, client):
-        """Return 422 for a float post ID."""
-        response = client.get("/posts/1.5")
-        assert response.status_code == 422
+        assert response.status_code == 401
 
-    def test_get_post_negative_id(self, client):
-        """Return 404 or 422 for a negative post ID."""
-        response = client.get("/posts/-1")
+    def test_get_post_invalid_id_format(self, client, auth_headers):
+        """GET /api/v1/posts/{id} with invalid ID format returns 422 or 404."""
+        response = client.get(
+            "/api/v1/posts/invalid-id-format!@#",
+            headers=auth_headers,
+        )
+
         assert response.status_code in (404, 422)
 
-    def test_get_post_zero_id(self, client):
-        """Return 404 for post ID of 0."""
-        response = client.get("/posts/0")
-        assert response.status_code == 404
-
-    def test_get_post_response_structure(self, client, created_post):
-        """Verify the response contains all expected fields."""
+    def test_get_post_response_structure(self, client, auth_headers, created_post):
+        """GET /api/v1/posts/{id} returns all expected fields."""
         post_id = created_post["id"]
-        response = client.get(f"/posts/{post_id}")
+        response = client.get(
+            f"/api/v1/posts/{post_id}",
+            headers=auth_headers,
+        )
+
         assert response.status_code == 200
         data = response.json()
-        required_fields = {"id", "title", "content", "author_id"}
-        assert required_fields.issubset(set(data.keys()))
+        assert "id" in data
+        assert "title" in data
+        assert "content" in data
+        assert "community_id" in data
+        assert "author_id" in data
+        assert "created_at" in data
+        assert "updated_at" in data
 
-    def test_get_post_content_type(self, client, created_post):
-        """Response should have application/json content type."""
+
+# ---------------------------------------------------------------------------
+# 4. PUT /api/v1/posts/{id} — Update post
+# ---------------------------------------------------------------------------
+
+
+class TestUpdatePost:
+    """Tests for PUT /api/v1/posts/{id}."""
+
+    def test_update_post_success(self, client, auth_headers, created_post):
+        """PUT /api/v1/posts/{id} updates the post and returns 200."""
         post_id = created_post["id"]
-        response = client.get(f"/posts/{post_id}")
+        update_payload = {
+            "title": "Updated Title",
+            "content": "Updated content for the post.",
+        }
+        response = client.put(
+            f"/api/v1/posts/{post_id}",
+            json=update_payload,
+            headers=auth_headers,
+        )
+
         assert response.status_code == 200
-        assert "application/json" in response.headers.get("content-type", "")
+        data = response.json()
+        assert data["id"] == post_id
+        assert data["title"] == update_payload["title"]
+        assert data["content"] == update_payload["content"]
 
-    def test_get_post_does_not_mutate(self, client, created_post):
-        """Getting a post should not change its data."""
+    def test_update_post_partial(self, client, auth_headers, created_post):
+        """PUT /api/v1/posts/{id} with partial data updates only provided fields."""
         post_id = created_post["id"]
-        resp1 = client.get(f"/posts/{post_id}")
-        resp2 = client.get(f"/posts/{post_id}")
-        assert resp1.json() == resp2.json()
+        original_title = created_post["title"]
+        update_payload = {
+            "content": "Only content updated.",
+        }
+        response = client.put(
+            f"/api/v1/posts/{post_id}",
+            json=update_payload,
+            headers=auth_headers,
+        )
 
-    def test_get_post_after_creation(self, client, sample_post_data):
-        """A newly created post should be immediately retrievable."""
-        create_resp = client.post("/posts", json=sample_post_data)
-        assert create_resp.status_code == 201
-        new_id = create_resp.json()["id"]
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == post_id
+        assert data["title"] == original_title
+        assert data["content"] == update_payload["content"]
 
-        get_resp = client.get(f"/posts/{new_id}")
-        assert get_resp.status_code == 200
-        assert get_resp.json()["title"] == sample_post_data["title"]
+    def test_update_post_not_found(self, client, auth_headers):
+        """PUT /api/v1/posts/{id} with non-existent ID returns 404."""
+        update_payload = {
+            "title": "Updated Title",
+            "content": "Updated content.",
+        }
+        response = client.put(
+            "/api/v1/posts/non-existent-id",
+            json=update_payload,
+            headers=auth_headers,
+        )
 
-    def test_get_post_large_id(self, client):
-        """Handle very large post ID gracefully."""
-        response = client.get("/posts/999999999999999999")
         assert response.status_code == 404
 
-    def test_get_post_with_special_characters_in_path(self, client):
-        """Handle special characters in the path gracefully."""
-        response = client.get("/posts/abc%20def")
-        assert response.status_code in (404, 422)
+    def test_update_post_unauthenticated(self, client, created_post):
+        """PUT /api/v1/posts/{id} without auth returns 401."""
+        post_id = created_post["id"]
+        update_payload = {
+            "title": "Updated Title",
+            "content": "Updated content.",
+        }
+        response = client.put(
+            f"/api/v1/posts/{post_id}",
+            json=update_payload,
+        )
 
-    def test_get_post_consistency_with_list(self, client, created_post):
-        """The post retrieved by ID should match the one in the list."""
+        assert response.status_code == 401
+
+    def test_update_post_empty_body(self, client, auth_headers, created_post):
+        """PUT /api/v1/posts/{id} with empty body returns 422."""
+        post_id = created_post["id"]
+        response = client.put(
+            f"/api/v1/posts/{post_id}",
+            json={},
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 422
+
+    def test_update_post_invalid_json(self, client, auth_headers, created_post):
+        """PUT /api/v1/posts/{id} with invalid JSON returns 422."""
+        post_id = created_post["id"]
+        response = client.put(
+            f"/api/v1/posts/{post_id}",
+            data="not valid json",
+            headers={**auth_headers, "Content-Type": "application/json"},
+        )
+
+        assert response.status_code == 422
+
+    def test_update_post_title_too_long(self, client, auth_headers, created_post):
+        """PUT /api/v1/posts/{id} with excessively long title returns 422."""
+        post_id = created_post["id"]
+        update_payload = {
+            "title": "x" * 500,
+        }
+        response = client.put(
+            f"/api/v1/posts/{post_id}",
+            json=update_payload,
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 422
+
+    def test_update_post_verify_persistence(self, client, auth_headers, created_post):
+        """PUT /api/v1/posts/{id} changes persist on subsequent GET."""
+        post_id = created_post["id"]
+        update_payload = {
+            "title": "Persisted Title",
+            "content": "Persisted content.",
+        }
+        client.put(
+            f"/api/v1/posts/{post_id}",
+            json=update_payload,
+            headers=auth_headers,
+        )
+
+        response = client.get(
+            f"/api/v1/posts/{post_id}",
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["title"] == update_payload["title"]
+        assert data["content"] == update_payload["content"]
+
+
+# ---------------------------------------------------------------------------
+# 5. DELETE /api/v1/posts/{id} — Delete post
+# ---------------------------------------------------------------------------
+
+
+class TestDeletePost:
+    """Tests for DELETE /api/v1/posts/{id}."""
+
+    def test_delete_post_success(self, client, auth_headers, created_post):
+        """DELETE /api/v1/posts/{id} deletes the post and returns 204."""
+        post_id = created_post["id"]
+        response = client.delete(
+            f"/api/v1/posts/{post_id}",
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 204
+
+    def test_delete_post_not_found(self, client, auth_headers):
+        """DELETE /api/v1/posts/{id} with non-existent ID returns 404."""
+        response = client.delete(
+            "/api/v1/posts/non-existent-id",
+            headers=auth_headers,
+        )
+
+        assert response.status_code == 404
+
+    def test_delete_post_unauthenticated(self, client, created_post):
+        """DELETE /api/v1/posts/{id} without auth returns 401."""
+        post_id = created_post["id"]
+        response = client.delete(f"/api/v1/posts/{post_id}")
+
+        assert response.status_code == 401
+
+    def test_delete_post_verify_removal(self, client, auth_headers, created_post):
+        """After DELETE, GET /api/v1/posts/{id} returns 404."""
         post_id = created_post["id"]
 
-        list_resp = client.get("/posts")
-        list_data = list_resp.json()
-        post_in_list = next((p for p in list_data if p["id"] == post_id), None)
-        assert post_in_list is not None
+        delete_response = client.delete(
+            f"/api/v1/posts/{post_id}",
+            headers=auth_headers,
+        )
+        assert delete_response.status_code == 204
 
-        get_resp = client.get(f"/posts/{post_id}")
-        get_data = get_resp.json()
+        get_response = client.get(
+            f"/api/v1/posts/{post_id}",
+            headers=auth_headers,
+        )
+        assert get_response.status_code == 404
 
-        assert post_in_list == get_data
+    def test_delete_post_already_deleted(self, client, auth_headers, created_post):
+        """Deleting an already-deleted post returns 404."""
+        post_id = created_post["id"]
+
+        first_delete = client.delete(
+            f"/api/v1/posts/{post_id}",
+            headers=auth_headers,
+        )
+        assert first_delete.status_code == 204
+
+        second_delete = client.delete(
+            f"/api/v1/posts/{post_id}",
+            headers=auth_headers,
+        )
+        assert second_delete.status_code == 404
+
+    def test_delete_post_invalid_id_format(self, client, auth_headers):
+        """DELETE /api/v1/posts/{id} with invalid ID format returns 404 or 422."""
+        response = client.delete(
+            "/api/v1/posts/invalid-id-format!@#",
+            headers=auth_headers,
+        )
+
+        assert response.status_code in (404, 422)

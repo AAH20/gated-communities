@@ -205,3 +205,125 @@ class TestGetCommunity:
         data = response.json()
         expected_keys = {"id", "name", "description", "is_private"}
         assert expected_keys.issubset(set(data.keys()))
+
+
+# ---------------------------------------------------------------------------
+# 4. test_update_community  —  PUT /communities/{id}
+# ---------------------------------------------------------------------------
+
+
+class TestUpdateCommunity:
+    """Tests for the PUT /communities/{id} endpoint."""
+
+    def test_update_community_success(self, client, created_community):
+        """Updating an existing community should return 200 and the updated data."""
+        community_id = created_community["id"]
+        update_payload = {
+            "name": "Updated Community",
+            "description": "Updated description",
+            "is_private": True,
+        }
+        response = client.put(
+            f"/communities/{community_id}", json=update_payload
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == community_id
+        assert data["name"] == "Updated Community"
+        assert data["description"] == "Updated description"
+        assert data["is_private"] is True
+
+    def test_update_community_partial(self, client, created_community):
+        """Partial update should only modify provided fields."""
+        community_id = created_community["id"]
+        update_payload = {"name": "Partially Updated"}
+        response = client.put(
+            f"/communities/{community_id}", json=update_payload
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Partially Updated"
+        assert data["description"] == created_community["description"]
+
+    def test_update_community_not_found(self, client):
+        """Updating a non-existent community should return 404."""
+        update_payload = {"name": "Updated"}
+        response = client.put("/communities/999999", json=update_payload)
+
+        assert response.status_code == 404
+
+    def test_update_community_invalid_id(self, client):
+        """A non-integer ID should return 422."""
+        update_payload = {"name": "Updated"}
+        response = client.put("/communities/not-a-number", json=update_payload)
+
+        assert response.status_code == 422
+
+    def test_update_community_empty_name(self, client, created_community):
+        """An empty name should be rejected."""
+        community_id = created_community["id"]
+        update_payload = {"name": ""}
+        response = client.put(
+            f"/communities/{community_id}", json=update_payload
+        )
+
+        assert response.status_code in (400, 422)
+
+    def test_update_community_content_type(self, client, created_community):
+        """The response should have application/json content type."""
+        community_id = created_community["id"]
+        update_payload = {"name": "Content Type Test"}
+        response = client.put(
+            f"/communities/{community_id}", json=update_payload
+        )
+
+        assert response.status_code == 200
+        assert "application/json" in response.headers.get("content-type", "")
+
+
+# ---------------------------------------------------------------------------
+# 5. test_delete_community  —  DELETE /communities/{id}
+# ---------------------------------------------------------------------------
+
+
+class TestDeleteCommunity:
+    """Tests for the DELETE /communities/{id} endpoint."""
+
+    def test_delete_community_success(self, client, created_community):
+        """Deleting an existing community should return 204."""
+        community_id = created_community["id"]
+        response = client.delete(f"/communities/{community_id}")
+
+        assert response.status_code == 204
+
+    def test_delete_community_removes_it(self, client, created_community):
+        """After deletion the community should no longer be retrievable."""
+        community_id = created_community["id"]
+        client.delete(f"/communities/{community_id}")
+
+        response = client.get(f"/communities/{community_id}")
+        assert response.status_code == 404
+
+    def test_delete_community_not_found(self, client):
+        """Deleting a non-existent community should return 404."""
+        response = client.delete("/communities/999999")
+
+        assert response.status_code == 404
+
+    def test_delete_community_invalid_id(self, client):
+        """A non-integer ID should return 422."""
+        response = client.delete("/communities/not-a-number")
+
+        assert response.status_code == 422
+
+    def test_delete_community_twice(self, client, created_community):
+        """Deleting the same community twice should return 404 on the second call."""
+        community_id = created_community["id"]
+
+        response1 = client.delete(f"/communities/{community_id}")
+        assert response1.status_code == 204
+
+        response2 = client.delete(f"/communities/{community_id}")
+        assert response2.status_code == 404
