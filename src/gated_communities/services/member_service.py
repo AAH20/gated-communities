@@ -2,91 +2,151 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 class MemberNotFoundError(Exception):
     """Raised when a member is not found."""
 
 
-class MemberValidationError(Exception):
-    """Raised when member data fails validation."""
+class MemberServiceError(Exception):
+    """Raised for general member service errors."""
 
 
-VALID_ROLES = {"admin", "moderator", "member"}
+class MemberService:
+    """Service for managing members in gated communities."""
 
+    def __init__(self, db: Any = None) -> None:
+        """Initialize the member service.
 
-def add_member(data: dict[str, Any]) -> dict[str, Any]:
-    """Add a member with validation.
+        Args:
+            db: Database or repository instance for member persistence.
+        """
+        self._db = db
 
-    Args:
-        data: Member data containing at least 'id' and 'role'.
+    def get_member(self, member_id: str) -> dict:
+        """Get a member by ID.
 
-    Returns:
-        The validated member data.
+        Args:
+            member_id: The unique identifier of the member.
 
-    Raises:
-        MemberValidationError: If required fields are missing or role is invalid.
-    """
-    if not isinstance(data, dict):
-        raise MemberValidationError("Member data must be a dictionary")
+        Returns:
+            A dictionary containing the member data.
 
-    member_id = data.get("id")
-    if not member_id:
-        raise MemberValidationError("Member 'id' is required")
+        Raises:
+            MemberNotFoundError: If the member is not found.
+            MemberServiceError: If an error occurs while fetching the member.
+        """
+        try:
+            if self._db is None:
+                raise MemberNotFoundError(f"Member '{member_id}' not found")
+            member = self._db.get_member(member_id)
+            if member is None:
+                raise MemberNotFoundError(f"Member '{member_id}' not found")
+            return member
+        except MemberNotFoundError:
+            raise
+        except Exception as exc:
+            logger.error("Error fetching member '%s': %s", member_id, exc)
+            raise MemberServiceError(f"Failed to fetch member '{member_id}': {exc}") from exc
 
-    role = data.get("role")
-    if not role:
-        raise MemberValidationError("Member 'role' is required")
-    if role not in VALID_ROLES:
-        raise MemberValidationError(
-            f"Invalid role '{role}'. Must be one of: {', '.join(sorted(VALID_ROLES))}"
-        )
+    def list_members(
+        self, filters: dict, page: int, page_size: int
+    ) -> list[dict]:
+        """List members with optional filters and pagination.
 
-    return {"id": member_id, "role": role}
+        Args:
+            filters: A dictionary of filter criteria.
+            page: The page number (1-indexed).
+            page_size: The number of members per page.
 
+        Returns:
+            A list of member dictionaries.
 
-def get_member(member_id: str) -> dict[str, Any]:
-    """Get a member by ID.
+        Raises:
+            MemberServiceError: If an error occurs while listing members.
+        """
+        try:
+            if self._db is None:
+                return []
+            offset = (page - 1) * page_size
+            return self._db.list_members(filters=filters, offset=offset, limit=page_size)
+        except Exception as exc:
+            logger.error("Error listing members: %s", exc)
+            raise MemberServiceError(f"Failed to list members: {exc}") from exc
 
-    Args:
-        member_id: The unique identifier of the member.
+    def create_member(self, data: dict) -> dict:
+        """Create a new member.
 
-    Returns:
-        The member data.
+        Args:
+            data: A dictionary containing the member data.
 
-    Raises:
-        MemberNotFoundError: If the member does not exist.
-        MemberValidationError: If member_id is empty or invalid.
-    """
-    if not member_id or not isinstance(member_id, str):
-        raise MemberValidationError("A valid member_id string is required")
+        Returns:
+            A dictionary containing the created member data.
 
-    raise MemberNotFoundError(f"Member with id '{member_id}' not found")
+        Raises:
+            MemberServiceError: If an error occurs while creating the member.
+        """
+        try:
+            if self._db is None:
+                raise MemberServiceError("No database configured")
+            return self._db.create_member(data)
+        except Exception as exc:
+            logger.error("Error creating member: %s", exc)
+            raise MemberServiceError(f"Failed to create member: {exc}") from exc
 
+    def update_member(self, member_id: str, data: dict) -> dict:
+        """Update an existing member.
 
-def update_member_role(member_id: str, role: str) -> dict[str, Any]:
-    """Update a member's role.
+        Args:
+            member_id: The unique identifier of the member.
+            data: A dictionary containing the updated member data.
 
-    Args:
-        member_id: The unique identifier of the member.
-        role: The new role to assign.
+        Returns:
+            A dictionary containing the updated member data.
 
-    Returns:
-        The updated member data.
+        Raises:
+            MemberNotFoundError: If the member is not found.
+            MemberServiceError: If an error occurs while updating the member.
+        """
+        try:
+            if self._db is None:
+                raise MemberNotFoundError(f"Member '{member_id}' not found")
+            member = self._db.update_member(member_id, data)
+            if member is None:
+                raise MemberNotFoundError(f"Member '{member_id}' not found")
+            return member
+        except MemberNotFoundError:
+            raise
+        except Exception as exc:
+            logger.error("Error updating member '%s': %s", member_id, exc)
+            raise MemberServiceError(f"Failed to update member '{member_id}': {exc}") from exc
 
-    Raises:
-        MemberNotFoundError: If the member does not exist.
-        MemberValidationError: If inputs are invalid.
-    """
-    if not member_id or not isinstance(member_id, str):
-        raise MemberValidationError("A valid member_id string is required")
+    def delete_member(self, member_id: str) -> bool:
+        """Delete a member.
 
-    if not role:
-        raise MemberValidationError("Role is required")
-    if role not in VALID_ROLES:
-        raise MemberValidationError(
-            f"Invalid role '{role}'. Must be one of: {', '.join(sorted(VALID_ROLES))}"
-        )
+        Args:
+            member_id: The unique identifier of the member.
 
-    raise MemberNotFoundError(f"Member with id '{member_id}' not found")
+        Returns:
+            True if the member was deleted, False otherwise.
+
+        Raises:
+            MemberNotFoundError: If the member is not found.
+            MemberServiceError: If an error occurs while deleting the member.
+        """
+        try:
+            if self._db is None:
+                raise MemberNotFoundError(f"Member '{member_id}' not found")
+            result = self._db.delete_member(member_id)
+            if not result:
+                raise MemberNotFoundError(f"Member '{member_id}' not found")
+            return True
+        except MemberNotFoundError:
+            raise
+        except Exception as exc:
+            logger.error("Error deleting member '%s': %s", member_id, exc)
+            raise MemberServiceError(f"Failed to delete member '{member_id}': {exc}") from exc

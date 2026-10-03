@@ -1,10 +1,10 @@
-"""Event service for gated communities."""
+"""Event service for managing gated-community events."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+import uuid
+from datetime import datetime, timezone
+from typing import Any
 
 
 class EventServiceError(Exception):
@@ -19,177 +19,173 @@ class EventValidationError(EventServiceError):
     """Raised when event data fails validation."""
 
 
-@dataclass
-class Event:
-    """Represents an event in a gated community."""
-
-    id: str
-    community_id: str
-    title: str
-    description: str
-    start_time: datetime
-    end_time: datetime
-    created_by: str
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = None
-    location: Optional[str] = None
-    max_attendees: Optional[int] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
 class EventService:
-    """Service for managing events in gated communities."""
+    """Service for CRUD operations on community events."""
 
-    def __init__(self, repository: Any = None) -> None:
-        """Initialize the event service.
+    def __init__(self) -> None:
+        """Initialize the event service with an in-memory store."""
+        self._events: dict[str, dict[str, Any]] = {}
 
-        Args:
-            repository: Optional repository for event persistence.
-        """
-        self._repository = repository
-        self._events: Dict[str, Event] = {}
-
-    def create_event(self, data: Dict[str, Any]) -> Event:
-        """Create a new event with validation.
-
-        Args:
-            data: Dictionary containing event data. Required keys:
-                - id: Unique event identifier
-                - community_id: Community the event belongs to
-                - title: Event title
-                - description: Event description
-                - start_time: Event start time (ISO format string or datetime)
-                - end_time: Event end time (ISO format string or datetime)
-                - created_by: User ID of the creator
-
-        Returns:
-            The created Event instance.
-
-        Raises:
-            EventValidationError: If required fields are missing or invalid.
-        """
-        required_fields = ["id", "community_id", "title", "description", "start_time", "end_time", "created_by"]
-        missing = [f for f in required_fields if f not in data or data[f] is None]
-        if missing:
-            raise EventValidationError(f"Missing required fields: {', '.join(missing)}")
-
-        event_id = str(data["id"])
-        if event_id in self._events:
-            raise EventValidationError(f"Event with id '{event_id}' already exists")
-
-        start_time = self._parse_datetime(data["start_time"], "start_time")
-        end_time = self._parse_datetime(data["end_time"], "end_time")
-
-        if end_time <= start_time:
-            raise EventValidationError("end_time must be after start_time")
-
-        event = Event(
-            id=event_id,
-            community_id=str(data["community_id"]),
-            title=str(data["title"]),
-            description=str(data["description"]),
-            start_time=start_time,
-            end_time=end_time,
-            created_by=str(data["created_by"]),
-            location=data.get("location"),
-            max_attendees=data.get("max_attendees"),
-            metadata=data.get("metadata", {}),
-        )
-
-        self._events[event_id] = event
-        if self._repository:
-            self._repository.save(event)
-
-        return event
-
-    def get_event(self, event_id: str) -> Event:
+    def get_event(self, event_id: str) -> dict:
         """Get an event by its ID.
 
         Args:
             event_id: The unique identifier of the event.
 
         Returns:
-            The Event instance.
+            The event data as a dictionary.
 
         Raises:
-            EventNotFoundError: If no event with the given ID exists.
-            EventValidationError: If event_id is empty or None.
+            EventNotFoundError: If no event exists with the given ID.
+            EventValidationError: If event_id is empty or invalid.
         """
-        if not event_id:
-            raise EventValidationError("event_id is required")
+        if not event_id or not isinstance(event_id, str):
+            raise EventValidationError("event_id must be a non-empty string")
 
         event = self._events.get(event_id)
-        if event is None and self._repository:
-            event = self._repository.get(event_id)
-
         if event is None:
             raise EventNotFoundError(f"Event with id '{event_id}' not found")
 
-        return event
+        return event.copy()
 
     def list_events(
         self,
-        community_id: str,
-        pagination: Optional[Dict[str, Any]] = None,
-    ) -> List[Event]:
-        """List events in a community with pagination.
+        filters: dict | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> list[dict]:
+        """List events with optional filtering and pagination.
 
         Args:
-            community_id: The community to list events for.
-            pagination: Optional pagination parameters:
-                - page: Page number (1-indexed, default 1)
-                - per_page: Items per page (default 20, max 100)
+            filters: Optional dictionary of filter criteria (e.g., status, community_id).
+            page: Page number (1-indexed).
+            page_size: Number of events per page.
 
         Returns:
-            List of Event instances belonging to the community.
+            A list of event dictionaries matching the filters.
 
         Raises:
-            EventValidationError: If community_id is empty or pagination is invalid.
+            EventValidationError: If page or page_size is invalid.
         """
-        if not community_id:
-            raise EventValidationError("community_id is required")
+        if page < 1:
+            raise EventValidationError("page must be >= 1")
+        if page_size < 1:
+            raise EventValidationError("page_size must be >= 1")
 
-        pagination = pagination or {}
-        page = max(1, int(pagination.get("page", 1)))
-        per_page = min(100, max(1, int(pagination.get("per_page", 20))))
+        filters = filters or {}
+        events = list(self._events.values())
 
-        all_events = [
-            e for e in self._events.values() if e.community_id == community_id
-        ]
+        # Apply filters
+        filtered_events: list[dict] = []
+        for event in events:
+            match = True
+            for key, value in filters.items():
+                if key in event and event[key] != value:
+                    match = False
+                    break
+            if match:
+                filtered_events.append(event.copy())
 
-        if self._repository:
-            all_events = self._repository.list_by_community(community_id)
-
-        all_events.sort(key=lambda e: e.start_time)
-
-        start_idx = (page - 1) * per_page
-        end_idx = start_idx + per_page
-
-        return all_events[start_idx:end_idx]
-
-    @staticmethod
-    def _parse_datetime(value: Any, field_name: str) -> datetime:
-        """Parse a datetime value from string or datetime.
-
-        Args:
-            value: The value to parse.
-            field_name: Name of the field for error messages.
-
-        Returns:
-            Parsed datetime.
-
-        Raises:
-            EventValidationError: If the value cannot be parsed.
-        """
-        if isinstance(value, datetime):
-            return value
-        if isinstance(value, str):
-            try:
-                return datetime.fromisoformat(value.replace("Z", "+00:00"))
-            except ValueError as exc:
-                raise EventValidationError(
-                    f"Invalid datetime format for {field_name}: {value}"
-                ) from exc
-        raise EventValidationError(
-            f"{field_name} must be a datetime or ISO format string, got {type(value).__name__}"
+        # Sort by created_at descending
+        filtered_events.sort(
+            key=lambda e: e.get("created_at", ""),
+            reverse=True,
         )
+
+        # Paginate
+        start = (page - 1) * page_size
+        end = start + page_size
+        return filtered_events[start:end]
+
+    def create_event(self, data: dict) -> dict:
+        """Create a new event.
+
+        Args:
+            data: Dictionary containing event fields (title, description, community_id, etc.).
+
+        Returns:
+            The created event data including generated id and timestamps.
+
+        Raises:
+            EventValidationError: If required fields are missing or data is invalid.
+        """
+        if not isinstance(data, dict):
+            raise EventValidationError("data must be a dictionary")
+
+        required_fields = ["title", "community_id"]
+        for field in required_fields:
+            if field not in data or not data[field]:
+                raise EventValidationError(f"Missing required field: {field}")
+
+        event_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc).isoformat()
+
+        event: dict[str, Any] = {
+            "id": event_id,
+            "title": data["title"],
+            "community_id": data["community_id"],
+            "description": data.get("description", ""),
+            "status": data.get("status", "draft"),
+            "created_at": now,
+            "updated_at": now,
+            "metadata": data.get("metadata", {}),
+        }
+
+        # Add any extra fields from data
+        for key, value in data.items():
+            if key not in event:
+                event[key] = value
+
+        self._events[event_id] = event
+        return event.copy()
+
+    def update_event(self, event_id: str, data: dict) -> dict:
+        """Update an existing event.
+
+        Args:
+            event_id: The unique identifier of the event to update.
+            data: Dictionary containing fields to update.
+
+        Returns:
+            The updated event data.
+
+        Raises:
+            EventNotFoundError: If no event exists with the given ID.
+            EventValidationError: If event_id is empty or data is invalid.
+        """
+        if not event_id or not isinstance(event_id, str):
+            raise EventValidationError("event_id must be a non-empty string")
+        if not isinstance(data, dict):
+            raise EventValidationError("data must be a dictionary")
+
+        event = self._events.get(event_id)
+        if event is None:
+            raise EventNotFoundError(f"Event with id '{event_id}' not found")
+
+        # Prevent changing the id
+        data = {k: v for k, v in data.items() if k != "id"}
+
+        event.update(data)
+        event["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+        return event.copy()
+
+    def delete_event(self, event_id: str) -> bool:
+        """Delete an event by its ID.
+
+        Args:
+            event_id: The unique identifier of the event to delete.
+
+        Returns:
+            True if the event was deleted, False if it did not exist.
+
+        Raises:
+            EventValidationError: If event_id is empty or invalid.
+        """
+        if not event_id or not isinstance(event_id, str):
+            raise EventValidationError("event_id must be a non-empty string")
+
+        if event_id in self._events:
+            del self._events[event_id]
+            return True
+        return False

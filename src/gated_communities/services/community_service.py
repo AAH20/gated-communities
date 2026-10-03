@@ -204,3 +204,83 @@ class CommunityService:
             page=pagination.page,
             page_size=pagination.page_size,
         )
+
+    def update_community(self, community_id: str, data: Dict[str, Any]) -> Community:
+        """Update an existing community.
+
+        Args:
+            community_id: The unique identifier of the community to update.
+            data: Dictionary containing the fields to update.
+                Updatable keys: name, description, status, metadata
+
+        Returns:
+            The updated Community instance.
+
+        Raises:
+            ValidationError: If community_id is empty or data is invalid.
+            CommunityNotFoundError: If no community exists with the given ID.
+        """
+        if not community_id or not isinstance(community_id, str):
+            raise ValidationError("community_id is required and must be a non-empty string")
+        if not isinstance(data, dict):
+            raise ValidationError("data must be a dictionary")
+
+        community = self.get_community(community_id)
+
+        if "name" in data:
+            name = data["name"]
+            if not name or not isinstance(name, str):
+                raise ValidationError("name must be a non-empty string")
+            if len(name.strip()) == 0:
+                raise ValidationError("name cannot be whitespace only")
+            if len(name) > 255:
+                raise ValidationError("name must be 255 characters or fewer")
+            community.name = name.strip()
+
+        if "description" in data:
+            description = data["description"]
+            if not description or not isinstance(description, str):
+                raise ValidationError("description must be a non-empty string")
+            if len(description.strip()) == 0:
+                raise ValidationError("description cannot be whitespace only")
+            if len(description) > 5000:
+                raise ValidationError("description must be 5000 characters or fewer")
+            community.description = description.strip()
+
+        if "status" in data:
+            try:
+                community.status = CommunityStatus(data["status"])
+            except ValueError:
+                valid = ", ".join(s.value for s in CommunityStatus)
+                raise ValidationError(f"status must be one of: {valid}")
+
+        if "metadata" in data:
+            metadata = data["metadata"]
+            if not isinstance(metadata, dict):
+                raise ValidationError("metadata must be a dictionary")
+            community.metadata = dict(metadata)
+
+        community.updated_at = datetime.now(timezone.utc)
+        return community
+
+    def delete_community(self, community_id: str) -> bool:
+        """Delete a community by its ID.
+
+        Args:
+            community_id: The unique identifier of the community to delete.
+
+        Returns:
+            True if the community was successfully deleted.
+
+        Raises:
+            ValidationError: If community_id is empty or invalid.
+            CommunityNotFoundError: If no community exists with the given ID.
+        """
+        if not community_id or not isinstance(community_id, str):
+            raise ValidationError("community_id is required and must be a non-empty string")
+
+        if community_id not in self._communities:
+            raise CommunityNotFoundError(f"Community not found: {community_id}")
+
+        del self._communities[community_id]
+        return True

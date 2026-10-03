@@ -1,112 +1,160 @@
-"""Message service for gated communities."""
+"""Message service for gated-communities."""
 
 from __future__ import annotations
 
+import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 
-class MessageServiceError(Exception):
-    """Base exception for message service errors."""
+class MessageNotFoundError(Exception):
+    """Raised when a message is not found."""
 
 
-class ValidationError(MessageServiceError):
-    """Raised when message data fails validation."""
+class MessageValidationError(Exception):
+    """Raised when message data is invalid."""
 
 
-class NotFoundError(MessageServiceError):
-    """Raised when a message or channel is not found."""
+_MESSAGES: dict[str, dict[str, Any]] = {}
 
 
-def send_message(data: dict[str, Any]) -> dict[str, Any]:
-    """Send a message to a channel.
-
-    Args:
-        data: Dictionary containing message data. Required keys:
-            - channel_id (str): Target channel identifier.
-            - content (str): Message body text.
-            - sender_id (str): Identifier of the sending user.
-
-    Returns:
-        The created message as a dictionary with generated id and timestamp.
-
-    Raises:
-        ValidationError: If required fields are missing or invalid.
-    """
-    if not isinstance(data, dict):
-        raise ValidationError("Message data must be a dictionary.")
-
-    required_fields = ("channel_id", "content", "sender_id")
-    missing = [field for field in required_fields if not data.get(field)]
-    if missing:
-        raise ValidationError(
-            f"Missing required fields: {', '.join(missing)}"
-        )
-
-    channel_id = data["channel_id"]
-    content = data["content"]
-    sender_id = data["sender_id"]
-
-    if not isinstance(channel_id, str) or not channel_id.strip():
-        raise ValidationError("channel_id must be a non-empty string.")
-    if not isinstance(content, str) or not content.strip():
-        raise ValidationError("content must be a non-empty string.")
-    if not isinstance(sender_id, str) or not sender_id.strip():
-        raise ValidationError("sender_id must be a non-empty string.")
-
-    from datetime import datetime, timezone
-
-    message = {
-        "id": f"msg_{datetime.now(timezone.utc).timestamp()}",
-        "channel_id": channel_id,
-        "content": content,
-        "sender_id": sender_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "read": False,
-    }
-
-    return message
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
-def get_messages(channel_id: str) -> list[dict[str, Any]]:
-    """Retrieve all messages in a channel.
+def get_message(message_id: str) -> dict:
+    """Get a message by its ID.
 
     Args:
-        channel_id: The channel identifier to fetch messages for.
+        message_id: The unique identifier of the message.
 
     Returns:
-        A list of message dictionaries, ordered oldest first.
+        The message data as a dictionary.
 
     Raises:
-        ValidationError: If channel_id is invalid.
-        NotFoundError: If the channel does not exist.
-    """
-    if not isinstance(channel_id, str) or not channel_id.strip():
-        raise ValidationError("channel_id must be a non-empty string.")
-
-    # In a real implementation this would query the database.
-    # Returning an empty list for a valid but empty channel.
-    return []
-
-
-def mark_as_read(message_id: str) -> dict[str, Any]:
-    """Mark a message as read.
-
-    Args:
-        message_id: The identifier of the message to mark as read.
-
-    Returns:
-        The updated message dictionary with read=True.
-
-    Raises:
-        ValidationError: If message_id is invalid.
-        NotFoundError: If the message does not exist.
+        MessageNotFoundError: If no message exists with the given ID.
+        MessageValidationError: If message_id is empty or not a string.
     """
     if not isinstance(message_id, str) or not message_id.strip():
-        raise ValidationError("message_id must be a non-empty string.")
+        raise MessageValidationError("message_id must be a non-empty string")
 
-    # In a real implementation this would update the database.
-    # Returning a stub indicating success.
-    return {
+    message = _MESSAGES.get(message_id)
+    if message is None:
+        raise MessageNotFoundError(f"Message not found: {message_id}")
+
+    return dict(message)
+
+
+def list_messages(filters: dict, page: int, page_size: int) -> list[dict]:
+    """List messages with optional filters and pagination.
+
+    Args:
+        filters: A dictionary of filter criteria (e.g. {"author_id": "..."}).
+        page: The page number (1-indexed).
+        page_size: The number of messages per page.
+
+    Returns:
+        A list of message dictionaries matching the filters.
+
+    Raises:
+        MessageValidationError: If page or page_size is invalid.
+    """
+    if not isinstance(page, int) or page < 1:
+        raise MessageValidationError("page must be a positive integer")
+    if not isinstance(page_size, int) or page_size < 1:
+        raise MessageValidationError("page_size must be a positive integer")
+    if not isinstance(filters, dict):
+        raise MessageValidationError("filters must be a dictionary")
+
+    results: list[dict] = []
+    for msg in _MESSAGES.values():
+        if all(msg.get(k) == v for k, v in filters.items()):
+            results.append(dict(msg))
+
+    start = (page - 1) * page_size
+    end = start + page_size
+    return results[start:end]
+
+
+def create_message(data: dict) -> dict:
+    """Create a new message.
+
+    Args:
+        data: A dictionary containing message fields. Must include 'content'.
+
+    Returns:
+        The created message data including generated id and timestamps.
+
+    Raises:
+        MessageValidationError: If data is invalid or missing required fields.
+    """
+    if not isinstance(data, dict):
+        raise MessageValidationError("data must be a dictionary")
+    if not data.get("content"):
+        raise MessageValidationError("content is required")
+
+    message_id = str(uuid.uuid4())
+    now = _now()
+    message = {
         "id": message_id,
-        "read": True,
+        "content": data["content"],
+        "author_id": data.get("author_id", ""),
+        "community_id": data.get("community_id", ""),
+        "created_at": now,
+        "updated_at": now,
     }
+    _MESSAGES[message_id] = message
+    return dict(message)
+
+
+def update_message(message_id: str, data: dict) -> dict:
+    """Update an existing message.
+
+    Args:
+        message_id: The unique identifier of the message to update.
+        data: A dictionary of fields to update.
+
+    Returns:
+        The updated message data.
+
+    Raises:
+        MessageNotFoundError: If no message exists with the given ID.
+        MessageValidationError: If message_id or data is invalid.
+    """
+    if not isinstance(message_id, str) or not message_id.strip():
+        raise MessageValidationError("message_id must be a non-empty string")
+    if not isinstance(data, dict):
+        raise MessageValidationError("data must be a dictionary")
+
+    message = _MESSAGES.get(message_id)
+    if message is None:
+        raise MessageNotFoundError(f"Message not found: {message_id}")
+
+    for key, value in data.items():
+        if key != "id":
+            message[key] = value
+    message["updated_at"] = _now()
+    return dict(message)
+
+
+def delete_message(message_id: str) -> bool:
+    """Delete a message by its ID.
+
+    Args:
+        message_id: The unique identifier of the message to delete.
+
+    Returns:
+        True if the message was deleted.
+
+    Raises:
+        MessageNotFoundError: If no message exists with the given ID.
+        MessageValidationError: If message_id is invalid.
+    """
+    if not isinstance(message_id, str) or not message_id.strip():
+        raise MessageValidationError("message_id must be a non-empty string")
+
+    if message_id not in _MESSAGES:
+        raise MessageNotFoundError(f"Message not found: {message_id}")
+
+    del _MESSAGES[message_id]
+    return True

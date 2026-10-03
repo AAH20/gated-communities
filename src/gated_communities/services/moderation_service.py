@@ -1,197 +1,247 @@
 """Moderation service for gated communities.
 
-Handles creation, retrieval, and resolution of moderation items
-such as reported content, flagged posts, and user appeals.
+Handles creation, retrieval, listing, resolution, and deletion of
+moderation items such as reported content, flagged posts, and user appeals.
 """
 
 from __future__ import annotations
 
+import logging
 import uuid
-from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-
-class ModerationAction(str, Enum):
-    """Valid actions for resolving a moderation item."""
-
-    APPROVE = "approve"
-    REJECT = "reject"
-    DISMISS = "dismiss"
-    ESCALATE = "escalate"
-
-
-class ModerationStatus(str, Enum):
-    """Lifecycle status of a moderation item."""
-
-    PENDING = "pending"
-    RESOLVED = "resolved"
-    ESCALATED = "escalated"
+logger = logging.getLogger(__name__)
 
 
 class ModerationError(Exception):
     """Base exception for moderation service errors."""
 
 
-class ValidationError(ModerationItemError := ModerationError):
-    """Raised when input data fails validation."""
-
-
-class ItemNotFoundError(ModerationError):
+class ModerationItemNotFoundError(ModerationError):
     """Raised when a moderation item cannot be found."""
 
 
-class InvalidActionError(ModerationError):
-    """Raised when an invalid resolution action is provided."""
+class ModerationItemAlreadyResolvedError(ModerationError):
+    """Raised when attempting to resolve an already-resolved item."""
 
 
-@dataclass
-class ModerationItem:
-    """Represents a single moderation queue entry."""
+class InvalidModerationDecisionError(ModerationError):
+    """Raised when an invalid resolution decision is provided."""
 
-    id: str
-    community_id: str
-    reporter_id: str
-    target_type: str
-    target_id: str
-    reason: str
-    status: ModerationStatus = ModerationStatus.PENDING
-    action: Optional[ModerationAction] = None
-    moderator_id: Optional[str] = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    resolved_at: Optional[datetime] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
 
+_VALID_DECISIONS = frozenset({"approve", "reject", "dismiss", "escalate"})
 
 # In-memory store — replace with database persistence in production
-_moderation_store: Dict[str, ModerationItem] = {}
+_moderation_store: dict[str, dict[str, Any]] = {}
 
 
-def _validate_moderation_data(data: Dict[str, Any]) -> None:
-    """Validate incoming moderation item data.
+def get_moderation_item(item_id: str) -> dict[str, Any]:
+    """Get a moderation item by its ID.
+
+    Args:
+        item_id: The unique identifier of the moderation item.
+
+    Returns:
+        A dictionary containing the moderation item data.
 
     Raises:
-        ValidationError: If required fields are missing or invalid.
+        ValueError: If ``item_id`` is not a non-empty string.
+        ModerationItemNotFoundError: If no item exists with the given ID.
+        ModerationError: If the item retrieval fails for any other reason.
     """
+    if not item_id or not isinstance(item_id, str):
+        raise ValueError("item_id must be a non-empty string")
+
+    try:
+        item = _moderation_store.get(item_id)
+        if item is None:
+            raise ModerationItemNotFoundError(
+                f"Moderation item '{item_id}' not found"
+            )
+        return dict(item)
+    except ModerationItemNotFoundError:
+        raise
+    except Exception as exc:
+        logger.error("Failed to get moderation item %s: %s", item_id, exc)
+        raise ModerationError(
+            f"Failed to retrieve moderation item '{item_id}'"
+        ) from exc
+
+
+def list_moderation_items(
+    filters: dict[str, Any],
+    page: int,
+    page_size: int,
+) -> list[dict[str, Any]]:
+    """List moderation items with optional filters and pagination.
+
+    Args:
+        filters: A dictionary of filter criteria (e.g. ``{"status": "pending"}``).
+        page: The page number (1-indexed).
+        page_size: The number of items per page.
+
+    Returns:
+        A list of moderation item dictionaries.
+
+    Raises:
+        ValueError: If ``page`` or ``page_size`` is not a positive integer,
+            or if ``filters`` is not a dictionary.
+        ModerationError: If the listing operation fails.
+    """
+    if not isinstance(page, int) or page < 1:
+        raise ValueError("page must be a positive integer")
+    if not isinstance(page_size, int) or page_size < 1:
+        raise ValueError("page_size must be a positive integer")
+    if not isinstance(filters, dict):
+        raise ValueError("filters must be a dictionary")
+
+    try:
+        items = list(_moderation_store.values())
+
+        # Apply filters
+        for key, value in filters.items():
+            items = [item for item in items if item.get(key) == value]
+
+        # Sort by created_at descending (newest first)
+        items.sort(key=lambda i: i.get("created_at", ""), reverse=True)
+
+        # Paginate
+        start = (page - 1) * page_size
+        end = start + page_size
+        return [dict(item) for item in items[start:end]]
+    except Exception as exc:
+        logger.error("Failed to list moderation items: %s", exc)
+        raise ModerationError("Failed to list moderation items") from exc
+
+
+def create_moderation_item(data: dict[str, Any]) -> dict[str, Any]:
+    """Create a new moderation item.
+
+    Args:
+        data: A dictionary containing the moderation item fields
+            (e.g. ``community_id``, ``reporter_id``, ``target_type``,
+            ``target_id``, ``reason``).
+
+    Returns:
+        The newly created moderation item as a dictionary.
+
+    Raises:
+        ValueError: If ``data`` is empty or missing required fields.
+        ModerationError: If the creation operation fails.
+    """
+    if not isinstance(data, dict) or not data:
+        raise ValueError("data must be a non-empty dictionary")
+
     required_fields = ("community_id", "reporter_id", "target_type", "target_id", "reason")
     missing = [f for f in required_fields if not data.get(f)]
     if missing:
-        raise ValidationError(f"Missing required fields: {', '.join(missing)}")
+        raise ValueError(f"Missing required fields: {', '.join(missing)}")
 
-    if not isinstance(data["community_id"], str) or not data["community_id"].strip():
-        raise ValidationError("community_id must be a non-empty string")
-    if not isinstance(data["reporter_id"], str) or not data["reporter_id"].strip():
-        raise ValidationError("reporter_id must be a non-empty string")
-    if not isinstance(data["target_type"], str) or not data["target_type"].strip():
-        raise ValidationError("target_type must be a non-empty string")
-    if not isinstance(data["target_id"], str) or not data["target_id"].strip():
-        raise ValidationError("target_id must be a non-empty string")
-    if not isinstance(data["reason"], str) or not data["reason"].strip():
-        raise ValidationError("reason must be a non-empty string")
+    try:
+        item_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc).isoformat()
+
+        item: dict[str, Any] = {
+            "id": item_id,
+            "community_id": data["community_id"],
+            "reporter_id": data["reporter_id"],
+            "target_type": data["target_type"],
+            "target_id": data["target_id"],
+            "reason": data["reason"],
+            "status": "pending",
+            "decision": None,
+            "moderator_id": None,
+            "created_at": now,
+            "resolved_at": None,
+            "metadata": data.get("metadata", {}),
+        }
+
+        _moderation_store[item_id] = item
+        return dict(item)
+    except Exception as exc:
+        logger.error("Failed to create moderation item: %s", exc)
+        raise ModerationError("Failed to create moderation item") from exc
 
 
-def create_moderation_item(data: Dict[str, Any]) -> ModerationItem:
-    """Create a new moderation item after validating input data.
+def resolve_moderation_item(item_id: str, decision: str) -> dict[str, Any]:
+    """Resolve a moderation item with a decision.
 
     Args:
-        data: Dictionary containing moderation item fields.
+        item_id: The unique identifier of the moderation item.
+        decision: The resolution decision. Must be one of
+            ``"approve"``, ``"reject"``, ``"dismiss"``, or ``"escalate"``.
 
     Returns:
-        The newly created ModerationItem.
+        The updated moderation item as a dictionary.
 
     Raises:
-        ValidationError: If required fields are missing or invalid.
+        ValueError: If ``item_id`` is empty or ``decision`` is invalid.
+        ModerationItemNotFoundError: If no item exists with the given ID.
+        ModerationItemAlreadyResolvedError: If the item is already resolved.
+        ModerationError: If the resolution operation fails.
     """
-    _validate_moderation_data(data)
-
-    item = ModerationItem(
-        id=str(uuid.uuid4()),
-        community_id=data["community_id"].strip(),
-        reporter_id=data["reporter_id"].strip(),
-        target_type=data["target_type"].strip(),
-        target_id=data["target_id"].strip(),
-        reason=data["reason"].strip(),
-        metadata=data.get("metadata", {}),
-    )
-
-    _moderation_store[item.id] = item
-    return item
-
-
-def get_moderation_queue(
-    community_id: Optional[str] = None,
-    status: Optional[ModerationStatus] = None,
-) -> List[ModerationItem]:
-    """Retrieve the moderation queue, optionally filtered.
-
-    Args:
-        community_id: Filter by community ID.
-        status: Filter by moderation status.
-
-    Returns:
-        List of ModerationItem matching the filters, newest first.
-    """
-    items = list(_moderation_store.values())
-
-    if community_id is not None:
-        items = [i for i in items if i.community_id == community_id]
-    if status is not None:
-        items = [i for i in items if i.status == status]
-
-    items.sort(key=lambda i: i.created_at, reverse=True)
-    return items
-
-
-def resolve_moderation_item(
-    item_id: str,
-    action: ModerationAction | str,
-    moderator_id: Optional[str] = None,
-) -> ModerationItem:
-    """Resolve a moderation item with the given action.
-
-    Args:
-        item_id: The ID of the moderation item to resolve.
-        action: The resolution action (approve, reject, dismiss, escalate).
-        moderator_id: Optional ID of the moderator performing the action.
-
-    Returns:
-        The updated ModerationItem.
-
-    Raises:
-        ItemNotFoundError: If the item does not exist.
-        InvalidActionError: If the action is not valid.
-        ModerationError: If the item is already resolved.
-    """
-    if item_id not in _moderation_store:
-        raise ItemNotFoundError(f"Moderation item '{item_id}' not found")
-
-    item = _moderation_store[item_id]
-
-    if item.status != ModerationStatus.PENDING:
-        raise ModerationError(
-            f"Item '{item_id}' is already {item.status.value}"
+    if not item_id or not isinstance(item_id, str):
+        raise ValueError("item_id must be a non-empty string")
+    if not decision or decision.lower() not in _VALID_DECISIONS:
+        raise InvalidModerationDecisionError(
+            f"Invalid decision '{decision}'. Must be one of: {sorted(_VALID_DECISIONS)}"
         )
 
-    if isinstance(action, str):
-        try:
-            action = ModerationAction(action.lower())
-        except ValueError:
-            valid = ", ".join(a.value for a in ModerationAction)
-            raise InvalidActionError(
-                f"Invalid action '{action}'. Valid actions: {valid}"
+    try:
+        item = _moderation_store.get(item_id)
+        if item is None:
+            raise ModerationItemNotFoundError(
+                f"Moderation item '{item_id}' not found"
+            )
+        if item.get("status") == "resolved":
+            raise ModerationItemAlreadyResolvedError(
+                f"Moderation item '{item_id}' is already resolved"
             )
 
-    if not isinstance(action, ModerationAction):
-        raise InvalidActionError("action must be a ModerationAction or valid string")
+        now = datetime.now(timezone.utc).isoformat()
+        item["status"] = "resolved"
+        item["decision"] = decision.lower()
+        item["resolved_at"] = now
 
-    item.action = action
-    item.moderator_id = moderator_id
-    item.resolved_at = datetime.now(timezone.utc)
+        return dict(item)
+    except (ModerationItemNotFoundError, ModerationItemAlreadyResolvedError):
+        raise
+    except Exception as exc:
+        logger.error("Failed to resolve moderation item %s: %s", item_id, exc)
+        raise ModerationError(
+            f"Failed to resolve moderation item '{item_id}'"
+        ) from exc
 
-    if action == ModerationAction.ESCALATE:
-        item.status = ModerationStatus.ESCALATED
-    else:
-        item.status = ModerationStatus.RESOLVED
 
-    return item
+def delete_moderation_item(item_id: str) -> bool:
+    """Delete a moderation item by its ID.
+
+    Args:
+        item_id: The unique identifier of the moderation item.
+
+    Returns:
+        ``True`` if the item was successfully deleted.
+
+    Raises:
+        ValueError: If ``item_id`` is empty.
+        ModerationItemNotFoundError: If no item exists with the given ID.
+        ModerationError: If the deletion operation fails.
+    """
+    if not item_id or not isinstance(item_id, str):
+        raise ValueError("item_id must be a non-empty string")
+
+    try:
+        if item_id not in _moderation_store:
+            raise ModerationItemNotFoundError(
+                f"Moderation item '{item_id}' not found"
+            )
+        del _moderation_store[item_id]
+        return True
+    except ModerationItemNotFoundError:
+        raise
+    except Exception as exc:
+        logger.error("Failed to delete moderation item %s: %s", item_id, exc)
+        raise ModerationError(
+            f"Failed to delete moderation item '{item_id}'"
+        ) from exc

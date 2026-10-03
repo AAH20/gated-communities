@@ -74,6 +74,10 @@ class PostRepository(Protocol):
 
     async def count_by_community(self, community_id: str) -> int: ...
 
+    async def update(self, post: Post) -> Post: ...
+
+    async def delete(self, post_id: str) -> bool: ...
+
 
 class CommunityRepository(Protocol):
     """Protocol for community lookups."""
@@ -230,3 +234,92 @@ class PostService:
             raise RepositoryError(f"Failed to list posts: {exc}") from exc
 
         return posts, total
+
+    async def update_post(self, post_id: str, data: dict[str, Any]) -> Post:
+        """Update an existing post.
+
+        Args:
+            post_id: The unique identifier of the post to update.
+            data: Dictionary containing the fields to update.
+
+        Returns:
+            The updated Post.
+
+        Raises:
+            ValidationError: If post_id is empty or data is empty.
+            PostNotFoundError: If no post matches the ID.
+            RepositoryError: If the update fails.
+        """
+        if not post_id or not post_id.strip():
+            raise ValidationError("post_id must be a non-empty string")
+        if not data:
+            raise ValidationError("data must not be empty")
+
+        try:
+            post = await self._post_repo.get_by_id(post_id)
+        except Exception as exc:
+            raise RepositoryError(f"Failed to fetch post: {exc}") from exc
+
+        if post is None:
+            raise PostNotFoundError(f"Post '{post_id}' not found")
+
+        if "title" in data:
+            title = data["title"]
+            if not isinstance(title, str) or not title.strip():
+                raise ValidationError("title must be a non-empty string")
+            if len(title) > 200:
+                raise ValidationError("title must be 200 characters or fewer")
+            post.title = title.strip()
+
+        if "content" in data:
+            content = data["content"]
+            if not isinstance(content, str) or not content.strip():
+                raise ValidationError("content must be a non-empty string")
+            if len(content) > 50_000:
+                raise ValidationError("content must be 50,000 characters or fewer")
+            post.content = content.strip()
+
+        if "tags" in data:
+            tags = data["tags"]
+            if not isinstance(tags, list):
+                raise ValidationError("tags must be a list")
+            if len(tags) > 10:
+                raise ValidationError("tags must contain at most 10 items")
+            for tag in tags:
+                if not isinstance(tag, str) or not tag.strip():
+                    raise ValidationError("each tag must be a non-empty string")
+            post.tags = [t.strip() for t in tags]
+
+        if "is_pinned" in data:
+            post.is_pinned = bool(data["is_pinned"])
+
+        if "is_locked" in data:
+            post.is_locked = bool(data["is_locked"])
+
+        post.updated_at = datetime.now(timezone.utc)
+
+        try:
+            return await self._post_repo.update(post)
+        except Exception as exc:
+            raise RepositoryError(f"Failed to update post: {exc}") from exc
+
+    async def delete_post(self, post_id: str) -> bool:
+        """Delete a post by its ID.
+
+        Args:
+            post_id: The unique identifier of the post to delete.
+
+        Returns:
+            True if the post was deleted, False if it did not exist.
+
+        Raises:
+            ValidationError: If post_id is empty.
+            RepositoryError: If the deletion fails.
+        """
+        if not post_id or not post_id.strip():
+            raise ValidationError("post_id must be a non-empty string")
+
+        try:
+            return await self._post_repo.delete(post_id)
+        except Exception as exc:
+            raise RepositoryError(f"Failed to delete post: {exc}") from exc
