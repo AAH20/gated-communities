@@ -7,9 +7,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 
-from .community import Community
-from .gate import Gate
-from .member import Member, MemberStatus
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .community import Community
+    from .gate import Gate
+    from .member import Member, MemberStatus
 
 
 class AccessDecision(str, Enum):
