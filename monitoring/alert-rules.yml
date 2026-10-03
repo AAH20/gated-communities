@@ -1,0 +1,509 @@
+# Prometheus Alert Rules for Gated Communities
+# Production-grade alerting with proper thresholds and severity levels
+
+groups:
+  # ─── Infrastructure Alerts ───────────────────────────────────────────
+  - name: infrastructure
+    interval: 30s
+    rules:
+      # Node down
+      - alert: NodeDown
+        expr: up{job="node-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Node {{ $labels.instance }} is down"
+          description: "Node {{ $labels.instance }} has been unreachable for more than 2 minutes."
+          runbook: "https://wiki.internal/runbooks/node-down"
+
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 85% for more than 5 minutes on {{ $labels.instance }}."
+          runbook: "https://wiki.internal/runbooks/high-cpu"
+
+      # Critical CPU usage
+      - alert: CriticalCPUUsage
+        expr: |
+          100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 3m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Critical CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 95% for more than 3 minutes on {{ $labels.instance }}."
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 85% for more than 5 minutes on {{ $labels.instance }}."
+
+      # Critical memory usage
+      - alert: CriticalMemoryUsage
+        expr: |
+          (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 95
+        for: 3m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Critical memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 95% for more than 3 minutes on {{ $labels.instance }}."
+
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk space is below 15% on {{ $labels.instance }} (mountpoint: /)."
+
+      # Disk space critical
+      - alert: DiskSpaceCritical
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 5
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Disk space is below 5% on {{ $labels.instance }} (mountpoint: /)."
+
+      # Disk IO high
+      - alert: DiskIOHigh
+        expr: |
+          rate(node_disk_io_time_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "High disk I/O on {{ $labels.instance }}"
+          description: "Disk I/O utilization is above 80% for more than 5 minutes on {{ $labels.instance }}."
+
+      # Network errors
+      - alert: NetworkErrors
+        expr: |
+          rate(node_network_receive_errs_total[5m]) + rate(node_network_transmit_errs_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Network errors on {{ $labels.instance }}"
+          description: "Network interface {{ $labels.device }} on {{ $labels.instance }} is experiencing errors."
+
+  # ─── Application Alerts ──────────────────────────────────────────────
+  - name: application
+    interval: 15s
+    rules:
+      # API service down
+      - alert: APIServiceDown
+        expr: up{job="gated-communities-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Gated Communities API is down"
+          description: "The API service has been unreachable for more than 1 minute."
+          runbook: "https://wiki.internal/runbooks/api-down"
+
+      # Community service down
+      - alert: CommunityServiceDown
+        expr: up{job="community-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Community service is down"
+          description: "The community service has been unreachable for more than 1 minute."
+
+      # Membership service down
+      - alert: MembershipServiceDown
+        expr: up{job="membership-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Membership service is down"
+          description: "The membership service has been unreachable for more than 1 minute."
+
+      # Access control service down
+      - alert: AccessControlServiceDown
+        expr: up{job="access-control-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Access control service is down"
+          description: "The access control service has been unreachable for more than 1 minute."
+
+      # High API latency (p95)
+      - alert: HighAPILatency
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="gated-communities-api"}[5m])) > 1.0
+        for: 3m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "High API latency (p95 > 1s)"
+          description: "The 95th percentile API latency is above 1 second for more than 3 minutes."
+
+      # Critical API latency (p99)
+      - alert: CriticalAPILatency
+        expr: |
+          histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job="gated-communities-api"}[5m])) > 3.0
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Critical API latency (p99 > 3s)"
+          description: "The 99th percentile API latency is above 3 seconds for more than 2 minutes."
+
+      # High error rate (5xx)
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{job="gated-communities-api", status=~"5.."}[5m])) /
+          sum(rate(http_requests_total{job="gated-communities-api"}[5m])) * 100 > 5
+        for: 3m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "High 5xx error rate"
+          description: "The 5xx error rate is above 5% for more than 3 minutes."
+
+      # Elevated error rate (4xx)
+      - alert: Elevated4xxRate
+        expr: |
+          sum(rate(http_requests_total{job="gated-communities-api", status=~"4.."}[5m])) /
+          sum(rate(http_requests_total{job="gated-communities-api"}[5m])) * 100 > 15
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Elevated 4xx error rate"
+          description: "The 4xx error rate is above 15% for more than 5 minutes."
+
+      # High request rate (potential DDoS)
+      - alert: HighRequestRate
+        expr: |
+          sum(rate(http_requests_total{job="gated-communities-api"}[1m])) > 10000
+        for: 2m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Abnormally high request rate"
+          description: "Request rate exceeds 10,000 req/s for more than 2 minutes. Possible DDoS or misconfiguration."
+
+  # ─── Database Alerts ─────────────────────────────────────────────────
+  - name: database
+    interval: 30s
+    rules:
+      # PostgreSQL down
+      - alert: PostgreSQLDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL exporter is unreachable for more than 1 minute."
+
+      # PostgreSQL connections high
+      - alert: PostgreSQLConnectionsHigh
+        expr: |
+          pg_stat_activity_count / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "PostgreSQL connections above 80%"
+          description: "PostgreSQL connection usage is above 80% for more than 5 minutes."
+
+      # PostgreSQL connections critical
+      - alert: PostgreSQLConnectionsCritical
+        expr: |
+          pg_stat_activity_count / pg_settings_max_connections * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          team: database
+        annotations:
+          summary: "PostgreSQL connections above 95%"
+          description: "PostgreSQL connection usage is above 95% for more than 2 minutes."
+
+      # PostgreSQL slow queries
+      - alert: PostgreSQLSlowQueries
+        expr: |
+          rate(pg_stat_activity_max_tx_duration_seconds[5m]) > 30
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Transactions running longer than 30 seconds detected."
+
+      # PostgreSQL replication lag
+      - alert: PostgreSQLReplicationLag
+        expr: |
+          pg_replication_lag_seconds > 30
+        for: 5m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "PostgreSQL replication lag > 30s"
+          description: "Replication lag is above 30 seconds for more than 5 minutes."
+
+      # PostgreSQL deadlocks
+      - alert: PostgreSQLDeadlocks
+        expr: |
+          rate(pg_stat_database_deadlocks[5m]) > 0
+        for: 2m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "PostgreSQL deadlocks detected"
+          description: "Deadlocks have been detected in the last 2 minutes."
+
+  # ─── Cache Alerts ────────────────────────────────────────────────────
+  - name: cache
+    interval: 30s
+    rules:
+      # Redis down
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Redis is down"
+          description: "Redis exporter is unreachable for more than 1 minute."
+
+      # Redis memory high
+      - alert: RedisMemoryHigh
+        expr: |
+          redis_memory_used_bytes / redis_memory_max_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Redis memory usage above 85%"
+          description: "Redis memory usage is above 85% for more than 5 minutes."
+
+      # Redis memory critical
+      - alert: RedisMemoryCritical
+        expr: |
+          redis_memory_used_bytes / redis_memory_max_bytes * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Redis memory usage above 95%"
+          description: "Redis memory usage is above 95% for more than 2 minutes."
+
+      # Redis evictions
+      - alert: RedisEvictions
+        expr: |
+          rate(redis_evicted_keys_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Redis key evictions detected"
+          description: "Redis is evicting keys due to memory pressure."
+
+      # Redis hit rate low
+      - alert: RedisHitRateLow
+        expr: |
+          rate(redis_keyspace_hits_total[5m]) /
+          (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m])) * 100 < 80
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Redis cache hit rate below 80%"
+          description: "Cache hit rate has been below 80% for more than 10 minutes."
+
+  # ─── Endpoint Availability ───────────────────────────────────────────
+  - name: endpoint-availability
+    interval: 30s
+    rules:
+      # Health endpoint down
+      - alert: HealthEndpointDown
+        expr: probe_success{job="blackbox-http"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Health endpoint {{ $labels.instance }} is down"
+          description: "The health endpoint {{ $labels.instance }} has been failing for more than 2 minutes."
+
+      # TCP connectivity down
+      - alert: TCPConnectivityDown
+        expr: probe_success{job="blackbox-tcp"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "TCP connectivity to {{ $labels.instance }} is down"
+          description: "TCP connectivity to {{ $labels.instance }} has been failing for more than 2 minutes."
+
+      # SSL certificate expiring soon
+      - alert: SSLCertExpiringSoon
+        expr: |
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "SSL certificate expiring in < 30 days"
+          description: "SSL certificate for {{ $labels.instance }} expires in less than 30 days."
+
+      # SSL certificate expiring very soon
+      - alert: SSLCertExpiringVerySoon
+        expr: |
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 7
+        for: 1h
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "SSL certificate expiring in < 7 days"
+          description: "SSL certificate for {{ $labels.instance }} expires in less than 7 days."
+
+  # ─── Business Logic Alerts ───────────────────────────────────────────
+  - name: business-logic
+    interval: 30s
+    rules:
+      # Failed access attempts spike
+      - alert: FailedAccessAttemptsSpike
+        expr: |
+          rate(access_denied_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Spike in failed access attempts"
+          description: "More than 100 access denials per second detected for over 5 minutes."
+
+      # Community creation rate anomaly
+      - alert: CommunityCreationAnomaly
+        expr: |
+          abs(rate(communities_created_total[1h]) - rate(communities_created_total[1h] offset 1d)) /
+          rate(communities_created_total[1h] offset 1d) * 100 > 200
+        for: 15m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Community creation rate anomaly"
+          description: "Community creation rate deviates more than 200% from yesterday."
+
+      # Membership approval backlog
+      - alert: MembershipApprovalBacklog
+        expr: |
+          membership_pending_approvals > 500
+        for: 15m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Membership approval backlog > 500"
+          description: "More than 500 membership requests are pending approval."
+
+  # ─── Container Alerts ────────────────────────────────────────────────
+  - name: containers
+    interval: 15s
+    rules:
+      # Container restart loop
+      - alert: ContainerRestartLoop
+        expr: |
+          rate(container_start_time_seconds[10m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Container {{ $labels.name }} is restarting frequently"
+          description: "Container {{ $labels.name }} has restarted multiple times in the last 10 minutes."
+
+      # Container high CPU
+      - alert: ContainerHighCPU
+        expr: |
+          rate(container_cpu_usage_seconds_total[5m]) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Container {{ $labels.name }} CPU above 85%"
+          description: "Container {{ $labels.name }} CPU usage is above 85% for more than 5 minutes."
+
+      # Container high memory
+      - alert: ContainerHighMemory
+        expr: |
+          container_memory_usage_bytes / container_spec_memory_limit_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Container {{ $labels.name }} memory above 85%"
+          description: "Container {{ $labels.name }} memory usage is above 85% for more than 5 minutes."
+
+      # Container OOM killed
+      - alert: ContainerOOMKilled
+        expr: |
+          increase(container_oom_events_total[1h]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          team: infrastructure
+        annotations:
+          summary: "Container {{ $labels.name }} was OOM killed"
+          description: "Container {{ $labels.name }} has been OOM killed in the last hour."
