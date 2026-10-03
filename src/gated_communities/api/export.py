@@ -1,77 +1,60 @@
-"""Export functionality for data."""
-
-from __future__ import annotations
+"""Data export endpoints."""
 
 import csv
 import io
-import json
-import logging
+from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse, JSONResponse
+from sqlalchemy.orm import Session
 
-from fastapi import APIRouter, Query
-from fastapi.responses import StreamingResponse
+from ..database import get_db
+from ..models import Member, Community
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/export/members")
-async def export_members(
-    format: str = Query("csv", regex="^(csv|json)$"),  # noqa: A002
-    community_id: str | None = None,
-) -> StreamingResponse:
-    """Export members data in CSV or JSON format."""
-    # Sample data - replace with actual database query
-    members = [
-        {"id": "1", "name": "Alice", "email": "alice@example.com", "role": "admin"},
-        {"id": "2", "name": "Bob", "email": "bob@example.com", "role": "member"},
-    ]
+@router.get("/members")
+def export_members(
+    format: str = Query("json", pattern="^(csv|json)$"),
+    db: Session = Depends(get_db),
+):
+    members = db.query(Member).all()
 
-    if format == "json":
-        content = json.dumps(members, indent=2)
+    if format == "csv":
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["id", "email", "name", "role", "community_id", "is_active"])
+        for m in members:
+            writer.writerow([m.id, m.email, m.name, m.role, m.community_id, m.is_active])
+        output.seek(0)
         return StreamingResponse(
-            io.StringIO(content),
-            media_type="application/json",
-            headers={"Content-Disposition": "attachment; filename=members.json"},
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=members.csv"},
+        )
+    else:
+        return JSONResponse(
+            content={
+                "count": len(members),
+                "members": [
+                    {
+                        "id": m.id,
+                        "email": m.email,
+                        "name": m.name,
+                        "role": m.role,
+                        "community_id": m.community_id,
+                        "is_active": m.is_active,
+                    }
+                    for m in members
+                ],
+            }
         )
 
-    output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=["id", "name", "email", "role"])
-    writer.writeheader()
-    writer.writerows(members)
-    output.seek(0)
-    return StreamingResponse(
-        output,
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=members.csv"},
-    )
 
-
-@router.get("/export/analytics")
-async def export_analytics(
-    format: str = Query("csv", regex="^(csv|json)$"),  # noqa: A002
-    days: int = Query(30, ge=1, le=365),
-) -> StreamingResponse:
-    """Export analytics data in CSV or JSON format."""
-    analytics = [
-        {"date": "2024-01-01", "active_users": 100, "new_members": 10},
-        {"date": "2024-01-02", "active_users": 120, "new_members": 15},
-    ]
-
-    if format == "json":
-        content = json.dumps(analytics, indent=2)
-        return StreamingResponse(
-            io.StringIO(content),
-            media_type="application/json",
-            headers={"Content-Disposition": "attachment; filename=analytics.json"},
-        )
-
-    output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=["date", "active_users", "new_members"])
-    writer.writeheader()
-    writer.writerows(analytics)
-    output.seek(0)
-    return StreamingResponse(
-        output,
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=analytics.csv"},
-    )
+@router.get("/analytics")
+def export_analytics(db: Session = Depends(get_db)):
+    total_communities = db.query(Community).count()
+    total_members = db.query(Member).count()
+    return {
+        "total_communities": total_communities,
+        "total_members": total_members,
+    }

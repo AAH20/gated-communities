@@ -1,79 +1,45 @@
-"""Audit log API."""
+"""Audit log endpoints."""
 
-from __future__ import annotations
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from typing import List, Optional
 
-import logging
-from datetime import UTC, datetime
-from typing import Any
-from uuid import uuid4
+from ..database import get_db
+from ..models import AuditLog
+from ..schemas import AuditLogCreate, AuditLogResponse
 
-from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field
-
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-class AuditLogEntry(BaseModel):
-    """Schema for audit log entry."""
-
-    id: str
-    action: str
-    user_id: str
-    resource_type: str
-    resource_id: str
-    details: dict[str, Any]
-    ip_address: str | None
-    created_at: str
-
-
-class AuditLogCreate(BaseModel):
-    """Schema for creating audit log entry."""
-
-    action: str
-    user_id: str
-    resource_type: str
-    resource_id: str
-    details: dict[str, Any] = Field(default_factory=dict)
-    ip_address: str | None = None
-
-
-# In-memory store (replace with database in production)
-_audit_logs: dict[str, AuditLogEntry] = {}
-
-
-@router.post("/audit", response_model=AuditLogEntry, status_code=201)
-async def create_audit_log(entry: AuditLogCreate) -> AuditLogEntry:
-    """Create an audit log entry."""
-    log_id = str(uuid4())
-    audit_entry = AuditLogEntry(
-        id=log_id,
-        **entry.model_dump(),
-        created_at=datetime.now(UTC).isoformat(),
-    )
-    _audit_logs[log_id] = audit_entry
-    logger.info("audit_log_created", log_id=log_id, action=entry.action)
-    return audit_entry
-
-
-@router.get("/audit", response_model=list[AuditLogEntry])
-async def list_audit_logs(
-    user_id: str | None = None,
-    resource_type: str | None = None,
-    limit: int = Query(100, ge=1, le_=1000),
-) -> list[AuditLogEntry]:
-    """List audit log entries with optional filtering."""
-    logs = list(_audit_logs.values())
+@router.get("", response_model=List[AuditLogResponse])
+def list_audit_logs(
+    user_id: Optional[str] = None,
+    resource_type: Optional[str] = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    db: Session = Depends(get_db),
+):
+    query = db.query(AuditLog)
     if user_id:
-        logs = [log for log in logs if log.user_id == user_id]
+        query = query.filter(AuditLog.user_id == user_id)
     if resource_type:
-        logs = [log for log in logs if log.resource_type == resource_type]
-    return sorted(logs, key=lambda x: x.created_at, reverse=True)[:limit]
+        query = query.filter(AuditLog.resource_type == resource_type)
+    return query.order_by(AuditLog.created_at.desc()).offset(skip).limit(limit).all()
 
 
-@router.get("/audit/{log_id}", response_model=AuditLogEntry)
-async def get_audit_log(log_id: str) -> AuditLogEntry:
-    """Get a specific audit log entry."""
-    if log_id not in _audit_logs:
+@router.post("", response_model=AuditLogResponse, status_code=201)
+def create_audit_log(log: AuditLogCreate, db: Session = Depends(get_db)):
+    db_log = AuditLog(**log.model_dump())
+    db.add(db_log)
+    db.commit()
+    db.refresh(db_log)
+    return db_log
+
+
+@router.get("/{log_id}", response_model=AuditLogResponse)
+def get_audit_log(log_id: int, db: Session = Depends(get_db)):
+    log = db.query(AuditLog).filter(AuditLog.id == log_id).first()
+    if not log:
+        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Audit log not found")
-    return _audit_logs[log_id]
+    return log

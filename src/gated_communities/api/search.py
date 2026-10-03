@@ -1,56 +1,42 @@
-"""Full-text search API."""
+"""Search endpoint."""
 
-from __future__ import annotations
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+from typing import List
 
-import logging
+from ..database import get_db
+from ..models import Community, Member
+from ..schemas import CommunityResponse, MemberResponse
 
-from fastapi import APIRouter, Query
-from pydantic import BaseModel
-
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-class SearchResult(BaseModel):
-    """Schema for search results."""
-
-    id: str
-    type: str
-    title: str
-    description: str
-    score: float
-
-
-class SearchResponse(BaseModel):
-    """Schema for search response."""
-
-    results: list[SearchResult]
-    total: int
-    query: str
-
-
-@router.get("/search", response_model=SearchResponse)
-async def search(
-    q: str = Query(..., min_length=1, description="Search query"),
-    type: str | None = Query(None, description="Filter by type"),  # noqa: A002
+@router.get("")
+def search(
+    q: str = Query(..., min_length=1),
+    type: str = Query("all", pattern="^(all|communities|members)$"),
     limit: int = Query(20, ge=1, le=100),
-) -> SearchResponse:
-    """Full-text search across communities, members, and content."""
-    # Sample results - replace with actual database search
-    results = [
-        SearchResult(
-            id="1",
-            type="community",
-            title="Python Developers",
-            description="A community for Python developers",
-            score=0.95,
-        ),
-        SearchResult(
-            id="2",
-            type="member",
-            title="Alice Johnson",
-            description="Python developer and contributor",
-            score=0.85,
-        ),
-    ]
-    return SearchResponse(results=results, total=len(results), query=q)
+    db: Session = Depends(get_db),
+):
+    results = {"communities": [], "members": []}
+    search_pattern = f"%{q}%"
+
+    if type in ("all", "communities"):
+        communities = (
+            db.query(Community)
+            .filter(Community.name.ilike(search_pattern))
+            .limit(limit)
+            .all()
+        )
+        results["communities"] = [CommunityResponse.model_validate(c) for c in communities]
+
+    if type in ("all", "members"):
+        members = (
+            db.query(Member)
+            .filter(Member.name.ilike(search_pattern))
+            .limit(limit)
+            .all()
+        )
+        results["members"] = [MemberResponse.model_validate(m) for m in members]
+
+    return results
