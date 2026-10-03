@@ -1,149 +1,130 @@
 """Escalation workflow agent for gated-communities.
 
-Provides functions to create and resolve escalation records for issues
-that require elevated attention within gated community operations.
+Provides functions to create, query, and resolve community escalations.
 """
 
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import Enum
-from typing import Dict, Optional
+from typing import Any
+
+# In-memory store for demonstration purposes.
+# In production, replace with a persistent backend (database, API, etc.).
+_ESCALATIONS: dict[str, dict[str, Any]] = {}
+
+_VALID_PRIORITIES = {"low", "medium", "high", "critical"}
 
 
-class EscalationPriority(str, Enum):
-    """Priority levels for escalations."""
-
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
-
-
-class EscalationStatus(str, Enum):
-    """Status values for an escalation."""
-
-    OPEN = "open"
-    ACKNOWLEDGED = "acknowledged"
-    IN_PROGRESS = "in_progress"
-    RESOLVED = "resolved"
-    CANCELLED = "cancelled"
-
-
-@dataclass
-class EscalationDetails:
-    """Details of a created escalation."""
-
-    escalation_id: str
-    issue_id: str
-    priority: EscalationPriority
-    status: EscalationStatus
-    created_at: datetime
-    updated_at: datetime
-    assigned_to: Optional[str] = None
-    notes: str = ""
-    resolved_at: Optional[datetime] = None
-    resolution_notes: str = ""
-
-
-# In-memory store for mock escalation records
-_escalation_store: Dict[str, EscalationDetails] = {}
-
-
-def create_escalation(
-    issue_id: str,
-    priority: EscalationPriority | str,
-    *,
-    assigned_to: Optional[str] = None,
-    notes: str = "",
-) -> EscalationDetails:
-    """Create a new escalation for the given issue.
+def create_escalation(issue_id: str, priority: str) -> dict:
+    """Create a new escalation for a given issue.
 
     Args:
-        issue_id: The identifier of the issue being escalated.
-        priority: The priority level for the escalation.
-        assigned_to: Optional assignee for the escalation.
-        notes: Optional notes or context for the escalation.
+        issue_id: Unique identifier of the issue to escalate.
+        priority: Priority level of the escalation.
+            Must be one of: "low", "medium", "high", "critical".
 
     Returns:
-        EscalationDetails containing the created escalation information.
+        A dictionary containing the escalation details:
+            - escalation_id: Unique identifier for the escalation.
+            - issue_id: The associated issue identifier.
+            - priority: The priority level.
+            - status: Initial status ("open").
+            - created_at: ISO 8601 timestamp of creation.
+            - resolved_at: None (not yet resolved).
 
     Raises:
         ValueError: If issue_id is empty or priority is invalid.
+        TypeError: If arguments are not strings.
     """
-    if not issue_id or not issue_id.strip():
-        raise ValueError("issue_id must be a non-empty string")
+    if not isinstance(issue_id, str):
+        raise TypeError(f"issue_id must be a string, got {type(issue_id).__name__}")
+    if not isinstance(priority, str):
+        raise TypeError(f"priority must be a string, got {type(priority).__name__}")
+    if not issue_id.strip():
+        raise ValueError("issue_id must not be empty or whitespace")
+    if priority.lower() not in _VALID_PRIORITIES:
+        raise ValueError(
+            f"Invalid priority '{priority}'. Must be one of: {', '.join(sorted(_VALID_PRIORITIES))}"
+        )
 
-    if isinstance(priority, str):
-        try:
-            priority = EscalationPriority(priority.lower())
-        except ValueError:
-            valid = ", ".join(p.value for p in EscalationPriority)
-            raise ValueError(f"Invalid priority '{priority}'. Valid: {valid}")
+    escalation_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
 
-    now = datetime.now(timezone.utc)
-    escalation_id = f"ESC-{uuid.uuid4().hex[:12].upper()}"
+    escalation = {
+        "escalation_id": escalation_id,
+        "issue_id": issue_id,
+        "priority": priority.lower(),
+        "status": "open",
+        "created_at": now,
+        "resolved_at": None,
+    }
 
-    details = EscalationDetails(
-        escalation_id=escalation_id,
-        issue_id=issue_id.strip(),
-        priority=priority,
-        status=EscalationStatus.OPEN,
-        created_at=now,
-        updated_at=now,
-        assigned_to=assigned_to,
-        notes=notes,
-    )
-
-    _escalation_store[escalation_id] = details
-    return details
+    _ESCALATIONS[escalation_id] = escalation
+    return escalation
 
 
-def resolve_escalation(
-    escalation_id: str,
-    *,
-    resolution_notes: str = "",
-) -> EscalationDetails:
-    """Mark an escalation as resolved.
+def get_escalation_status(escalation_id: str) -> dict:
+    """Retrieve the current status of an escalation.
 
     Args:
-        escalation_id: The identifier of the escalation to resolve.
-        resolution_notes: Optional notes describing the resolution.
+        escalation_id: Unique identifier of the escalation.
 
     Returns:
-        EscalationDetails containing the updated escalation information.
+        A dictionary containing the escalation details:
+            - escalation_id: The escalation identifier.
+            - issue_id: The associated issue identifier.
+            - priority: The priority level.
+            - status: Current status ("open" or "resolved").
+            - created_at: ISO 8601 timestamp of creation.
+            - resolved_at: ISO 8601 timestamp of resolution, or None.
 
     Raises:
-        KeyError: If the escalation_id does not exist.
-        ValueError: If the escalation is already resolved or cancelled.
+        ValueError: If escalation_id is empty.
+        TypeError: If escalation_id is not a string.
+        KeyError: If no escalation exists with the given ID.
     """
-    if escalation_id not in _escalation_store:
-        raise KeyError(f"Escalation '{escalation_id}' not found")
+    if not isinstance(escalation_id, str):
+        raise TypeError(
+            f"escalation_id must be a string, got {type(escalation_id).__name__}"
+        )
+    if not escalation_id.strip():
+        raise ValueError("escalation_id must not be empty or whitespace")
+    if escalation_id not in _ESCALATIONS:
+        raise KeyError(f"No escalation found with id '{escalation_id}'")
 
-    details = _escalation_store[escalation_id]
-
-    if details.status == EscalationStatus.RESOLVED:
-        raise ValueError(f"Escalation '{escalation_id}' is already resolved")
-    if details.status == EscalationStatus.CANCELLED:
-        raise ValueError(f"Escalation '{escalation_id}' has been cancelled and cannot be resolved")
-
-    now = datetime.now(timezone.utc)
-    details.status = EscalationStatus.RESOLVED
-    details.resolved_at = now
-    details.updated_at = now
-    if resolution_notes:
-        details.resolution_notes = resolution_notes
-
-    return details
+    return dict(_ESCALATIONS[escalation_id])
 
 
-def get_escalation(escalation_id: str) -> Optional[EscalationDetails]:
-    """Retrieve an escalation by ID (utility function)."""
-    return _escalation_store.get(escalation_id)
+def resolve_escalation(escalation_id: str) -> bool:
+    """Resolve an open escalation.
 
+    Args:
+        escalation_id: Unique identifier of the escalation to resolve.
 
-def list_escalations() -> list[EscalationDetails]:
-    """List all escalations (utility function)."""
-    return list(_escalation_store.values())
+    Returns:
+        True if the escalation was successfully resolved.
+        False if the escalation was already resolved.
+
+    Raises:
+        ValueError: If escalation_id is empty.
+        TypeError: If escalation_id is not a string.
+        KeyError: If no escalation exists with the given ID.
+    """
+    if not isinstance(escalation_id, str):
+        raise TypeError(
+            f"escalation_id must be a string, got {type(escalation_id).__name__}"
+        )
+    if not escalation_id.strip():
+        raise ValueError("escalation_id must not be empty or whitespace")
+    if escalation_id not in _ESCALATIONS:
+        raise KeyError(f"No escalation found with id '{escalation_id}'")
+
+    escalation = _ESCALATIONS[escalation_id]
+
+    if escalation["status"] == "resolved":
+        return False
+
+    escalation["status"] = "resolved"
+    escalation["resolved_at"] = datetime.now(timezone.utc).isoformat()
+    return True

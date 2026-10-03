@@ -376,3 +376,143 @@ def generate_compliance_report(community_id: str) -> ComplianceReport:
             "report_version": "1.0",
         },
     )
+
+
+# ---------------------------------------------------------------------------
+# Monitoring & Flagging API
+# ---------------------------------------------------------------------------
+
+
+def monitor_compliance(community_id: str) -> dict[str, Any]:
+    """Monitor compliance for a given community.
+
+    Performs a full compliance check and returns a summary dictionary
+    suitable for monitoring dashboards and alerting systems.
+
+    Args:
+        community_id: The unique identifier of the community to monitor.
+
+    Returns:
+        A dictionary containing compliance monitoring results with keys:
+            - community_id: The community identifier.
+            - community_name: Human-readable community name.
+            - status: Overall compliance status ('compliant', 'non_compliant',
+              'at_risk', 'pending_review').
+            - score: Compliance score from 0.0 to 100.0.
+            - total_policies: Total number of policies evaluated.
+            - passed_policies: Number of policies that passed.
+            - failed_policies: Number of policies that failed.
+            - violations: List of active (unresolved) policy violations.
+            - recommendations: List of remediation recommendations.
+            - checked_at: ISO 8601 timestamp of when the check was performed.
+
+    Raises:
+        ValueError: If community_id is empty or None.
+    """
+    if not community_id:
+        raise ValueError("community_id must be a non-empty string")
+
+    result = check_compliance(community_id)
+
+    return {
+        "community_id": result.community_id,
+        "community_name": result.community_name,
+        "status": result.status.value,
+        "score": result.score,
+        "total_policies": result.total_policies,
+        "passed_policies": result.passed_policies,
+        "failed_policies": result.failed_policies,
+        "violations": [
+            {
+                "policy_id": v.policy_id,
+                "category": v.category.value,
+                "severity": v.severity.value,
+                "description": v.description,
+                "detected_at": v.detected_at.isoformat(),
+                "resolved": v.is_resolved,
+            }
+            for v in result.violations
+            if not v.is_resolved
+        ],
+        "recommendations": result.recommendations,
+        "checked_at": result.checked_at.isoformat(),
+    }
+
+
+def get_compliance_status(community_id: str) -> dict[str, Any]:
+    """Get the current compliance status for a given community.
+
+    Returns a lightweight status summary without full violation details,
+    suitable for quick status checks and health endpoints.
+
+    Args:
+        community_id: The unique identifier of the community.
+
+    Returns:
+        A dictionary containing the compliance status with keys:
+            - community_id: The community identifier.
+            - community_name: Human-readable community name.
+            - status: Current compliance status ('compliant', 'non_compliant',
+              'at_risk', 'pending_review').
+            - score: Compliance score from 0.0 to 100.0.
+            - issue_count: Number of active (unresolved) policy violations.
+            - last_updated: ISO 8601 timestamp of the last status update.
+
+    Raises:
+        ValueError: If community_id is empty or None.
+    """
+    if not community_id:
+        raise ValueError("community_id must be a non-empty string")
+
+    result = check_compliance(community_id)
+    active_violations = [v for v in result.violations if not v.is_resolved]
+
+    return {
+        "community_id": result.community_id,
+        "community_name": result.community_name,
+        "status": result.status.value,
+        "score": result.score,
+        "issue_count": len(active_violations),
+        "last_updated": result.checked_at.isoformat(),
+    }
+
+
+def flag_compliance_issue(community_id: str, issue: str) -> bool:
+    """Flag a compliance issue for a given community.
+
+    Records a new compliance issue against the specified community by
+    adding a PolicyViolation entry to the community's violation list.
+    The issue is associated with the CONTENT_MODERATION category and
+    MEDIUM severity by default.
+
+    Args:
+        community_id: The unique identifier of the community.
+        issue: Description of the compliance issue to flag.
+
+    Returns:
+        True if the issue was successfully flagged, False otherwise.
+
+    Raises:
+        ValueError: If community_id or issue is empty or None.
+    """
+    if not community_id:
+        raise ValueError("community_id must be a non-empty string")
+    if not issue:
+        raise ValueError("issue must be a non-empty string")
+
+    community = _get_community_mock(community_id)
+
+    violation = PolicyViolation(
+        policy_id=f"FLAGGED-{uuid.uuid4().hex[:8].upper()}",
+        category=PolicyCategory.CONTENT_MODERATION,
+        severity=PolicySeverity.MEDIUM,
+        description=issue,
+        detected_at=datetime.now(timezone.utc),
+        remediation="Review and address the flagged compliance issue.",
+    )
+
+    if "violations" not in community:
+        community["violations"] = []
+    community["violations"].append(violation)
+
+    return True

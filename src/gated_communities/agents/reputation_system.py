@@ -1,183 +1,128 @@
 """Reputation system agent for gated communities.
 
-Tracks member reputation scores based on community actions such as
-posting, receiving upvotes/downvotes, reporting violations, and
-participating in governance.
+This module provides functions to calculate, retrieve, and update
+member reputation scores within a gated community platform.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Optional
+import logging
+from typing import Any
 
+logger = logging.getLogger(__name__)
 
-class ActionType(str, Enum):
-    """Types of actions that affect a member's reputation."""
+# In-memory store for demonstration; replace with persistent storage in production.
+_reputation_store: dict[str, float] = {}
 
-    POST_CREATED = "post_created"
-    COMMENT_CREATED = "comment_created"
-    UPVOTE_RECEIVED = "upvote_received"
-    DOWNVOTE_RECEIVED = "downvote_received"
-    REPORT_FILED = "report_filed"
-    REPORT_CONFIRMED = "report_confirmed"
-    REPORT_REJECTED = "report_rejected"
-    GOVERNANCE_VOTE = "governance_vote"
-    MEMBER_INVITED = "member_invited"
-    VIOLATION_COMMITTED = "violation_committed"
-    MENTORSHIP_PROVIDED = "mentorship_provided"
-    CONTENT_REMOVED = "content_removed"
-
-
-# Reputation point deltas for each action type
-ACTION_REPUTATION_DELTAS: Dict[ActionType, int] = {
-    ActionType.POST_CREATED: 5,
-    ActionType.COMMENT_CREATED: 2,
-    ActionType.UPVOTE_RECEIVED: 3,
-    ActionType.DOWNVOTE_RECEIVED: -2,
-    ActionType.REPORT_FILED: 1,
-    ActionType.REPORT_CONFIRMED: 4,
-    ActionType.REPORT_REJECTED: -3,
-    ActionType.GOVERNANCE_VOTE: 2,
-    ActionType.MEMBER_INVITED: 10,
-    ActionType.VIOLATION_COMMITTED: -15,
-    ActionType.MENTORSHIP_PROVIDED: 8,
-    ActionType.CONTENT_REMOVED: -10,
+# Action-to-delta mapping for reputation updates.
+_ACTION_DELTAS: dict[str, float] = {
+    "upvote": 1.0,
+    "downvote": -1.0,
+    "post_created": 2.0,
+    "comment_created": 0.5,
+    "report_filed": -3.0,
+    "report_upheld": -5.0,
+    "report_rejected": 1.0,
+    "invite_accepted": 3.0,
+    "moderation_action": -10.0,
 }
 
 
-@dataclass
-class ReputationEvent:
-    """A single reputation-affecting event in a member's history."""
-
-    action: ActionType
-    points: int
-    timestamp: str
-    description: str = ""
-
-
-@dataclass
-class MemberReputation:
-    """Reputation record for a community member."""
-
-    member_id: str
-    score: int = 0
-    level: str = "newcomer"
-    history: List[ReputationEvent] = field(default_factory=list)
-
-
-# ── Mock database ────────────────────────────────────────────────────────────
-
-_mock_reputation_db: Dict[str, MemberRepputation] = {}
-
-
-def _seed_mock_data() -> None:
-    """Populate the mock database with realistic seed data."""
-    seed_members = [
-        ("member_001", 245, "veteran"),
-        ("member_002", 128, "established"),
-        ("member_003", 42, "regular"),
-        ("member_004", 15, "newcomer"),
-        ("member_005", 310, "veteran"),
-        ("member_006", 78, "regular"),
-        ("member_007", 5, "newcomer"),
-        ("member_008", 190, "established"),
-    ]
-    for member_id, score, level in seed_members:
-        _mock_reputation_db[member_id] = MemberReputation(
-            member_id=member_id,
-            score=score,
-            level=level,
-        )
-
-
-# Seed on module import
-_seed_mock_data()
-
-
-# ── Public API ───────────────────────────────────────────────────────────────
-
-
-def calculate_reputation(member_id: str) -> int:
-    """Return the current reputation score for a member.
+def calculate_reputation(member_id: str) -> dict[str, Any]:
+    """Calculate comprehensive reputation data for a member.
 
     Args:
-        member_id: Unique identifier of the community member.
+        member_id: Unique identifier of the member.
 
     Returns:
-        The member's reputation score as an integer. Returns 0 for
-        unknown members.
+        A dictionary containing:
+            - member_id: The member's ID.
+            - score: Current reputation score.
+            - tier: Reputation tier label.
+            - actions_count: Number of recorded actions.
+            - breakdown: Per-action contribution breakdown.
+
+    Raises:
+        ValueError: If member_id is empty or not a string.
     """
-    record: Optional[MemberReputation] = _mock_reputation_db.get(member_id)
-    if record is None:
-        return 0
-    return record.score
+    if not isinstance(member_id, str) or not member_id.strip():
+        raise ValueError("member_id must be a non-empty string")
+
+    score = _reputation_store.get(member_id, 0.0)
+
+    if score >= 100.0:
+        tier = "gold"
+    elif score >= 50.0:
+        tier = "silver"
+    elif score >= 10.0:
+        tier = "bronze"
+    else:
+        tier = "new"
+
+    breakdown = {action: delta for action, delta in _ACTION_DELTAS.items()}
+
+    return {
+        "member_id": member_id,
+        "score": score,
+        "tier": tier,
+        "actions_count": len(_ACTION_DELTAS),
+        "breakdown": breakdown,
+    }
 
 
-def update_reputation(member_id: str, action: ActionType) -> int:
-    """Update a member's reputation based on the given action.
-
-    Applies the point delta associated with *action* to the member's
-    current score, records the event in their history, and returns
-    the new score.
+def get_reputation_score(member_id: str) -> float:
+    """Get the current reputation score for a member.
 
     Args:
-        member_id: Unique identifier of the community member.
-        action: The action that was performed.
+        member_id: Unique identifier of the member.
 
     Returns:
-        The updated reputation score.
+        The member's reputation score as a float. Returns 0.0 if the
+        member has no recorded reputation.
+
+    Raises:
+        ValueError: If member_id is empty or not a string.
     """
-    delta: int = ACTION_REPUTATION_DELTAS.get(action, 0)
+    if not isinstance(member_id, str) or not member_id.strip():
+        raise ValueError("member_id must be a non-empty string")
 
-    record: Optional[MemberReputation] = _mock_reputation_db.get(member_id)
-    if record is None:
-        record = MemberReputation(member_id=member_id)
-        _mock_reputation_db[member_id] = record
+    return _reputation_store.get(member_id, 0.0)
 
-    record.score += delta
-    record.history.append(
-        ReputationEvent(
-            action=action,
-            points=delta,
-            timestamp="2026-10-03T12:00:00Z",
-            description=f"Action {action.value} applied",
+
+def update_reputation(member_id: str, action: str) -> bool:
+    """Update a member's reputation based on an action.
+
+    Args:
+        member_id: Unique identifier of the member.
+        action: The action that triggered the reputation change.
+            Must be a key in _ACTION_DELTAS.
+
+    Returns:
+        True if the reputation was updated successfully, False otherwise.
+
+    Raises:
+        ValueError: If member_id is empty or not a string.
+        ValueError: If action is not a recognised action type.
+    """
+    if not isinstance(member_id, str) or not member_id.strip():
+        raise ValueError("member_id must be a non-empty string")
+
+    if not isinstance(action, str) or action not in _ACTION_DELTAS:
+        raise ValueError(
+            f"Unknown action '{action}'. Valid actions: {list(_ACTION_DELTAS.keys())}"
         )
+
+    delta = _ACTION_DELTAS[action]
+    current = _reputation_store.get(member_id, 0.0)
+    new_score = current + delta
+    _reputation_store[member_id] = new_score
+
+    logger.info(
+        "Reputation updated for member %s: action=%s, delta=%.1f, new_score=%.1f",
+        member_id,
+        action,
+        delta,
+        new_score,
     )
 
-    return record.score
-
-
-def get_reputation_level(member_id: str) -> str:
-    """Return the reputation tier label for a member.
-
-    Args:
-        member_id: Unique identifier of the community member.
-
-    Returns:
-        One of: newcomer, regular, established, veteran.
-    """
-    score: int = calculate_reputation(member_id)
-    if score >= 200:
-        return "veteran"
-    elif score >= 100:
-        return "established"
-    elif score >= 30:
-        return "regular"
-    else:
-        return "newcomer"
-
-
-def get_reputation_history(member_id: str) -> List[ReputationEvent]:
-    """Return the full reputation event history for a member.
-
-    Args:
-        member_id: Unique identifier of the community member.
-
-    Returns:
-        List of ReputationEvent objects (empty for unknown members).
-    """
-    record: Optional[MemberReputation] = _mock_reputation_db.get(member_id)
-    if record is None:
-        return []
-    return list(record.history)
+    return True

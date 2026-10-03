@@ -332,3 +332,100 @@ def recommend_policies(community_id: str) -> list[PolicyRecommendation]:
     recommendations.sort(key=lambda r: priority_order.get(r.priority, 99))
 
     return recommendations
+
+
+# ---------------------------------------------------------------------------
+# Policy CRUD and enforcement
+# ---------------------------------------------------------------------------
+
+_POLICY_STORE: dict[str, dict[str, Any]] = {}
+
+
+def create_governance_policy(community_id: str, policy: dict) -> dict:
+    """Create a governance policy for a community.
+
+    Args:
+        community_id: Unique identifier of the community.
+        policy: Dictionary containing policy configuration (e.g., rules,
+            thresholds, enforcement settings).
+
+    Returns:
+        A dictionary representing the created governance policy, including
+        its assigned ``policy_id``.
+
+    Raises:
+        ValueError: If ``community_id`` is empty or ``policy`` is not a
+            valid dictionary.
+        RuntimeError: If the policy cannot be persisted.
+    """
+    if not community_id or not isinstance(community_id, str):
+        raise ValueError("community_id must be a non-empty string")
+    if not isinstance(policy, dict):
+        raise ValueError("policy must be a dict")
+
+    try:
+        policy_id = f"policy-{community_id}-{len(_POLICY_STORE)}"
+        created_policy = {
+            "policy_id": policy_id,
+            "community_id": community_id,
+            "policy": policy,
+            "status": "active",
+        }
+        _POLICY_STORE[policy_id] = created_policy
+        return created_policy
+    except Exception as exc:
+        raise RuntimeError(f"Failed to create governance policy: {exc}") from exc
+
+
+def get_governance_policies(community_id: str) -> list[dict]:
+    """Retrieve all governance policies for a community.
+
+    Args:
+        community_id: Unique identifier of the community.
+
+    Returns:
+        A list of governance policy dictionaries. Returns an empty list
+        if no policies exist for the community.
+
+    Raises:
+        ValueError: If ``community_id`` is empty.
+        RuntimeError: If policies cannot be retrieved.
+    """
+    if not community_id or not isinstance(community_id, str):
+        raise ValueError("community_id must be a non-empty string")
+
+    try:
+        return [
+            policy
+            for policy in _POLICY_STORE.values()
+            if policy["community_id"] == community_id
+        ]
+    except Exception as exc:
+        raise RuntimeError(f"Failed to retrieve governance policies: {exc}") from exc
+
+
+def enforce_governance_policy(policy_id: str) -> bool:
+    """Enforce a governance policy by its identifier.
+
+    Args:
+        policy_id: Unique identifier of the governance policy to enforce.
+
+    Returns:
+        True if the policy was successfully enforced, False otherwise.
+
+    Raises:
+        ValueError: If ``policy_id`` is empty.
+        RuntimeError: If enforcement fails unexpectedly.
+    """
+    if not policy_id or not isinstance(policy_id, str):
+        raise ValueError("policy_id must be a non-empty string")
+
+    try:
+        if policy_id not in _POLICY_STORE:
+            return False
+        _POLICY_STORE[policy_id]["status"] = "enforced"
+        return True
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to enforce governance policy {policy_id}: {exc}"
+        ) from exc

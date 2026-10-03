@@ -6,10 +6,13 @@ and growth metrics. Returns structured scores and risk assessments.
 
 from __future__ import annotations
 
+import logging
 import random
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -370,3 +373,227 @@ def identify_risks(community_id: str) -> list[RiskFactor]:
         ))
 
     return risks
+
+
+# ---------------------------------------------------------------------------
+# Public API — required functions
+# ---------------------------------------------------------------------------
+
+
+def _validate_community_id(community_id: str) -> None:
+    """Validate that community_id is a non-empty string.
+
+    Args:
+        community_id: The community identifier to validate.
+
+    Raises:
+        TypeError: If community_id is not a string.
+        ValueError: If community_id is empty or whitespace-only.
+    """
+    if not isinstance(community_id, str):
+        raise TypeError(
+            f"community_id must be a string, got {type(community_id).__name__}"
+        )
+    if not community_id.strip():
+        raise ValueError("community_id must not be empty or whitespace-only")
+
+
+def get_health_metrics(community_id: str) -> dict[str, Any]:
+    """Get health metrics for a community.
+
+    Computes key health indicators including activity rate, engagement rate,
+    retention rate, and growth rate.
+
+    Args:
+        community_id: The unique identifier of the community.
+
+    Returns:
+        A dictionary containing health metrics with the following keys:
+            - community_id (str): The community identifier.
+            - activity_rate (float): Ratio of active members to total members.
+            - engagement_rate (float): Ratio of posts+comments to active members.
+            - retention_rate (float): Inverse of churn rate.
+            - growth_rate (float): Ratio of new members to total members.
+            - member_count (int): Total number of members.
+            - active_members (int): Number of active members.
+            - posts_last_30d (int): Number of posts in the last 30 days.
+            - comments_last_30d (int): Number of comments in the last 30 days.
+            - avg_response_time_hours (float): Average response time in hours.
+            - churn_rate (float): Member churn rate.
+            - toxicity_incidents (int): Number of toxicity incidents.
+            - new_members_30d (int): New members in the last 30 days.
+
+    Raises:
+        TypeError: If community_id is not a string.
+        ValueError: If community_id is empty.
+    """
+    _validate_community_id(community_id)
+
+    data = _get_mock_data(community_id)
+
+    member_count: int = max(data["member_count"], 1)
+    active_members: int = data["active_members"]
+    posts_30d: int = data["posts_last_30d"]
+    comments_30d: int = data["comments_last_30d"]
+    churn_rate: float = data["churn_rate"]
+    new_members_30d: int = data["new_members_30d"]
+
+    activity_rate = active_members / member_count
+    engagement_rate = (posts_30d + comments_30d) / max(active_members, 1)
+    retention_rate = 1.0 - churn_rate
+    growth_rate = new_members_30d / member_count
+
+    metrics: dict[str, Any] = {
+        "community_id": community_id,
+        "activity_rate": round(activity_rate, 4),
+        "engagement_rate": round(engagement_rate, 4),
+        "retention_rate": round(retention_rate, 4),
+        "growth_rate": round(growth_rate, 4),
+        "member_count": data["member_count"],
+        "active_members": active_members,
+        "posts_last_30d": posts_30d,
+        "comments_last_30d": comments_30d,
+        "avg_response_time_hours": data["avg_response_time_hours"],
+        "churn_rate": churn_rate,
+        "toxicity_incidents": data["toxicity_incidents"],
+        "new_members_30d": new_members_30d,
+    }
+
+    logger.info("Health metrics computed for community %s", community_id)
+    return metrics
+
+
+def score_community_health(community_id: str) -> dict[str, Any]:
+    """Score community health on a 0-100 scale.
+
+    Computes an overall health score by combining engagement, retention,
+    moderation, and growth metrics with configurable weights.
+
+    Args:
+        community_id: The unique identifier of the community.
+
+    Returns:
+        A dictionary containing the health score with the following keys:
+            - community_id (str): The community identifier.
+            - health_score (float): Overall health score between 0.0 and 100.0.
+            - component_scores (dict): Individual component scores.
+            - status (str): Health status label ('healthy', 'at_risk', 'unhealthy').
+            - recommendations (list[str]): Actionable recommendations.
+
+    Raises:
+        TypeError: If community_id is not a string.
+        ValueError: If community_id is empty.
+    """
+    _validate_community_id(community_id)
+
+    data = _get_mock_data(community_id)
+
+    engagement = _score_engagement(data)
+    retention = _score_retention(data)
+    moderation = _score_moderation(data)
+    growth = _score_growth(data)
+
+    # Weighted composite score
+    weights = {
+        "engagement": 0.30,
+        "retention": 0.30,
+        "moderation": 0.20,
+        "growth": 0.20,
+    }
+
+    component_scores = {
+        "engagement": round(engagement, 2),
+        "retention": round(retention, 2),
+        "moderation": round(moderation, 2),
+        "growth": round(growth, 2),
+    }
+
+    health_score = round(
+        weights["engagement"] * component_scores["engagement"]
+        + weights["retention"] * component_scores["retention"]
+        + weights["moderation"] * component_scores["moderation"]
+        + weights["growth"] * component_scores["growth"],
+        2,
+    )
+    health_score = max(0.0, min(100.0, health_score))
+
+    # Determine status
+    if health_score >= 60.0:
+        status = "healthy"
+    elif health_score >= 40.0:
+        status = "at_risk"
+    else:
+        status = "unhealthy"
+
+    # Generate recommendations
+    recommendations: list[str] = []
+    if engagement < 40.0:
+        recommendations.append(
+            "Increase member engagement through targeted content and events."
+        )
+    if retention < 40.0:
+        recommendations.append(
+            "Improve member retention by addressing churn factors."
+        )
+    if moderation < 60.0:
+        recommendations.append(
+            "Strengthen moderation policies and increase moderator presence."
+        )
+    if growth < 30.0:
+        recommendations.append(
+            "Boost new member acquisition through outreach and referrals."
+        )
+    if not recommendations:
+        recommendations.append("Community is healthy. Maintain current strategies.")
+
+    result: dict[str, Any] = {
+        "community_id": community_id,
+        "health_score": health_score,
+        "component_scores": component_scores,
+        "status": status,
+        "recommendations": recommendations,
+    }
+
+    logger.info(
+        "Health score for community %s: %.2f (%s)",
+        community_id,
+        health_score,
+        status,
+    )
+    return result
+
+
+def flag_unhealthy_community(community_id: str) -> bool:
+    """Flag a community as unhealthy based on its health score.
+
+    A community is flagged as unhealthy if its overall health score falls
+    below the configured threshold (40.0).
+
+    Args:
+        community_id: The unique identifier of the community.
+
+    Returns:
+        True if the community is flagged as unhealthy, False otherwise.
+
+    Raises:
+        TypeError: If community_id is not a string.
+        ValueError: If community_id is empty.
+    """
+    _validate_community_id(community_id)
+
+    score_result = score_community_health(community_id)
+    health_score: float = score_result["health_score"]
+    is_unhealthy: bool = health_score < 40.0
+
+    if is_unhealthy:
+        logger.warning(
+            "Community %s flagged as unhealthy (score: %.2f)",
+            community_id,
+            health_score,
+        )
+    else:
+        logger.debug(
+            "Community %s is not unhealthy (score: %.2f)", community_id, health_score
+        )
+
+    return is_unhealthy

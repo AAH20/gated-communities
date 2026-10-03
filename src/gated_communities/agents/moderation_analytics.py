@@ -337,3 +337,156 @@ def analyze_moderation_trends_dict(period: str = "week") -> dict[str, Any]:
         "anomaly_description": analysis.anomaly_description,
         "recommendations": analysis.recommendations,
     }
+
+
+# ---------------------------------------------------------------------------
+# Community-scoped API (community_id-based)
+# ---------------------------------------------------------------------------
+
+_VALID_TIME_RANGES = {"7d", "30d", "90d", "1y"}
+
+
+def _validate_community_id(community_id: str) -> None:
+    """Validate that community_id is a non-empty string."""
+    if not isinstance(community_id, str) or not community_id.strip():
+        raise ValueError("community_id must be a non-empty string")
+
+
+def _validate_time_range(time_range: str) -> None:
+    """Validate that time_range is one of the allowed values."""
+    if time_range not in _VALID_TIME_RANGES:
+        raise ValueError(
+            f"time_range must be one of {sorted(_VALID_TIME_RANGES)}, got '{time_range}'"
+        )
+
+
+def _fetch_metrics_from_store(community_id: str) -> dict[str, Any]:
+    """Fetch raw moderation metrics from the data store.
+
+    Placeholder: replace with actual database or analytics backend query.
+    Returns an empty dict if no data is available.
+    """
+    return {}
+
+
+def _fetch_trends_from_store(community_id: str, time_range: str) -> dict[str, Any]:
+    """Fetch raw moderation trends from the data store.
+
+    Placeholder: replace with actual database or analytics backend query.
+    Returns an empty dict if no data is available.
+    """
+    return {}
+
+
+def get_moderation_metrics(community_id: str) -> dict[str, Any]:
+    """Get moderation metrics for a community.
+
+    Args:
+        community_id: The unique identifier of the community.
+
+    Returns:
+        A dictionary containing moderation metrics such as total_actions,
+        actions_by_type, active_moderators, and resolution_rate.
+
+    Raises:
+        ValueError: If community_id is empty or not a string.
+        RuntimeError: If metrics cannot be retrieved.
+    """
+    _validate_community_id(community_id)
+
+    try:
+        raw = _fetch_metrics_from_store(community_id)
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to retrieve moderation metrics for community '{community_id}'"
+        ) from exc
+
+    metrics: dict[str, Any] = {
+        "community_id": community_id,
+        "total_actions": raw.get("total_actions", 0),
+        "actions_by_type": raw.get("actions_by_type", {}),
+        "active_moderators": raw.get("active_moderators", 0),
+        "resolution_rate": raw.get("resolution_rate", 0.0),
+        "pending_reports": raw.get("pending_reports", 0),
+        "timestamp": datetime.now().isoformat(),
+    }
+
+    return metrics
+
+
+def get_moderation_trends(community_id: str, time_range: str) -> dict[str, Any]:
+    """Get moderation trends for a community over a time range.
+
+    Args:
+        community_id: The unique identifier of the community.
+        time_range: The time window for trends. One of '7d', '30d', '90d', '1y'.
+
+    Returns:
+        A dictionary containing trend data including daily_counts,
+        peak_activity_day, and change_percentage.
+
+    Raises:
+        ValueError: If community_id is empty or time_range is invalid.
+        RuntimeError: If trends cannot be retrieved.
+    """
+    _validate_community_id(community_id)
+    _validate_time_range(time_range)
+
+    try:
+        raw = _fetch_trends_from_store(community_id, time_range)
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to retrieve moderation trends for community '{community_id}'"
+        ) from exc
+
+    trends: dict[str, Any] = {
+        "community_id": community_id,
+        "time_range": time_range,
+        "daily_counts": raw.get("daily_counts", []),
+        "peak_activity_day": raw.get("peak_activity_day"),
+        "change_percentage": raw.get("change_percentage", 0.0),
+        "timestamp": datetime.now().isoformat(),
+    }
+
+    return trends
+
+
+def flag_moderation_anomaly(community_id: str) -> bool:
+    """Flag whether a community has a moderation anomaly.
+
+    An anomaly is detected when there is a significant spike in moderation
+    actions relative to historical averages, or when resolution rates drop
+    below acceptable thresholds.
+
+    Args:
+        community_id: The unique identifier of the community.
+
+    Returns:
+        True if an anomaly is detected, False otherwise.
+
+    Raises:
+        ValueError: If community_id is empty or not a string.
+        RuntimeError: If anomaly detection fails.
+    """
+    _validate_community_id(community_id)
+
+    try:
+        metrics = get_moderation_metrics(community_id)
+        trends = get_moderation_trends(community_id, "7d")
+    except Exception as exc:
+        raise RuntimeError(
+            f"Failed to detect moderation anomaly for community '{community_id}'"
+        ) from exc
+
+    # Anomaly heuristics
+    resolution_rate = metrics.get("resolution_rate", 1.0)
+    change_percentage = trends.get("change_percentage", 0.0)
+    pending_reports = metrics.get("pending_reports", 0)
+
+    is_anomaly = (
+        resolution_rate < 0.5
+        or change_percentage > 200.0
+        or pending_reports > 100
+    )
+
+    return is_anomaly

@@ -6,7 +6,9 @@ moderation workflows.
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -156,6 +158,11 @@ _MOCK_QUEUE_ITEMS: list[QueueItem] = [
 ]
 
 
+# ── In-memory store for dynamic queue operations ─────────────────────────────
+
+_queue_store: dict[str, dict[str, Any]] = {}
+
+
 # ── Public API ───────────────────────────────────────────────────────────────
 
 
@@ -233,3 +240,102 @@ def prioritize_queue() -> list[QueueItem]:
             item.created_at,
         ),
     )
+
+
+def add_to_queue(content_id: str, reason: str) -> dict:
+    """Add content to the moderation queue.
+
+    Args:
+        content_id: Unique identifier for the content to be moderated.
+        reason: Reason for adding the content to the moderation queue.
+
+    Returns:
+        A dictionary containing the queue item details including
+        the generated queue_id, content_id, reason, status, and timestamps.
+
+    Raises:
+        ValueError: If content_id or reason is empty or None.
+    """
+    if not content_id or not isinstance(content_id, str):
+        raise ValueError("content_id must be a non-empty string")
+    if not reason or not isinstance(reason, str):
+        raise ValueError("reason must be a non-empty string")
+
+    queue_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+
+    queue_item = {
+        "queue_id": queue_id,
+        "content_id": content_id,
+        "reason": reason,
+        "status": "pending",
+        "created_at": now,
+        "updated_at": now,
+        "decision": None,
+        "decided_at": None,
+    }
+
+    _queue_store[queue_id] = queue_item
+    return queue_item
+
+
+def get_queue_status(queue_id: str) -> dict:
+    """Get the current status of a moderation queue item.
+
+    Args:
+        queue_id: Unique identifier for the queue item.
+
+    Returns:
+        A dictionary containing the queue item's current status and details.
+
+    Raises:
+        ValueError: If queue_id is empty or None.
+        KeyError: If the queue_id does not exist in the store.
+    """
+    if not queue_id or not isinstance(queue_id, str):
+        raise ValueError("queue_id must be a non-empty string")
+
+    if queue_id not in _queue_store:
+        raise KeyError(f"Queue item with id '{queue_id}' not found")
+
+    return dict(_queue_store[queue_id])
+
+
+def process_queue_item(queue_id: str, decision: str) -> bool:
+    """Process a moderation queue item with a decision.
+
+    Args:
+        queue_id: Unique identifier for the queue item to process.
+        decision: The moderation decision (e.g., 'approve', 'reject', 'escalate').
+
+    Returns:
+        True if the queue item was successfully processed.
+
+    Raises:
+        ValueError: If queue_id or decision is empty or None, or if the
+            queue item has already been processed.
+        KeyError: If the queue_id does not exist in the store.
+    """
+    if not queue_id or not isinstance(queue_id, str):
+        raise ValueError("queue_id must be a non-empty string")
+    if not decision or not isinstance(decision, str):
+        raise ValueError("decision must be a non-empty string")
+
+    if queue_id not in _queue_store:
+        raise KeyError(f"Queue item with id '{queue_id}' not found")
+
+    queue_item = _queue_store[queue_id]
+
+    if queue_item["status"] != "pending":
+        raise ValueError(
+            f"Queue item '{queue_id}' has already been processed "
+            f"with decision '{queue_item['decision']}'"
+        )
+
+    now = datetime.now(timezone.utc).isoformat()
+    queue_item["status"] = "processed"
+    queue_item["decision"] = decision
+    queue_item["decided_at"] = now
+    queue_item["updated_at"] = now
+
+    return True

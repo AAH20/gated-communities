@@ -181,3 +181,78 @@ def batch_verify(member_ids: List[str]) -> Dict[str, object]:
         "results": results,
         "summary": summary,
     }
+
+
+def get_verification_status(member_id: str) -> dict:
+    """Get the current verification status of a member.
+
+    Args:
+        member_id: The unique identifier of the member.
+
+    Returns:
+        A dictionary containing:
+            - member_id: The member's ID.
+            - status: Current verification status string.
+            - verified_at: ISO 8601 timestamp of verification, or None.
+            - rejection_reason: Reason for rejection, or None.
+            - trust_score: Member's trust score (0.0-1.0).
+
+    Raises:
+        ValueError: If member_id is empty or not a string.
+    """
+    if not member_id or not isinstance(member_id, str):
+        raise ValueError("member_id must be a non-empty string")
+
+    profile = _MOCK_MEMBERS.get(member_id)
+
+    if profile is None:
+        return {
+            "member_id": member_id,
+            "status": VerificationStatus.NOT_FOUND.value,
+            "verified_at": None,
+            "rejection_reason": None,
+            "trust_score": 0.0,
+        }
+
+    return {
+        "member_id": profile.member_id,
+        "status": profile.status.value,
+        "verified_at": profile.verified_at,
+        "rejection_reason": profile.rejection_reason,
+        "trust_score": profile.trust_score,
+    }
+
+
+def request_verification(member_id: str, documents: list[str]) -> bool:
+    """Request verification for a member with supporting documents.
+
+    Args:
+        member_id: The unique identifier of the member requesting verification.
+        documents: A list of document references (e.g., URLs or document IDs)
+            to support the verification request.
+
+    Returns:
+        True if the verification request was submitted successfully.
+
+    Raises:
+        ValueError: If member_id is empty or not a string.
+        ValueError: If documents is empty or contains invalid entries.
+    """
+    if not member_id or not isinstance(member_id, str):
+        raise ValueError("member_id must be a non-empty string")
+
+    if not documents or not isinstance(documents, list):
+        raise ValueError("documents must be a non-empty list")
+
+    if not all(isinstance(doc, str) and doc.strip() for doc in documents):
+        raise ValueError("All documents must be non-empty strings")
+
+    profile = _MOCK_MEMBERS.get(member_id)
+
+    if profile is None:
+        raise ValueError(f"Member {member_id} not found in registry")
+
+    # In production, this would submit to a verification service
+    # For now, update the mock status to pending
+    profile.status = VerificationStatus.PENDING
+    return True

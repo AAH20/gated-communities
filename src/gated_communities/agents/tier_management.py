@@ -389,6 +389,137 @@ def get_member_tier(member_id: str) -> TierLevel:
 
 
 # ---------------------------------------------------------------------------
+# CRUD Operations for Tier Management
+# ---------------------------------------------------------------------------
+
+import uuid
+from datetime import datetime, timezone
+
+# In-memory store keyed by tier_id. In production this would be a database.
+_tier_store: dict[str, dict[str, Any]] = {}
+
+
+def _now_iso() -> str:
+    """Return the current UTC timestamp in ISO 8601 format."""
+    return datetime.now(timezone.utc).isoformat()
+
+
+def create_tier(community_id: str, tier_config: dict) -> dict:
+    """Create a membership tier for a community.
+
+    Args:
+        community_id: The unique identifier of the community.
+        tier_config: Configuration for the tier. Expected keys:
+            - name (str): Display name of the tier.
+            - description (str, optional): Human-readable description.
+            - price (float, optional): Monthly price in the community's currency.
+            - benefits (list[str], optional): List of benefit strings.
+            - max_members (int, optional): Maximum number of members allowed.
+
+    Returns:
+        A dictionary containing the created tier with assigned ``tier_id``,
+        ``created_at``, and ``updated_at`` timestamps.
+
+    Raises:
+        ValueError: If ``community_id`` is empty or ``tier_config`` is missing
+            a ``name`` key.
+        TypeError: If ``tier_config`` is not a dict.
+    """
+    if not isinstance(community_id, str) or not community_id.strip():
+        raise ValueError("community_id must be a non-empty string")
+
+    if not isinstance(tier_config, dict):
+        raise TypeError("tier_config must be a dict")
+
+    name = tier_config.get("name")
+    if not name or not isinstance(name, str):
+        raise ValueError("tier_config must contain a non-empty 'name' string")
+
+    tier_id = str(uuid.uuid4())
+    now = _now_iso()
+
+    tier: dict[str, Any] = {
+        "tier_id": tier_id,
+        "community_id": community_id,
+        "name": name,
+        "description": tier_config.get("description", ""),
+        "price": tier_config.get("price", 0.0),
+        "benefits": tier_config.get("benefits", []),
+        "max_members": tier_config.get("max_members", 0),
+        "created_at": now,
+        "updated_at": now,
+    }
+
+    _tier_store[tier_id] = tier
+    return tier
+
+
+def get_tier(tier_id: str) -> dict:
+    """Retrieve tier details by its unique identifier.
+
+    Args:
+        tier_id: The unique identifier of the tier to retrieve.
+
+    Returns:
+        A dictionary containing the tier's full configuration.
+
+    Raises:
+        ValueError: If ``tier_id`` is empty.
+        KeyError: If no tier exists with the given ``tier_id``.
+    """
+    if not isinstance(tier_id, str) or not tier_id.strip():
+        raise ValueError("tier_id must be a non-empty string")
+
+    if tier_id not in _tier_store:
+        raise KeyError(f"Tier with id '{tier_id}' not found")
+
+    return _tier_store[tier_id]
+
+
+def update_tier(tier_id: str, updates: dict) -> bool:
+    """Update an existing tier's configuration.
+
+    Args:
+        tier_id: The unique identifier of the tier to update.
+        updates: A dictionary of fields to update. Allowed keys:
+            - name (str)
+            - description (str)
+            - price (float)
+            - benefits (list[str])
+            - max_members (int)
+
+    Returns:
+        ``True`` if the tier was successfully updated.
+
+    Raises:
+        ValueError: If ``tier_id`` is empty or ``updates`` is empty.
+        TypeError: If ``updates`` is not a dict.
+        KeyError: If no tier exists with the given ``tier_id``.
+    """
+    if not isinstance(tier_id, str) or not tier_id.strip():
+        raise ValueError("tier_id must be a non-empty string")
+
+    if not isinstance(updates, dict):
+        raise TypeError("updates must be a dict")
+
+    if not updates:
+        raise ValueError("updates dict cannot be empty")
+
+    if tier_id not in _tier_store:
+        raise KeyError(f"Tier with id '{tier_id}' not found")
+
+    allowed_fields = {"name", "description", "price", "benefits", "max_members"}
+    tier = _tier_store[tier_id]
+
+    for key, value in updates.items():
+        if key in allowed_fields:
+            tier[key] = value
+
+    tier["updated_at"] = _now_iso()
+    return True
+
+
+# ---------------------------------------------------------------------------
 # Module-level self-test
 # ---------------------------------------------------------------------------
 
