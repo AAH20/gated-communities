@@ -10,7 +10,7 @@ from enum import Enum
 from typing import Any
 
 
-class GateType(str, Enum):
+class GateType(Enum):
     """Types of access gates."""
 
     INVITE_ONLY = "invite_only"

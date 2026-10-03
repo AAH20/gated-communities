@@ -18,7 +18,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 
-class ComplianceStatus(str, Enum):
+class ComplianceStatus(Enum):
     """Overall compliance status for a community."""
 
     COMPLIANT = "compliant"
@@ -27,7 +27,7 @@ class ComplianceStatus(str, Enum):
     PENDING_REVIEW = "pending_review"
 
 
-class PolicyCategory(str, Enum):
+class PolicyCategory(Enum):
     """Categories of compliance policies."""
 
     DATA_PRIVACY = "data_privacy"
@@ -38,7 +38,7 @@ class PolicyCategory(str, Enum):
     RETENTION = "retention"
 
 
-class PolicySeverity(str, Enum):
+class PolicySeverity(Enum):
     """Severity levels for policy violations."""
 
     CRITICAL = "critical"

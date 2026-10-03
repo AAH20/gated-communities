@@ -8,7 +8,7 @@ from datetime import datetime
 from enum import Enum
 
 
-class MemberRole(str, Enum):
+class MemberRole(Enum):
     OWNER = "owner"
     ADMIN = "admin"
     MODERATOR = "moderator"
@@ -16,7 +16,7 @@ class MemberRole(str, Enum):
     GUEST = "guest"
 
 
-class MemberStatus(str, Enum):
+class MemberStatus(Enum):
     PENDING = "pending"
     ACTIVE = "active"
     SUSPENDED = "suspended"

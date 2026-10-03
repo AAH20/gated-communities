@@ -14,7 +14,7 @@ from enum import Enum
 from typing import Any
 
 
-class Period(str, Enum):
+class Period(Enum):
     """Supported analysis periods."""
 
     DAY = "day"
@@ -23,7 +23,7 @@ class Period(str, Enum):
     QUARTER = "quarter"
 
 
-class ReportCategory(str, Enum):
+class ReportCategory(Enum):
     """Categories of moderation reports."""
 
     SPAM = "spam"
@@ -35,7 +35,7 @@ class ReportCategory(str, Enum):
     OTHER = "other"
 
 
-class ModerationAction(str, Enum):
+class ModerationAction(Enum):
     """Actions taken by moderators."""
 
     WARNING = "warning"

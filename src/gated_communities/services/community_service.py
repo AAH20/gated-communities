@@ -21,7 +21,7 @@ class CommunityNotFoundError(CommunityError):
     """Raised when a community is not found."""
 
 
-class CommunityStatus(str, Enum):
+class CommunityStatus(Enum):
     """Community status values."""
 
     ACTIVE = "active"

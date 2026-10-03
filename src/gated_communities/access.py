@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from .gate import Gate
 
 
-class AccessDecision(str, Enum):
+class AccessDecision(Enum):
     GRANTED = "granted"
     DENIED = "denied"
     PENDING = "pending"

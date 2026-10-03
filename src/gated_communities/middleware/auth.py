@@ -104,7 +104,7 @@ class APIKeyError(AuthenticationError):
 # ---------------------------------------------------------------------------
 
 
-class Role(str, Enum):
+class Role(Enum):
     """Standard roles for gated communities."""
 
     VIEWER = "viewer"

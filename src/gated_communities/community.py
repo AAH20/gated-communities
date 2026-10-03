@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Any
 
 
-class CommunityVisibility(str, Enum):
+class CommunityVisibility(Enum):
     PUBLIC = "public"
     PRIVATE = "private"
     HIDDEN = "hidden"

@@ -10,7 +10,7 @@ from enum import Enum
 from typing import Any
 
 
-class CommunityEventType(str, Enum):
+class CommunityEventType(Enum):
     MEMBER_JOINED = "member_joined"
     MEMBER_LEFT = "member_left"
     MEMBER_SUSPENDED = "member_suspended"

@@ -9,7 +9,7 @@ from sqlalchemy.sql import func
 from .database import Base
 
 
-class TierEnum(str, enum.Enum):
+class TierEnum(enum.Enum):
     FREE = "free"
     PRO = "pro"
     ENTERPRISE = "enterprise"

@@ -15,7 +15,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 
-class TierLevel(str, Enum):
+class TierLevel(Enum):
     """Available membership tiers in ascending order of prestige."""
 
     BRONZE = "bronze"

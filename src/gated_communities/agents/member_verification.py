@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 
-class VerificationStatus(str, Enum):
+class VerificationStatus(Enum):
     """Possible verification statuses for a community member."""
 
     VERIFIED = "verified"
