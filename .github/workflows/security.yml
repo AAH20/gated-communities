@@ -12,6 +12,7 @@ jobs:
   bandit:
     name: Bandit Python Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -36,6 +37,7 @@ jobs:
   pip-audit:
     name: Dependency Vulnerability Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -60,6 +62,7 @@ jobs:
   gitleaks:
     name: Secret Detection
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
