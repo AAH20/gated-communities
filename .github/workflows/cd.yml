@@ -23,6 +23,7 @@ jobs:
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: read
       packages: write
@@ -92,6 +93,7 @@ jobs:
   merge-manifests:
     name: Merge Multi-Arch Manifests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: build-and-push
     permissions:
       contents: read
@@ -141,6 +143,7 @@ jobs:
   scan-image:
     name: Scan Pushed Image
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: merge-manifests
     permissions:
       contents: read
