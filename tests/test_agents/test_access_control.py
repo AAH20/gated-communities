@@ -4291,4 +4291,19 @@ class TestGrantAccess:
                 granted_by=mock_admin_user.id,
             )
 
-   </longcat_think>
+
+# ---------------------------------------------------------------------------
+# Tests for revoke_access
+# ---------------------------------------------------------------------------
+
+
+class TestRevokeAccess:
+    """Tests for the revoke_access function."""
+
+    def test_revoke_access_success(
+        self, mock_db, mock_user, mock_community, mock_agent, mock_admin_user, access_record
+    ):
+        """revoke_access successfully revokes access."""
+        mock_db.fetchone.return_value = access_record
+
+        result =</longcat_think>
