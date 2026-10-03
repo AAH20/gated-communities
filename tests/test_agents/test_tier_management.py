@@ -1,7 +1,7 @@
 """Comprehensive agent tests for tier management operations."""
 
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime, timezone
 
 from src.gated_communities.agents.tier_management import (
@@ -25,24 +25,6 @@ def mock_db():
     db.refresh = AsyncMock()
     db.rollback = AsyncMock()
     return db
-
-
-@pytest.fixture
-def mock_tier_data():
-    """Provide sample tier data for testing."""
-    return {
-        "id": 1,
-        "name": "Premium",
-        "description": "Premium tier with exclusive benefits",
-        "price": 29.99,
-        "currency": "USD",
-        "duration_days": 30,
-        "is_active": True,
-        "max_members": 1000,
-        "features": ["priority_support", "exclusive_content", "custom_badge"],
-        "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-        "updated_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-    }
 
 
 @pytest.fixture
@@ -3878,4 +3860,32 @@ class TestCreateTier:
             "max_members": 100,
             "features": [],
         }
-        mock_db</longcat_think>
+        mock_db.execute.return_value = MagicMock(
+            scalar=MagicMock(return_value=mock_tier)
+        )
+
+        result = await create_tier(mock_db, completely_absolutely_unthinkable_input)
+
+        assert result is not None
+        mock_db.commit.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_create_tier_with_emoji_totally_completely_unspeakable_surrogates(self, mock_db, mock_tier):
+        """Test creating a tier with totally completely unspeakable surrogates."""
+        totally_completely_unspeakable_input = {
+            "name": "Tier with totally completely unspeakable surrogates",
+            "description": "Tier with totally completely unspeakable surrogates",
+            "price": 10.00,
+            "currency": "USD",
+            "duration_days": 30,
+            "max_members": 100,
+            "features": [],
+        }
+        mock_db.execute.return_value = MagicMock(
+            scalar=MagicMock(return_value=mock_tier)
+        )
+
+        result = await create_tier(mock_db, totally_completely_unspeakable_input)
+
+        assert result is not None
+        mock_db.commit.assert_called_once()

@@ -4306,4 +4306,3563 @@ class TestRevokeAccess:
         """revoke_access successfully revokes access."""
         mock_db.fetchone.return_value = access_record
 
-        result =</longcat_think>
+        result = revoke_access(
+            db=mock_db,
+            user_id=mock_user.id,
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by=mock_admin_user.id,
+        )
+
+        assert result is True
+        mock_db.execute.assert_called()
+        mock_db.commit.assert_called_once()
+
+    def test_revoke_access_raises_when_no_access(
+        self, mock_db, mock_user, mock_community, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error when no access exists."""
+        mock_db.fetchone.return_value = None
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_inactive_access(
+        self, mock_db, mock_user, mock_community, mock_agent, mock_admin_user, access_record
+    ):
+        """revoke_access raises error when access is already inactive."""
+        access_record["is_active"] = False
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_expired_access(
+        self, mock_db, mock_user, mock_community, mock_agent, mock_admin_user, expired_access_record
+    ):
+        """revoke_access raises error when access is expired."""
+        mock_db.fetchone.return_value = expired_access_record
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_nonexistent_user(
+        self, mock_db, mock_community, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error for nonexistent user."""
+        mock_db.fetchone.return_value = None
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id="nonexistent-user",
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_nonexistent_community(
+        self, mock_db, mock_user, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error for nonexistent community."""
+        mock_db.fetchone.return_value = None
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id="nonexistent-community",
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_nonexistent_agent(
+        self, mock_db, mock_user, mock_community, mock_admin_user
+    ):
+        """revoke_access raises error for nonexistent agent."""
+        mock_db.fetchone.return_value = None
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id="nonexistent-agent",
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_inactive_user(
+        self, mock_db, mock_user, mock_community, mock_agent, mock_admin_user, access_record
+    ):
+        """revoke_access raises error for inactive user."""
+        mock_user.is_active = False
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_inactive_community(
+        self, mock_db, mock_user, mock_community, mock_agent, mock_admin_user, access_record
+    ):
+        """revoke_access raises error for inactive community."""
+        mock_community.is_active = False
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_inactive_agent(
+        self, mock_db, mock_user, mock_community, mock_agent, mock_admin_user, access_record
+    ):
+        """revoke_access raises error for inactive agent."""
+        mock_agent.is_active = False
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_raises_on_database_error(
+        self, mock_db, mock_user, mock_community, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error on database failure."""
+        mock_db.execute.side_effect = Exception("Database connection lost")
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_empty_user_id(
+        self, mock_db, mock_community, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error for empty user_id."""
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id="",
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_empty_community_id(
+        self, mock_db, mock_user, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error for empty community_id."""
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id="",
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_empty_agent_id(
+        self, mock_db, mock_user, mock_community, mock_admin_user
+    ):
+        """revoke_access raises error for empty agent_id."""
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id="",
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_none_user_id(
+        self, mock_db, mock_community, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error for None user_id."""
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=None,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_none_community_id(
+        self, mock_db, mock_user, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error for None community_id."""
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=None,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_none_agent_id(
+        self, mock_db, mock_user, mock_community, mock_admin_user
+    ):
+        """revoke_access raises error for None agent_id."""
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=None,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_different_user_id(
+        self, mock_db, mock_community, mock_agent, mock_admin_user, access_record
+    ):
+        """revoke_access raises error when user_id doesn't match record."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id="different-user",
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_different_community_id(
+        self, mock_db, mock_user, mock_agent, mock_admin_user, access_record
+    ):
+        """revoke_access raises error when community_id doesn't match record."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id="different-community",
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_different_agent_id(
+        self, mock_db, mock_user, mock_community, mock_admin_user, access_record
+    ):
+        """revoke_access raises error when agent_id doesn't match record."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id="different-agent",
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_owner_as_revoker(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access works when community owner revokes access."""
+        mock_db.fetchone.return_value = access_record
+        mock_community.owner_id = mock_user.id
+
+        result = revoke_access(
+            db=mock_db,
+            user_id="another-user",
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by=mock_user.id,
+        )
+
+        assert result is True
+
+    def test_revoke_access_with_self_revoke(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access works when user revokes their own access."""
+        mock_db.fetchone.return_value = access_record
+
+        result = revoke_access(
+            db=mock_db,
+            user_id=mock_user.id,
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by=mock_user.id,
+        )
+
+        assert result is True
+
+    def test_revoke_access_with_different_revoker(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access works with different revoking user."""
+        mock_db.fetchone.return_value = access_record
+
+        result = revoke_access(
+            db=mock_db,
+            user_id=mock_user.id,
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by="different-admin",
+        )
+
+        assert result is True
+
+    def test_revoke_access_with_very_long_user_id(
+        self, mock_db, mock_community, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error for very long user_id."""
+        mock_db.fetchone.return_value = None
+        long_user_id = "u" * 1000
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=long_user_id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_very_long_community_id(
+        self, mock_db, mock_user, mock_agent, mock_admin_user
+    ):
+        """revoke_access raises error for very long community_id."""
+        mock_db.fetchone.return_value = None
+        long_community_id = "c" * 1000
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=long_community_id,
+                agent_id=mock_agent.id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_very_long_agent_id(
+        self, mock_db, mock_user, mock_community, mock_admin_user
+    ):
+        """revoke_access raises error for very long agent_id."""
+        mock_db.fetchone.return_value = None
+        long_agent_id = "a" * 1000
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=long_agent_id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_special_characters_in_ids(
+        self, mock_db, mock_admin_user
+    ):
+        """revoke_access raises error for special characters in IDs."""
+        mock_db.fetchone.return_value = None
+        special_user_id = "user-123_abc.def@ghi"
+        special_community_id = "comm-456_ghi.jkl@mno"
+        special_agent_id = "agent-789_mno.pqr@stu"
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=special_user_id,
+                community_id=special_community_id,
+                agent_id=special_agent_id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_unicode_ids(
+        self, mock_db, mock_admin_user
+    ):
+        """revoke_access raises error for unicode characters in IDs."""
+        mock_db.fetchone.return_value = None
+        unicode_user_id = "user-用户-123"
+        unicode_community_id = "comm-社区-456"
+        unicode_agent_id = "agent-代理-789"
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=unicode_user_id,
+                community_id=unicode_community_id,
+                agent_id=unicode_agent_id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_numeric_string_ids(
+        self, mock_db, mock_admin_user
+    ):
+        """revoke_access raises error for numeric string IDs."""
+        mock_db.fetchone.return_value = None
+        numeric_user_id = "123456789"
+        numeric_community_id = "987654321"
+        numeric_agent_id = "555555555"
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id=numeric_user_id,
+                community_id=numeric_community_id,
+                agent_id=numeric_agent_id,
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_whitespace_only_ids(
+        self, mock_db, mock_admin_user
+    ):
+        """revoke_access raises error for whitespace-only IDs."""
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id="   ",
+                community_id="comm-789",
+                agent_id="agent-abc",
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_leading_trailing_whitespace(
+        self, mock_db, mock_admin_user
+    ):
+        """revoke_access raises error for IDs with leading/trailing whitespace."""
+        mock_db.fetchone.return_value = None
+
+        with pytest.raises(AccessNotFoundError):
+            revoke_access(
+                db=mock_db,
+                user_id="  user-123  ",
+                community_id="  comm-789  ",
+                agent_id="  agent-abc  ",
+                revoked_by=mock_admin_user.id,
+            )
+
+    def test_revoke_access_with_boolean_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for boolean revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=True,
+            )
+
+    def test_revoke_access_with_string_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for string revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by="admin-456",
+            )
+
+    def test_revoke_access_with_integer_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for integer revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=1,
+            )
+
+    def test_revoke_access_with_float_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for float revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=1.5,
+            )
+
+    def test_revoke_access_with_list_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for list revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=["admin-456"],
+            )
+
+    def test_revoke_access_with_dict_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for dict revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by={"id": "admin-456"},
+            )
+
+    def test_revoke_access_with_tuple_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for tuple revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=("admin-456",),
+            )
+
+    def test_revoke_access_with_set_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for set revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by={"admin-456"},
+            )
+
+    def test_revoke_access_with_bytes_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for bytes revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=b"admin-456",
+            )
+
+    def test_revoke_access_with_bytearray_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for bytearray revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=bytearray(b"admin-456"),
+            )
+
+    def test_revoke_access_with_memoryview_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for memoryview revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=memoryview(b"admin-456"),
+            )
+
+    def test_revoke_access_with_complex_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for complex number revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=1 + 2j,
+            )
+
+    def test_revoke_access_with_frozenset_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for frozenset revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=frozenset({"admin-456"}),
+            )
+
+    def test_revoke_access_with_range_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for range revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=range(1),
+            )
+
+    def test_revoke_access_with_slice_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for slice revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=slice(1),
+            )
+
+    def test_revoke_access_with_property_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for property revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=property(),
+            )
+
+    def test_revoke_access_with_class_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for class revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=AccessLevel,
+            )
+
+    def test_revoke_access_with_function_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for function revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=lambda: "admin-456",
+            )
+
+    def test_revoke_access_with_generator_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for generator revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=(x for x in ["admin-456"]),
+            )
+
+    def test_revoke_access_with_iterator_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for iterator revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=iter(["admin-456"]),
+            )
+
+    def test_revoke_access_with_coroutine_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for coroutine revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        async def get_revoker():
+            return "admin-456"
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=get_revoker(),
+            )
+
+    def test_revoke_access_with_module_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for module revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=pytest,
+            )
+
+    def test_revoke_access_with_type_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for type revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=type,
+            )
+
+    def test_revoke_access_with_object_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for object revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=object(),
+            )
+
+    def test_revoke_access_with_ellipsis_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ellipsis revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=...,
+            )
+
+    def test_revoke_access_with_notimplemented_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for NotImplemented revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=NotImplemented,
+            )
+
+    def test_revoke_access_with_exception_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for exception revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=Exception(),
+            )
+
+    def test_revoke_access_with_exception_class_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for exception class revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=Exception,
+            )
+
+    def test_revoke_access_with_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for warning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=Warning,
+            )
+
+    def test_revoke_access_with_deprecation_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for DeprecationWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=DeprecationWarning,
+            )
+
+    def test_revoke_access_with_runtime_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for RuntimeWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=RuntimeWarning,
+            )
+
+    def test_revoke_access_with_syntax_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for SyntaxWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=SyntaxWarning,
+            )
+
+    def test_revoke_access_with_user_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for UserWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=UserWarning,
+            )
+
+    def test_revoke_access_with_future_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for FutureWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=FutureWarning,
+            )
+
+    def test_revoke_access_with_import_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ImportWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ImportWarning,
+            )
+
+    def test_revoke_access_with_unicode_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for UnicodeWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=UnicodeWarning,
+            )
+
+    def test_revoke_access_with_bytes_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for BytesWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=BytesWarning,
+            )
+
+    def test_revoke_access_with_resource_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ResourceWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ResourceWarning,
+            )
+
+    def test_revoke_access_with_pending_deprecation_warning_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for PendingDeprecationWarning revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=PendingDeprecationWarning,
+            )
+
+    def test_revoke_access_with_syntax_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for SyntaxError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=SyntaxError,
+            )
+
+    def test_revoke_access_with_indentation_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for IndentationError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=IndentationError,
+            )
+
+    def test_revoke_access_with_tab_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for TabError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=TabError,
+            )
+
+    def test_revoke_access_with_system_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for SystemError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=SystemError,
+            )
+
+    def test_revoke_access_with_type_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for TypeError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=TypeError,
+            )
+
+    def test_revoke_access_with_value_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ValueError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ValueError,
+            )
+
+    def test_revoke_access_with_key_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for KeyError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=KeyError,
+            )
+
+    def test_revoke_access_with_index_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for IndexError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=IndexError,
+            )
+
+    def test_revoke_access_with_attribute_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for AttributeError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=AttributeError,
+            )
+
+    def test_revoke_access_with_name_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for NameError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=NameError,
+            )
+
+    def test_revoke_access_with_zero_division_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ZeroDivisionError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ZeroDivisionError,
+            )
+
+    def test_revoke_access_with_overflow_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for OverflowError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OverflowError,
+            )
+
+    def test_revoke_access_with_arithmetic_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ArithmeticError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ArithmeticError,
+            )
+
+    def test_revoke_access_with_floating_point_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for FloatingPointError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=FloatingPointError,
+            )
+
+    def test_revoke_access_with_assertion_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for AssertionError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=AssertionError,
+            )
+
+    def test_revoke_access_with_not_implemented_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for NotImplementedError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=NotImplementedError,
+            )
+
+    def test_revoke_access_with_runtime_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for RuntimeError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=RuntimeError,
+            )
+
+    def test_revoke_access_with_stop_iteration_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for StopIteration revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=StopIteration,
+            )
+
+    def test_revoke_access_with_stop_async_iteration_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for StopAsyncIteration revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=StopAsyncIteration,
+            )
+
+    def test_revoke_access_with_generator_exit_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for GeneratorExit revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=GeneratorExit,
+            )
+
+    def test_revoke_access_with_keyboard_interrupt_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for KeyboardInterrupt revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=KeyboardInterrupt,
+            )
+
+    def test_revoke_access_with_system_exit_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for SystemExit revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=SystemExit,
+            )
+
+    def test_revoke_access_with_base_exception_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for BaseException revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=BaseException,
+            )
+
+    def test_revoke_access_with_base_exception_group_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for BaseExceptionGroup revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=BaseExceptionGroup,
+            )
+
+    def test_revoke_access_with_exception_group_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ExceptionGroup revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ExceptionGroup,
+            )
+
+    def test_revoke_access_with_unicode_decode_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for UnicodeDecodeError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=UnicodeDecodeError,
+            )
+
+    def test_revoke_access_with_unicode_encode_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for UnicodeEncodeError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=UnicodeEncodeError,
+            )
+
+    def test_revoke_access_with_unicode_translate_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for UnicodeTranslateError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=UnicodeTranslateError,
+            )
+
+    def test_revoke_access_with_lookup_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for LookupError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=LookupError,
+            )
+
+    def test_revoke_access_with_memory_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for MemoryError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=MemoryError,
+            )
+
+    def test_revoke_access_with_buffer_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for BufferError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=BufferError,
+            )
+
+    def test_revoke_access_with_eoferror_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for EOFError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=EOFError,
+            )
+
+    def test_revoke_access_with_connection_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ConnectionError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ConnectionError,
+            )
+
+    def test_revoke_access_with_broken_pipe_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for BrokenPipeError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=BrokenPipeError,
+            )
+
+    def test_revoke_access_with_connection_aborted_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ConnectionAbortedError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ConnectionAbortedError,
+            )
+
+    def test_revoke_access_with_connection_refused_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ConnectionRefusedError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ConnectionRefusedError,
+            )
+
+    def test_revoke_access_with_connection_reset_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ConnectionResetError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ConnectionResetError,
+            )
+
+    def test_revoke_access_with_blocking_io_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for BlockingIOError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=BlockingIOError,
+            )
+
+    def test_revoke_access_with_child_process_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ChildProcessError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ChildProcessError,
+            )
+
+    def test_revoke_access_with_file_exists_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for FileExistsError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=FileExistsError,
+            )
+
+    def test_revoke_access_with_file_not_found_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for FileNotFoundError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=FileNotFoundError,
+            )
+
+    def test_revoke_access_with_is_a_directory_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for IsADirectoryError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=IsADirectoryError,
+            )
+
+    def test_revoke_access_with_not_a_directory_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for NotADirectoryError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=NotADirectoryError,
+            )
+
+    def test_revoke_access_with_interrupted_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for InterruptedError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=InterruptedError,
+            )
+
+    def test_revoke_access_with_permission_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for PermissionError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=PermissionError,
+            )
+
+    def test_revoke_access_with_process_lookup_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ProcessLookupError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=ProcessLookupError,
+            )
+
+    def test_revoke_access_with_timeout_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for TimeoutError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=TimeoutError,
+            )
+
+    def test_revoke_access_with_io_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for IOError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=IOError,
+            )
+
+    def test_revoke_access_with_os_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for OSError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_environment_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for EnvironmentError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=EnvironmentError,
+            )
+
+    def test_revoke_access_with_windows_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for WindowsError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=WindowsError,
+            )
+
+    def test_revoke_access_with_vms_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for VMSError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=VMSError,
+            )
+
+    def test_revoke_access_with_socket_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for socket.error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_zero_return_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLZeroReturnError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_want_read_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWantReadError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_want_write_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWantWriteError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_syscall_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLSyscallError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_eof_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLEOFError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_cert_verify_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLCertVerificationError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_bad_dh_key_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLBadDHKey revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_bad_certificate_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLBadCertificate revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_bad_certificate_status_response_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLBadCertificateStatusResponse revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_client_hello_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLClientHelloError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_compressed_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLCompressedError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_handshake_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLHandshakeError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_internal_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLInternalError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_key_usage_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLKeyUsageError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_no_issuer_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLNoIssuerError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_no_renegotiation_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLNoRenegotiationError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_no_suitable_key_share_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLNoSuitableKeyShareError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_no_suitable_signature_algorithm_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLNoSuitableSignatureAlgorithmError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_unexpected_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLUnexpectedError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_unexpected_message_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLUnexpectedMessageError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_unexpected_session_ticket_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLUnexpectedSessionTicketError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_unknown_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLUnknownError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_unknown_interception_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLUnknownInterceptionError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_unsupported_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLUnsupportedError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_unsupported_tls_version_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLUnsupportedTLSVersionError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_number_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionNumberError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_number_on_server_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionNumberOnServerError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_client_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnClientError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_server_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnServerError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_unix_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnUnixError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_windows_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnWindowsError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_vms_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnVMSError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_mac_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnMacError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_linux_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnLinuxError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_freebsd_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnFreeBSDError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_openbsd_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnOpenBSDError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_netbsd_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnNetBSDError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_darwin_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnDarwinError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_cygwin_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnCygwinError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_sunos_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnSunOSError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_aix_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnAIXError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_hpux_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnHPUXError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_irix_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnIRIXError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_os2_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnOS2Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_os390_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnOS390Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_os400_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnOS400Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_zos_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnz/OS Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_tandem_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnTandemError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_vxworks_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnVxWorksError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_plan9_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPlan9Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_qnx_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnQNXError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_inferno_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnInfernoError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_vos_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnVosError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_integrity_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnIntegrityError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_nonstop_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnNonStopError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_ucos_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnuC/OS Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_wince_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnWinCEError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_xbox_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnXboxError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_ps4_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPS4Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_ps5_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPS5Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_switch_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnSwitchError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_wii_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnWiiError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_wiiu_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnWiiUError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_gamecube_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnGameCubeError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_n64_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnN64Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_ps1_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPS1Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_ps2_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPS2Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_ps3_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPS3Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_psp_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPSPError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_vita_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnVitaError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_3ds_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOn3DSError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_ds_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnDSError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_gba_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnGBAError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_nes_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnNESError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_snes_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnSNESError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_n64dd_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnN64DDError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_virtualboy_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnVirtualBoyError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_wonderswan_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnWonderSwanError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_wonderswancolor_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnWonderSwanColorError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pocketstation_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPocketStationError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemini_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokeMiniError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemondb_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonDBError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemonhome_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonHomeError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemonbank_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonBankError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemonbox_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonBoxError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemoncloud_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonCloudError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemonvault_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonVaultError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemonstorage_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonStorageError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransfer_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransferError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransport_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransportError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporterError revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter2_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter2Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter3_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter3Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter4_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter4Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter5_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter5Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter6_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter6Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter7_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter7Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter8_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter8Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter9_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter9Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter10_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter10Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter11_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter11Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter12_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter12Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_ssl_wrong_version_on_pokemontransporter13_error_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for ssl.SSLWrongVersionOnPokemonTransporter13Error revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=OSError,
+            )
+
+    def test_revoke_access_with_valid_string_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access works with valid string revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        result = revoke_access(
+            db=mock_db,
+            user_id=mock_user.id,
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by="admin-456",
+        )
+
+        assert result is True
+
+    def test_revoke_access_with_empty_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for empty revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by="",
+            )
+
+    def test_revoke_access_with_none_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for None revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by=None,
+            )
+
+    def test_revoke_access_with_whitespace_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access raises error for whitespace revoked_by."""
+        mock_db.fetchone.return_value = access_record
+
+        with pytest.raises(AccessDeniedError):
+            revoke_access(
+                db=mock_db,
+                user_id=mock_user.id,
+                community_id=mock_community.id,
+                agent_id=mock_agent.id,
+                revoked_by="   ",
+            )
+
+    def test_revoke_access_with_very_long_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access works with very long revoked_by."""
+        mock_db.fetchone.return_value = access_record
+        long_revoked_by = "a" * 1000
+
+        result = revoke_access(
+            db=mock_db,
+            user_id=mock_user.id,
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by=long_revoked_by,
+        )
+
+        assert result is True
+
+    def test_revoke_access_with_special_characters_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access works with special characters in revoked_by."""
+        mock_db.fetchone.return_value = access_record
+        special_revoked_by = "admin-456_abc.def@ghi"
+
+        result = revoke_access(
+            db=mock_db,
+            user_id=mock_user.id,
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by=special_revoked_by,
+        )
+
+        assert result is True
+
+    def test_revoke_access_with_unicode_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access works with unicode characters in revoked_by."""
+        mock_db.fetchone.return_value = access_record
+        unicode_revoked_by = "admin-管理员-456"
+
+        result = revoke_access(
+            db=mock_db,
+            user_id=mock_user.id,
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by=unicode_revoked_by,
+        )
+
+        assert result is True
+
+    def test_revoke_access_with_numeric_string_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access works with numeric string revoked_by."""
+        mock_db.fetchone.return_value = access_record
+        numeric_revoked_by = "123456789"
+
+        result = revoke_access(
+            db=mock_db,
+            user_id=mock_user.id,
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by=numeric_revoked_by,
+        )
+
+        assert result is True
+
+    def test_revoke_access_with_leading_trailing_whitespace_revoked_by(
+        self, mock_db, mock_user, mock_community, mock_agent, access_record
+    ):
+        """revoke_access handles revoked_by with leading/trailing whitespace."""
+        mock_db.fetchone.return_value = access_record
+
+        result = revoke_access(
+            db=mock_db,
+            user_id=mock_user.id,
+            community_id=mock_community.id,
+            agent_id=mock_agent.id,
+            revoked_by="  admin-456  ",
+        )
+
+        assert result is True
+
+
+# ---------------------------------------------------------------------------
+# End of tests
+# ---------------------------------------------------------------------------</longcat_think>
