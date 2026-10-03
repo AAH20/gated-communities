@@ -19,6 +19,7 @@ jobs:
   lint:
     name: Lint (ruff)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -46,6 +47,7 @@ jobs:
   typecheck:
     name: Type Check (mypy)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
@@ -75,6 +77,7 @@ jobs:
   test:
     name: Test (pytest)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -156,6 +159,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [lint, typecheck]
     permissions:
       actions: read
@@ -236,6 +240,7 @@ jobs:
   docker-security:
     name: Docker Image Security
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: [test]
     if: github.event_name != 'pull_request'
     permissions:
