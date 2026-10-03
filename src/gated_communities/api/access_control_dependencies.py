@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from langchain_openai import ChatOpenAI
@@ -10,13 +9,9 @@ from langchain_openai import ChatOpenAI
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
 
-from access_control.agents import (
-    AccessAuditorAgent,
-    AccessRecommenderAgent,
-    PermissionEvaluatorAgent,
-    PolicyEnforcerAgent,
-    RoleManagerAgent,
-)
+from access_control.agents import (AccessAuditorAgent, AccessRecommenderAgent,
+                                   PermissionEvaluatorAgent,
+                                   PolicyEnforcerAgent, RoleManagerAgent)
 from access_control.config import Settings
 from access_control.config import get_settings as _get_settings
 

@@ -1,15 +1,14 @@
 """Reputation History API routes."""
+
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-
 from reputation_system.agents.reputation_history import (
-    HistoryAnalysisInput,
-    ReputationHistoryAgent,
-)
+    HistoryAnalysisInput, ReputationHistoryAgent)
 from reputation_system.config.settings import Settings, get_settings
-from reputation_system.models.schemas import ReputationHistory, ReputationHistoryCreate
+from reputation_system.models.schemas import (ReputationHistory,
+                                              ReputationHistoryCreate)
 
 router = APIRouter(prefix="/history", tags=["history"])
 

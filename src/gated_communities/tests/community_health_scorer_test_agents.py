@@ -5,9 +5,10 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import pytest
-
-from community_health_scorer.agents.engagement_metrics_agent import EngagementMetricsAgent
-from community_health_scorer.agents.toxicity_detector_agent import ToxicityDetectorAgent
+from community_health_scorer.agents.engagement_metrics_agent import \
+    EngagementMetricsAgent
+from community_health_scorer.agents.toxicity_detector_agent import \
+    ToxicityDetectorAgent
 from community_health_scorer.models import EngagementLevel, ToxicityLevel
 
 
@@ -17,7 +18,9 @@ class TestEngagementMetricsAgent:
     @pytest.fixture
     def agent(self) -> EngagementMetricsAgent:
         """Create an engagement metrics agent."""
-        with patch("community_health_scorer.agents.engagement_metrics_agent.get_settings"):
+        with patch(
+            "community_health_scorer.agents.engagement_metrics_agent.get_settings"
+        ):
             agent = EngagementMetricsAgent()
             agent._agent = None
             return agent
@@ -30,7 +33,9 @@ class TestEngagementMetricsAgent:
         assert len(info["capabilities"]) > 0
 
     @pytest.mark.asyncio
-    async def test_heuristic_score_high_engagement(self, agent: EngagementMetricsAgent) -> None:
+    async def test_heuristic_score_high_engagement(
+        self, agent: EngagementMetricsAgent
+    ) -> None:
         """Test heuristic scoring with high engagement metrics."""
         metrics = {
             "dau": 500,
@@ -51,7 +56,9 @@ class TestEngagementMetricsAgent:
         )
 
     @pytest.mark.asyncio
-    async def test_heuristic_score_low_engagement(self, agent: EngagementMetricsAgent) -> None:
+    async def test_heuristic_score_low_engagement(
+        self, agent: EngagementMetricsAgent
+    ) -> None:
         """Test heuristic scoring with low engagement metrics."""
         metrics = {
             "dau": 10,
@@ -72,7 +79,9 @@ class TestEngagementMetricsAgent:
         )
 
     @pytest.mark.asyncio
-    async def test_heuristic_score_zero_metrics(self, agent: EngagementMetricsAgent) -> None:
+    async def test_heuristic_score_zero_metrics(
+        self, agent: EngagementMetricsAgent
+    ) -> None:
         """Test heuristic scoring with zero metrics."""
         metrics = {
             "dau": 0,
@@ -90,7 +99,9 @@ class TestEngagementMetricsAgent:
         assert result.engagement_level == EngagementLevel.DISENGAGED
 
     @pytest.mark.asyncio
-    async def test_heuristic_score_moderate_engagement(self, agent: EngagementMetricsAgent) -> None:
+    async def test_heuristic_score_moderate_engagement(
+        self, agent: EngagementMetricsAgent
+    ) -> None:
         """Test heuristic scoring with moderate engagement metrics."""
         metrics = {
             "dau": 100,
@@ -113,7 +124,9 @@ class TestToxicityDetectorAgent:
     @pytest.fixture
     def agent(self) -> ToxicityDetectorAgent:
         """Create a toxicity detector agent."""
-        with patch("community_health_scorer.agents.toxicity_detector_agent.get_settings"):
+        with patch(
+            "community_health_scorer.agents.toxicity_detector_agent.get_settings"
+        ):
             agent = ToxicityDetectorAgent()
             agent._agent = None
             return agent
@@ -126,7 +139,9 @@ class TestToxicityDetectorAgent:
         assert len(info["capabilities"]) > 0
 
     @pytest.mark.asyncio
-    async def test_heuristic_score_no_toxicity(self, agent: ToxicityDetectorAgent) -> None:
+    async def test_heuristic_score_no_toxicity(
+        self, agent: ToxicityDetectorAgent
+    ) -> None:
         """Test heuristic scoring with no toxicity."""
         data = {
             "toxic_content_count": 0,
@@ -141,7 +156,9 @@ class TestToxicityDetectorAgent:
         assert result.score == 100
 
     @pytest.mark.asyncio
-    async def test_heuristic_score_low_toxicity(self, agent: ToxicityDetectorAgent) -> None:
+    async def test_heuristic_score_low_toxicity(
+        self, agent: ToxicityDetectorAgent
+    ) -> None:
         """Test heuristic scoring with low toxicity."""
         data = {
             "toxic_content_count": 5,
@@ -155,7 +172,9 @@ class TestToxicityDetectorAgent:
         assert result.toxicity_level in (ToxicityLevel.NONE, ToxicityLevel.LOW)
 
     @pytest.mark.asyncio
-    async def test_heuristic_score_moderate_toxicity(self, agent: ToxicityDetectorAgent) -> None:
+    async def test_heuristic_score_moderate_toxicity(
+        self, agent: ToxicityDetectorAgent
+    ) -> None:
         """Test heuristic scoring with moderate toxicity."""
         data = {
             "toxic_content_count": 100,
@@ -172,7 +191,9 @@ class TestToxicityDetectorAgent:
         )
 
     @pytest.mark.asyncio
-    async def test_heuristic_score_high_toxicity(self, agent: ToxicityDetectorAgent) -> None:
+    async def test_heuristic_score_high_toxicity(
+        self, agent: ToxicityDetectorAgent
+    ) -> None:
         """Test heuristic scoring with high toxicity."""
         data = {
             "toxic_content_count": 500,
@@ -195,7 +216,9 @@ class TestToxicityDetectorAgent:
         assert len(result.recommendations) > 0
 
     @pytest.mark.asyncio
-    async def test_heuristic_score_severe_toxicity(self, agent: ToxicityDetectorAgent) -> None:
+    async def test_heuristic_score_severe_toxicity(
+        self, agent: ToxicityDetectorAgent
+    ) -> None:
         """Test heuristic scoring with severe toxicity."""
         data = {
             "toxic_content_count": 800,
@@ -213,7 +236,9 @@ class TestToxicityDetectorAgent:
         assert result.toxicity_level == ToxicityLevel.SEVERE
 
     @pytest.mark.asyncio
-    async def test_recommendations_for_high_toxicity(self, agent: ToxicityDetectorAgent) -> None:
+    async def test_recommendations_for_high_toxicity(
+        self, agent: ToxicityDetectorAgent
+    ) -> None:
         """Test that recommendations are generated for high toxicity."""
         data = {
             "toxic_content_count": 600,

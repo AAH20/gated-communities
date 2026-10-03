@@ -1,13 +1,15 @@
-# Gated Communities
+# Gated Communities — Unified Platform
 
-> **Unified Gated Community Management Platform**
->
-> A production-grade, modular gated community management platform consolidating 10 independent services into a single standalone application with 57 AI-powered agents for tier management, moderation, access control, and governance.
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmedhassan/gated-communities/ci.yml?branch=main&label=CI%2FCD)](https://github.com/ahmedhassan/gated-communities/actions)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104%2B-009688.svg)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-ready-326CE5.svg)](https://kubernetes.io/)
+[![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://docs.astral.sh/ruff/)
+[![Type Checker](https://img.shields.io/badge/types-mypy-blue.svg)](https://mypy.readthedocs.io/)
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com/)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF.svg)](https://github.com/features/actions)
+> A production-grade, modular gated community management platform consolidating 10 independent services into a single standalone application with 57 AI-powered agents.
 
 ---
 
@@ -19,235 +21,352 @@
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
 - [Deployment](#deployment)
-- [Configuration](#configuration)
-- [Testing](#testing)
-- [Monitoring](#monitoring)
+- [Development](#development)
 - [Contributing](#contributing)
+- [Changelog](#changelog)
 - [License](#license)
 
 ---
 
 ## Overview
 
-The Gated Communities platform unifies the entire community management lifecycle — from member verification and tier management to moderation, governance, and compliance — into a single, cohesive system. Each domain is powered by specialized AI agents, enabling intelligent automation at every stage of community operations.
+Gated Communities is a unified platform for managing gated online communities. It consolidates 10 independent domain services — Tier Management, Moderation Queue, Access Control, Community Health, Member Verification, Escalation Workflow, Reputation System, Compliance Monitor, Moderation Analytics, and Community Governance — into a single, cohesive FastAPI application powered by 57 specialized AI agents.
 
-### Key Capabilities
+### Why Gated Communities?
 
-| Domain | Capability | Agents |
-|--------|-----------|--------|
-| Tier Management | Member tier evaluation, benefits, upgrades | 6 |
-| Moderation Queue | Auto-moderation, queue optimization, escalation | 7 |
-| Access Control | Permission evaluation, role management, policy enforcement | 6 |
-| Community Health | Toxicity detection, engagement metrics | 2 |
-| Member Verification | Identity verification, fraud prevention, trust scoring | 6 |
-| Escalation Workflow | Auto-resolution, SLA tracking, priority routing | 6 |
-| Reputation System | Reputation scoring, badges, trust tiers | 6 |
-| Compliance Monitor | Policy tracking, violation detection, audits | 6 |
-| Moderation Analytics | Trend analysis, predictor, performance metrics | 6 |
-| Community Governance | Dispute resolution, rule enforcement, policy management | 6 |
-
-**Total: 57 agents across 10 modules**
+| Challenge | Solution |
+|-----------|----------|
+| Fragmented tooling across 10 services | Unified API with consistent interfaces |
+| Manual moderation at scale | AI-powered auto-moderation with human-in-the-loop |
+| Inconsistent access policies | Centralized policy engine with tier-based gating |
+| No reputation tracking | Multi-factor reputation scoring with decay |
+| Compliance blind spots | Real-time violation detection and audit trails |
+| Slow dispute resolution | Automated escalation workflow with SLA tracking |
 
 ---
 
 ## Architecture
 
+### High-Level Architecture
+
 ```mermaid
 graph TB
     subgraph "Client Layer"
-        Web[Web Dashboard]
+        Web[Web App<br/>Next.js]
         Mobile[Mobile App]
-        API[External API Clients]
+        Admin[Admin Panel]
+        API[API Clients]
     end
 
-    subgraph "API Gateway"
-        GW[FastAPI Router]
-        Auth[Authentication]
-        RateLimit[Rate Limiting]
+    subgraph "API Gateway Layer"
+        GW[FastAPI Gateway]
+        Auth[Auth Middleware]
+        RateLimit[Rate Limiter]
+        CORS[CORS Middleware]
     end
 
-    subgraph "Agent Orchestration Layer"
+    subgraph "Agent Services Layer"
+        direction TB
         subgraph "Tier Management"
-            TM1[TierEvaluatorAgent]
-            TM2[BenefitsManagerAgent]
-            TM3[UpgradeProcessorAgent]
-            TM4[TierAnalyticsAgent]
-            TM5[RetentionAgent]
-            TM6[WinBackAgent]
+            TE[Tier Evaluator]
+            TA[Tier Analytics]
+            TR[Upgrade Recommender]
+            BM[Benefit Manager]
+            AC[Access Controller]
         end
         subgraph "Moderation Queue"
-            MQ1[AutoModeratorAgent]
-            MQ2[QueueOptimizerAgent]
-            MQ3[EscalationRouterAgent]
-            MQ4[ContentClassifierAgent]
-            MQ5[ActionRecommenderAgent]
-            MQ6[HumanReviewAgent]
-            MQ7[PatternDetectorAgent]
+            AM[Auto Moderator]
+            QO[Queue Optimizer]
+            HR[Human Review Router]
+            PS[Priority Scorer]
+            ESC[Escalation]
         end
         subgraph "Access Control"
-            AC1[PermissionEvaluatorAgent]
-            AC2[RoleManagerAgent]
-            AC3[PolicyEnforcerAgent]
-            AC4[ResourceGuardAgent]
-            AC5[SessionManagerAgent]
-            AC6[AuditLoggerAgent]
+            PE[Permission Evaluator]
+            RM[Role Manager]
+            AE[Access Auditor]
+            AR[Access Recommender]
+            PE2[Policy Enforcer]
         end
         subgraph "Community Health"
-            CH1[ToxicityDetectorAgent]
-            CH2[EngagementMetricsAgent]
+            TD[Toxicity Detector]
+            EM[Engagement Metrics]
         end
         subgraph "Member Verification"
-            MV1[IdentityVerifierAgent]
-            MV2[FraudPreventerAgent]
-            MV3[TrustScorerAgent]
-            MV4[KYCProcessorAgent]
-            MV5[DocumentVerifierAgent]
-            MV6[BiometricCheckerAgent]
+            IV[Identity Verifier]
+            DC[Document Checker]
+            FP[Fraud Preventor]
+            TS[Trust Scorer]
+            EX[Explainer]
         end
         subgraph "Escalation Workflow"
-            EW1[AutoResolverAgent]
-            EW2[SLATrackerAgent]
-            EW3[PriorityRouterAgent]
-            EW4[NotificationAgent]
-            EW5[ResolutionTrackerAgent]
-            EW6[FeedbackCollectorAgent]
+            AR2[Auto Resolver]
+            SO[Resolution Optimizer]
+            ST[SLA Tracker]
+            EA[Escalation Analyzer]
+            PR[Priority Router]
         end
         subgraph "Reputation System"
-            RS1[ReputationScorerAgent]
-            RS2[BadgeManagerAgent]
-            RS3[TrustTierAgent]
-            RS4[RewardDistributorAgent]
-            RS5[PenaltyEnforcerAgent]
-            RS6[HistoryTrackerAgent]
+            RS[Reputation Scorer]
+            BT[Trust Tier]
+            BM2[Badge Manager]
+            RH[Reputation History]
+            RE[Reputation Explainer]
         end
         subgraph "Compliance Monitor"
-            CO1[PolicyTrackerAgent]
-            CO2[ViolationDetectorAgent]
-            CO3[AuditManagerAgent]
-            CO4[ReportGeneratorAgent]
-            CO5[AlertManagerAgent]
-            CO6[RemediationAgent]
+            PT[Policy Tracker]
+            AR3[Audit Reporter]
+            CS[Compliance Scorer]
+            VD[Violation Detector]
+            REM[Remediation]
         end
         subgraph "Moderation Analytics"
-            MA1[TrendAnalyzerAgent]
-            MA2[PredictorAgent]
-            MA3[PerformanceMetricsAgent]
-            MA4[ReportGeneratorAgent]
-            MA5[DashboardAgent]
-            MA6[AlertAgent]
+            MP[Moderation Predictor]
+            MPerf[Moderator Performance]
+            PE3[Policy Effectiveness]
+            AE2[Analytics Explainer]
+            TA2[Trend Analyzer]
         end
         subgraph "Community Governance"
-            CG1[DisputeResolverAgent]
-            CG2[RuleEnforcerAgent]
-            CG3[PolicyManagerAgent]
-            CG4[VotingSystemAgent]
-            CG5[AnnouncementAgent]
-            CG6[FeedbackProcessorAgent]
+            DR[Dispute Resolver]
+            GA[Governance Analytics]
+            RE2[Rule Enforcer]
+            PM[Policy Manager]
+            GE[Governance Explainer]
         end
-    end
-
-    subgraph "Service Layer"
-        SV1[Tier Service]
-        SV2[Moderation Service]
-        SV3[Access Control Service]
-        SV4[Verification Service]
-        SV5[Governance Service]
     end
 
     subgraph "Integration Layer"
-        INT1[LLM Integration]
-        INT2[Database]
-        INT3[Cache]
-        INT4[Notifications]
-    end
-
-    subgraph "Config Layer"
-        CF1[Settings]
-        CF2[Logging]
-    end
-
-    subgraph "Data Layer"
+        LLM[LLM Service<br/>LangChain]
         DB[(PostgreSQL)]
-        CACHE[(Redis)]
+        Cache[(Redis)]
+        Notif[Notifications<br/>Slack/Email]
+        Ext[External APIs]
+        Storage[File Storage]
     end
 
-    Web --> GW
-    Mobile --> GW
-    API --> GW
-    GW --> Auth --> RateLimit
+    subgraph "Infrastructure Layer"
+        K8s[Kubernetes]
+        CI[CI/CD Pipeline]
+        Mon[Monitoring<br/>Prometheus]
+        Log[Logging<br/>structlog]
+    end
 
-    RateLimit --> TM1 & TM2 & TM3 & TM4 & TM5 & TM6
-    RateLimit --> MQ1 & MQ2 & MQ3 & MQ4 & MQ5 & MQ6 & MQ7
-    RateLimit --> AC1 & AC2 & AC3 & AC4 & AC5 & AC6
-    RateLimit --> CH1 & CH2
-    RateLimit --> MV1 & MV2 & MV3 & MV4 & MV5 & MV6
-    RateLimit --> EW1 & EW2 & EW3 & EW4 & EW5 & EW6
-    RateLimit --> RS1 & RS2 & RS3 & RS4 & RS5 & RS6
-    RateLimit --> CO1 & CO2 & CO3 & CO4 & CO5 & CO6
-    RateLimit --> MA1 & MA2 & MA3 & MA4 & MA5 & MA6
-    RateLimit --> CG1 & CG2 & CG3 & CG4 & CG5 & CG6
-
-    TM1 & TM2 & TM3 & TM4 & TM5 & TM6 --> SV1
-    MQ1 & MQ2 & MQ3 & MQ4 & MQ5 & MQ6 & MQ7 --> SV2
-    AC1 & AC2 & AC3 & AC4 & AC5 & AC6 --> SV3
-    MV1 & MV2 & MV3 & MV4 & MV5 & MV6 --> SV4
-    CG1 & CG2 & CG3 & CG4 & CG5 & CG6 --> SV5
-
-    SV1 & SV2 & SV3 & SV4 & SV5 --> INT1 & INT2 & INT3 & INT4
-    SV1 & SV2 & SV3 & SV4 & SV5 --> CF1 & CF2
-    INT1 & INT2 & INT3 & INT4 --> DB & CACHE
+    Web & Mobile & Admin & API --> GW
+    GW --> Auth --> RateLimit --> CORS
+    CORS --> Agent Services Layer
+    Agent Services Layer --> Integration Layer
+    Agent Services Layer --> Infrastructure Layer
 ```
 
-### Project Structure
+### Data Flow
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant API as API Gateway
+    participant Auth as Auth Middleware
+    participant Agent as Agent
+    participant LLM as LLM Service
+    participant DB as Database
+    participant Cache as Cache
+
+    C->>API: HTTP Request
+    API->>Auth: Validate Token
+    Auth-->>API: Authenticated
+    API->>API: Rate Limit Check
+    API->>Agent: Route to Agent
+    Agent->>Cache: Check Cache
+    alt Cache Hit
+        Cache-->>Agent: Cached Result
+    else Cache Miss
+        Agent->>LLM: LLM Inference
+        LLM-->>Agent: LLM Response
+        Agent->>DB: Persist Data
+        DB-->>Agent: Stored
+        Agent->>Cache: Cache Result
+    end
+    Agent-->>API: Agent Response
+    API-->>C: HTTP Response
 ```
-gated-communities/
-├── src/gated_communities/
-│   ├── agents/                    # 57 AI agents across 10 modules
-│   │   ├── tier_management/        # Tier management agents
-│   │   ├── moderation_queue/       # Moderation queue agents
-│   │   ├── access_control/         # Access control agents
-│   │   ├── community_health_scorer/# Community health agents
-│   │   ├── member_verification/    # Member verification agents
-│   │   ├── escalation_workflow/    # Escalation workflow agents
-│   │   ├── reputation_system/      # Reputation system agents
-│   │   ├── compliance_monitor/     # Compliance monitor agents
-│   │   ├── moderation_analytics/   # Moderation analytics agents
-│   │   └── community_governance/   # Community governance agents
-│   ├── api/
-│   │   ├── routes/                # API endpoint handlers
-│   │   ├── router.py              # API router configuration
-│   │   └── dependencies.py        # Shared dependencies
-│   ├── config/                    # Configuration management
-│   ├── integrations/              # External service clients
-│   ├── models/                    # Pydantic schemas
-│   ├── services/                  # Business logic layer
-│   └── tests/                     # Test suite
-├── k8s/                           # Kubernetes manifests
-├── docs/                          # Documentation
-├── monitoring/                    # Monitoring configuration
-├── .github/workflows/             # CI/CD pipelines
-├── Dockerfile
-├── docker-compose.yml
-├── pyproject.toml
-└── README.md
+
+### Module Dependencies
+
+```mermaid
+graph LR
+    TM[Tier Management] --> AC[Access Control]
+    TM --> RS[Reputation System]
+    MQ[Moderation Queue] --> EW[Escalation Workflow]
+    MQ --> CM[Compliance Monitor]
+    CH[Community Health] --> MQ
+    MV[Member Verification] --> TM
+    MV --> RS
+    EW --> CM
+    RS --> AC
+    MA[Moderation Analytics] --> MQ
+    MA --> CM
+    CG[Community Governance] --> CM
+    CG --> MQ
+```
+
+### Agent Architecture
+
+```mermaid
+classDiagram
+    class BaseAgent {
+        <<abstract>>
+        +initialize() async
+        +execute(request) async
+        +health_check() async
+        -logger: Logger
+        -settings: Settings
+    }
+
+    class TierEvaluatorAgent {
+        +evaluate(member_id, target_tier_id) TierEvaluation
+        -score_activity(member_id) float
+        -score_contributions(member_id) float
+        -score_engagement(member_id) float
+    }
+
+    class AccessControllerAgent {
+        +execute(request) AccessCheckResponse
+        +add_policy(policy) void
+        +remove_policy(policy_id) void
+        -evaluate_policies(request) AccessDecision
+    }
+
+    class ReputationScorerAgent {
+        +calculate_score(member_id) float
+        -weight_factors() dict
+        -apply_decay() void
+    }
+
+    BaseAgent <|-- TierEvaluatorAgent
+    BaseAgent <|-- AccessControllerAgent
+    BaseAgent <|-- ReputationScorerAgent
 ```
 
 ---
 
 ## Features
 
-- **57 AI-Powered Agents** — Specialized agents for every community management domain
-- **Tier Management** — Automated tier evaluation, benefits, and upgrades
-- **Moderation Queue** — Auto-moderation with human review escalation
-- **Access Control** — Fine-grained permission evaluation and policy enforcement
-- **Member Verification** — Identity verification, KYC, and fraud prevention
-- **Reputation System** — Reputation scoring, badges, and trust tiers
-- **Compliance Monitor** — Policy tracking, violation detection, and audits
-- **Escalation Workflow** — Auto-resolution with SLA tracking
-- **Community Governance** — Dispute resolution, voting, and rule enforcement
-- **RESTful API** — Full OpenAPI documentation
-- **Production-Ready** — Docker, Kubernetes, monitoring, and CI/CD included
+### Tier Management
+
+Member tier evaluation, benefits management, and upgrade recommendations.
+
+- **Tier Evaluator** — Automatically evaluates members against tier criteria
+- **Tier Analytics** — Tracks tier distribution, conversion rates, and churn
+- **Upgrade Recommender** — Suggests optimal upgrade paths for members
+- **Benefit Manager** — Manages tier-specific benefits and entitlements
+- **Access Controller** — Gates resources based on tier membership
+
+> **Screenshot Description:** *Tiers list page showing a table with columns: Tier Name, Level (with colored badges — Bronze, Silver, Gold, Platinum, Diamond), Status, Members Count, Monthly Fee, and Actions (Edit, Delete). A "Create Tier" button is in the top-right corner.*
+
+### Moderation Queue
+
+AI-powered auto-moderation with human-in-the-loop review.
+
+- **Auto Moderator** — Flags content based on toxicity, spam, and prohibited content
+- **Queue Optimizer** — Prioritizes items by severity and age
+- **Human Review Router** — Routes complex cases to human moderators
+- **Priority Scorer** — Assigns priority scores to queue items
+- **Escalation** — Auto-escalates critical items to senior staff
+
+> **Screenshot Description:** *Moderation queue page with filter bar (Status, Priority), table with content preview and AI analysis, and bulk actions bar (Approve, Reject, Escalate).*
+
+### Access Control
+
+Fine-grained permission evaluation and policy management.
+
+- **Permission Evaluator** — Evaluates access requests against policies
+- **Role Manager** — Manages role definitions and assignments
+- **Access Auditor** — Logs all access decisions for compliance
+- **Access Recommender** — Suggests policy improvements
+- **Policy Enforcer** — Enforces access policies in real-time
+
+> **Screenshot Description:** *Access checker page with input fields (Member ID, Resource, Action), "Check Access" button, and result panel showing Decision (Allowed/Denied), Reason, Matching Policy, and Member's Tier.*
+
+### Community Health Scorer
+
+Real-time community health monitoring and toxicity detection.
+
+- **Toxicity Detector** — ML-based toxicity scoring for content
+- **Engagement Metrics** — Tracks participation and activity levels
+
+> **Screenshot Description:** *Health analytics page with health score trend line chart, toxicity level gauge, engagement rate chart, and activity heatmap by hour and day.*
+
+### Member Verification
+
+Identity verification, fraud prevention, and trust scoring.
+
+- **Identity Verifier** — Verifies member identity documents
+- **Document Checker** — Validates document authenticity
+- **Fraud Preventor** — Detects fraudulent verification attempts
+- **Trust Scorer** — Assigns trust scores based on verification
+- **Explainer** — Provides transparency in verification decisions
+
+> **Screenshot Description:** *Verification dashboard with stats row (Pending, Verified, Rejected, Avg Confidence), table with member details, and review page with document preview and AI analysis panel.*
+
+### Escalation Workflow
+
+Automated escalation resolution with SLA tracking.
+
+- **Auto Resolver** — Attempts automatic resolution of escalations
+- **Resolution Optimizer** — Optimizes resolution strategies
+- **SLA Tracker** — Tracks SLA compliance for escalations
+- **Escalation Analyzer** — Analyzes escalation patterns
+- **Priority Router** — Routes escalations to appropriate staff
+
+> **Screenshot Description:** *Escalations page with stats (Open, In Review, Resolved, Avg Resolution Time), escalations table with priority badges, and detail view with conversation thread and resolution options.*
+
+### Reputation System
+
+Multi-factor reputation scoring with badges and trust tiers.
+
+- **Reputation Scorer** — Calculates weighted reputation scores
+- **Trust Tier** — Assigns trust tiers based on reputation
+- **Badge Manager** — Manages achievement badges
+- **Reputation History** — Tracks reputation changes over time
+- **Reputation Explainer** — Explains reputation score factors
+
+> **Screenshot Description:** *Reputation page with member search bar, reputation score gauge (0-100) with color coding, trust tier badge, badges earned as icons, and reputation history table.*
+
+### Compliance Monitor
+
+Policy tracking, violation detection, and audit trails.
+
+- **Policy Tracker** — Tracks compliance policies and changes
+- **Audit Reporter** — Generates compliance audit reports
+- **Compliance Scorer** — Scores community compliance level
+- **Violation Detector** — Detects policy violations in real-time
+- **Remediation** — Suggests remediation actions for violations
+
+> **Screenshot Description:** *Compliance dashboard with compliance score gauge, active policies count, recent violations table, and audit log section with filterable entries.*
+
+### Moderation Analytics
+
+Trend analysis, prediction, and performance metrics.
+
+- **Moderation Predictor** — Predicts moderation load trends
+- **Moderator Performance** — Tracks moderator accuracy and speed
+- **Policy Effectiveness** — Measures policy effectiveness over time
+- **Analytics Explainer** — Explains analytics insights
+- **Trend Analyzer** — Identifies emerging trends
+
+> **Screenshot Description:** *Moderation analytics page with date range selector, key metrics cards, line chart (items over time), bar chart (top violations), and moderator performance table.*
+
+### Community Governance
+
+Dispute resolution, rule enforcement, and policy management.
+
+- **Dispute Resolver** — Facilitates dispute resolution
+- **Governance Analytics** — Tracks governance metrics
+- **Rule Enforcer** — Enforces community rules
+- **Policy Manager** — Manages governance policies
+- **Governance Explainer** — Explains governance decisions
+
+> **Screenshot Description:** *Disputes page with stats (Open, Resolved, Avg Resolution Time), disputes table, and resolution page with conversation thread, evidence, and resolution options.*
 
 ---
 
@@ -255,17 +374,36 @@ gated-communities/
 
 ### Prerequisites
 
-- Python 3.10+
-- Docker & Docker Compose (optional)
-- Kubernetes cluster (for production)
+| Software | Version | Purpose |
+|----------|---------|---------|
+| Python | 3.10+ | Runtime |
+| Docker | 24.0+ | Container runtime |
+| Docker Compose | 2.0+ | Multi-container orchestration |
+| PostgreSQL | 15+ | Primary database |
+| Redis | 7+ | Cache and session store |
+
+### Docker Compose (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/ahmedhassan/gated-communities.git
+cd gated-communities
+
+# Copy environment file
+cp .env.example .env
+
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+```
+
+The API will be available at `http://localhost:8000`.
 
 ### Local Development
 
 ```bash
-# Clone the repository
-git clone https://github.com/AAH20/gated-communities.git
-cd gated-communities
-
 # Create virtual environment
 python -m venv .venv
 source .venv/bin/activate
@@ -273,147 +411,190 @@ source .venv/bin/activate
 # Install dependencies
 pip install -e ".[dev]"
 
-# Run tests
-pytest
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your values
 
-# Start server
+# Start database and cache
+docker-compose up -d db redis
+
+# Run the application
 uvicorn gated_communities.main:app --reload
 ```
 
-The API will be available at `http://localhost:8000`
-
-### Docker Compose (Recommended)
+### Verify Installation
 
 ```bash
-docker-compose up -d
+# Health check
+curl http://localhost:8000/health
+
+# Expected response:
+# {"status":"healthy","version":"1.0.0","service":"gated-communities"}
+
+# API documentation
+open http://localhost:8000/docs
 ```
 
 ### Kubernetes
 
 ```bash
+# Using kubectl
 kubectl apply -f k8s/
+
+# Using Helm
+helm install gated-communities ./helm/
 ```
 
 ---
 
 ## API Reference
 
-All endpoints are prefixed with `/api/v1`:
+**Base URL:** `http://localhost:8000/api/v1`
 
-### Health & Status
+### Interactive Documentation
+
+| Endpoint | Description |
+|----------|-------------|
+| `/docs` | Swagger UI |
+| `/redoc` | ReDoc |
+| `/openapi.json` | OpenAPI Schema |
+
+### Core Endpoints
+
+#### Health
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/health` | Health check |
-| GET | `/api/v1/ready` | Readiness probe |
+| GET | `/health` | Health check |
+| GET | `/ready` | Readiness probe |
+| GET | `/live` | Liveness probe |
+
+#### Tiers
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/tiers` | List all tiers |
+| POST | `/tiers` | Create a new tier |
+| GET | `/tiers/{tier_id}` | Get a specific tier |
+| PUT | `/tiers/{tier_id}` | Update a tier |
+| DELETE | `/tiers/{tier_id}` | Delete a tier |
+
+#### Access Control
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/access/check` | Check member access |
+| POST | `/access/policies` | Create access policy |
+| GET | `/access/policies` | List access policies |
+| GET | `/access/policies/{policy_id}` | Get a specific policy |
+| DELETE | `/access/policies/{policy_id}` | Delete a policy |
+
+#### Moderation
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/moderation/queue` | Get moderation queue items |
+
+#### Reputation
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/reputation` | Get reputation scores |
+
+#### Compliance
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/compliance/policies` | List compliance policies |
+
+#### Analytics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/analytics/moderation` | Get moderation analytics |
+
+#### Governance
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/governance/disputes` | List disputes |
+
+#### Verification
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/verification/verify` | Verify member identity |
+
+#### Escalations
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/escalations` | List escalations |
+| POST | `/escalations` | Create escalation |
+
+#### Metrics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | GET | `/metrics` | Prometheus metrics |
 
-### Tier Management
+### Example: Create a Tier
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/tiers/evaluate` | Evaluate member tier |
-| GET | `/api/v1/tiers/benefits/:tier_id` | Get tier benefits |
-| POST | `/api/v1/tiers/upgrade` | Process tier upgrade |
-| GET | `/api/v1/tiers/analytics` | Get tier analytics |
-| POST | `/api/v1/tiers/retention` | Run retention analysis |
-| POST | `/api/v1/tiers/win-back` | Execute win-back campaign |
+```bash
+curl -X POST http://localhost:8000/api/v1/tiers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Platinum",
+    "level": "platinum",
+    "description": "Premium platinum membership",
+    "requirements": {
+      "min_activity_score": 90,
+      "min_tenure_days": 90
+    },
+    "benefits": ["priority_support", "exclusive_access", "bonus_credits"],
+    "max_members": 500,
+    "monthly_fee": 99.99
+  }'
+```
 
-### Moderation Queue
+### Example: Check Access
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/moderation/auto` | Auto-moderate content |
-| GET | `/api/v1/moderation/queue` | Get moderation queue |
-| POST | `/api/v1/moderation/escalate` | Escalate to human review |
-| POST | `/api/v1/moderation/classify` | Classify content |
-| POST | `/api/v1/moderation/action` | Recommend action |
-| POST | `/api/v1/moderation/human-review` | Submit for human review |
-| GET | `/api/v1/moderation/patterns` | Get detected patterns |
+```bash
+curl -X POST http://localhost:8000/api/v1/access/check \
+  -H "Content-Type: application/json" \
+  -d '{
+    "member_id": "550e8400-e29b-41d4-a716-446655440000",
+    "resource": "premium_forum",
+    "action": "read",
+    "context": {
+      "ip_address": "192.168.1.1",
+      "user_agent": "Mozilla/5.0"
+    }
+  }'
+```
 
-### Access Control
+### Error Handling
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/access/evaluate` | Evaluate permissions |
-| POST | `/api/v1/access/role` | Manage roles |
-| POST | `/api/v1/access/policy` | Enforce policy |
-| GET | `/api/v1/access/resource/:resource_id` | Guard resource |
-| POST | `/api/v1/access/session` | Manage session |
-| GET | `/api/v1/access/audit` | Get audit log |
+All errors follow a consistent format:
 
-### Community Health
+```json
+{
+  "detail": "Human-readable error message"
+}
+```
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/health/toxicity` | Detect toxicity |
-| GET | `/api/v1/health/engagement` | Get engagement metrics |
-
-### Member Verification
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/verification/identity` | Verify identity |
-| POST | `/api/v1/verification/fraud-check` | Check for fraud |
-| GET | `/api/v1/verification/trust/:user_id` | Get trust score |
-| POST | `/api/v1/verification/kyc` | Process KYC |
-| POST | `/api/v1/verification/document` | Verify document |
-| POST | `/api/v1/verification/biometric` | Biometric check |
-
-### Escalation Workflow
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/escalation/auto-resolve` | Auto-resolve issue |
-| GET | `/api/v1/escalation/sla/:ticket_id` | Track SLA |
-| POST | `/api/v1/escalation/route` | Route by priority |
-| POST | `/api/v1/escalation/notify` | Send notification |
-| GET | `/api/v1/escalation/resolution/:ticket_id` | Track resolution |
-| POST | `/api/v1/escalation/feedback` | Collect feedback |
-
-### Reputation System
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/reputation/score/:user_id` | Get reputation score |
-| POST | `/api/v1/reputation/badge` | Award badge |
-| GET | `/api/v1/reputation/trust-tier/:user_id` | Get trust tier |
-| POST | `/api/v1/reputation/reward` | Distribute reward |
-| POST | `/api/v1/reputation/penalty` | Enforce penalty |
-| GET | `/api/v1/reputation/history/:user_id` | Get history |
-
-### Compliance Monitor
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/compliance/policy` | Track policies |
-| POST | `/api/v1/compliance/violation` | Detect violation |
-| GET | `/api/v1/compliance/audit` | Get audit report |
-| POST | `/api/v1/compliance/report` | Generate report |
-| POST | `/api/v1/compliance/alert` | Send alert |
-| POST | `/api/v1/compliance/remediation` | Remediate issue |
-
-### Moderation Analytics
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/analytics/trends` | Get trend analysis |
-| GET | `/api/v1/analytics/predict` | Get predictions |
-| GET | `/api/v1/analytics/performance` | Get performance metrics |
-| GET | `/api/v1/analytics/report` | Get report |
-| GET | `/api/v1/analytics/dashboard` | Get dashboard data |
-| POST | `/api/v1/analytics/alert` | Send alert |
-
-### Community Governance
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/governance/dispute` | Resolve dispute |
-| POST | `/api/v1/governance/rule` | Enforce rule |
-| POST | `/api/v1/governance/policy` | Manage policy |
-| POST | `/api/v1/governance/vote` | Process vote |
-| POST | `/api/v1/governance/announce` | Make announcement |
-| POST | `/api/v1/governance/feedback` | Process feedback |
+| Code | Description |
+|------|-------------|
+| 200 | Success |
+| 201 | Created |
+| 204 | No content |
+| 400 | Bad request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not found |
+| 422 | Validation error |
+| 429 | Rate limited |
+| 500 | Internal server error |
 
 ---
 
@@ -422,20 +603,68 @@ All endpoints are prefixed with `/api/v1`:
 ### Docker Compose (Development)
 
 ```bash
+# Start all services
 docker-compose up -d
+
+# View logs
+docker-compose logs -f app
+
+# Stop all services
+docker-compose down
 ```
 
-### Kubernetes (Production)
+### Docker Compose (Production)
 
 ```bash
-# Apply base manifests
-kubectl apply -f k8s/base/
+# Use production compose file
+docker-compose -f docker/docker-compose.prod.yml up -d
 
-# Apply production overlay
-kubectl apply -f k8s/overlays/production/
+# With custom environment
+docker-compose -f docker/docker-compose.prod.yml --env-file .env.prod up -d
+```
 
-# Verify deployment
-kubectl get pods -n gated-communities
+### Kubernetes
+
+```bash
+# 1. Create namespace
+kubectl apply -f k8s/namespace.yaml
+
+# 2. Create secrets (edit with real values first!)
+kubectl apply -f k8s/secret.yaml
+
+# 3. Create configmap
+kubectl apply -f k8s/configmap.yaml
+
+# 4. Create service
+kubectl apply -f k8s/service.yaml
+
+# 5. Create deployment
+kubectl apply -f k8s/deployment.yaml
+
+# 6. Create ingress
+kubectl apply -f k8s/ingress.yaml
+
+# 7. Create HPA
+kubectl apply -f k8s/hpa.yaml
+
+# 8. Create PDB
+kubectl apply -f k8s/pdb.yaml
+```
+
+### Helm
+
+```bash
+# Install with default values
+helm install gated-communities ./helm/
+
+# Install with custom values
+helm install gated-communities ./helm/ -f custom-values.yaml
+
+# Upgrade
+helm upgrade gated-communities ./helm/
+
+# Uninstall
+helm uninstall gated-communities
 ```
 
 ### Environment Variables
@@ -445,63 +674,347 @@ kubectl get pods -n gated-communities
 | `DATABASE_URL` | — | PostgreSQL connection string |
 | `REDIS_URL` | — | Redis connection string |
 | `LLM_API_KEY` | — | OpenAI API key |
+| `SECRET_KEY` | — | Application secret key |
 | `LOG_LEVEL` | `INFO` | Logging level |
 | `ENVIRONMENT` | `production` | Deployment environment |
+| `DEBUG` | `false` | Debug mode |
+| `CORS_ORIGINS` | `["*"]` | Allowed CORS origins |
+| `DATABASE_POOL_SIZE` | `20` | Database connection pool size |
+| `MODERATION_THRESHOLD` | `0.8` | Auto-moderation threshold |
+| `ESCALATION_TIMEOUT_MINUTES` | `30` | Escalation timeout |
+| `REPUTATION_DECAY_DAYS` | `90` | Reputation decay period |
+| `COMPLIANCE_AUDIT_RETENTION_DAYS` | `365` | Audit log retention |
+| `METRICS_ENABLED` | `true` | Enable Prometheus metrics |
+| `TRACING_ENABLED` | `false` | Enable distributed tracing |
 
----
+### Health Checks
 
-## Configuration
+| Endpoint | Purpose | Expected Response |
+|----------|---------|-------------------|
+| `GET /health` | Overall health | `{"status": "healthy", ...}` |
+| `GET /ready` | Readiness probe | `{"ready": true, ...}` |
+| `GET /live` | Liveness probe | `{"alive": true}` |
 
-All settings are configurable via environment variables or `.env` file:
+### Monitoring
 
-```env
-DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/gated_communities
-REDIS_URL=redis://localhost:6379/0
-LLM_API_KEY=your-openai-key
-LOG_LEVEL=INFO
-ENVIRONMENT=production
+Prometheus metrics are available at `GET /metrics`:
+
+```
+# TYPE http_requests_total counter
+http_requests_total{method="GET",endpoint="/health"} 1523
+
+# TYPE http_request_duration_seconds gauge
+http_request_duration_seconds{endpoint="/api/v1/tiers"} 0.045
+
+# TYPE agent_executions_total counter
+agent_executions_total{agent="TierEvaluatorAgent"} 456
+```
+
+### Backup and Recovery
+
+```bash
+# Database backup
+docker-compose exec db pg_dump -U postgres gated_communities > backup.sql
+
+# Database restore
+docker-compose exec -T db psql -U postgres gated_communities < backup.sql
+
+# Redis backup
+docker-compose exec redis redis-cli SAVE
+docker cp gated-communities_redis_1:/data/dump.rdb ./dump.rdb
 ```
 
 ---
 
-## Testing
+## Development
+
+### Project Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/ahmedhassan/gated-communities.git
+cd gated-communities
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install -e ".[dev,test]"
+
+# Set up environment variables
+cp .env.example .env
+
+# Run database and cache
+docker-compose up -d db redis
+
+# Start the development server
+uvicorn gated_communities.main:app --reload
+```
+
+### Project Structure
+
+```
+gated-communities/
+├── src/gated_communities/
+│   ├── agents/                    # 57 AI agents across 10 modules
+│   │   ├── access_control/        # Access control agents
+│   │   ├── community_governance/  # Governance agents
+│   │   ├── community_health_scorer/
+│   │   ├── compliance_monitor/
+│   │   ├── escalation_workflow/
+│   │   ├── member_verification/
+│   │   ├── moderation_analytics/
+│   │   ├── moderation_queue/
+│   │   ├── reputation_system/
+│   │   └── tier_management/
+│   ├── api/                       # FastAPI routes
+│   │   ├── routes.py             # Main router
+│   │   ├── health.py             # Health endpoints
+│   │   ├── tiers.py              # Tier endpoints
+│   │   ├── access.py             # Access control endpoints
+│   │   └── ...
+│   ├── integrations/              # External integrations
+│   │   ├── database.py           # Database client
+│   │   ├── cache.py              # Cache client
+│   │   ├── llm.py                # LLM client
+│   │   └── notifications.py      # Notification service
+│   ├── config/                    # Configuration
+│   │   ├── settings.py           # App settings
+│   │   └── logging_config.py     # Logging config
+│   ├── models/                    # Pydantic schemas
+│   ├── exceptions.py              # Custom exceptions
+│   └── tests/                     # Test suite
+├── k8s/                           # Kubernetes manifests
+├── helm/                          # Helm chart
+├── docker/                        # Docker compose files
+├── .github/workflows/             # CI/CD pipeline
+├── Dockerfile
+├── docker-compose.yml
+├── pyproject.toml
+└── README.md
+```
+
+### Testing
 
 ```bash
 # Run all tests
 pytest
 
 # Run with coverage
-pytest --cov=src/gated_communities --cov-report=term-missing
+pytest --cov=src/gated_communities --cov-report=html
 
 # Run specific test file
-pytest src/gated_communities/tests/test_agents.py
+pytest src/gated_communities/tests/test_api.py
 
-# Run with verbose output
-pytest -v
+# Run specific test
+pytest src/gated_communities/tests/test_api.py::test_health_check
 ```
 
----
+### Linting and Type Checking
 
-## Monitoring
+```bash
+# Lint with Ruff
+ruff check src/
 
-Prometheus metrics and health checks are available at:
+# Auto-fix linting issues
+ruff check src/ --fix
 
-- `/api/v1/health` — Health check
-- `/api/v1/ready` — Readiness check
-- `/metrics` — Prometheus metrics
+# Type check with MyPy
+mypy src/
+
+# Run pre-commit hooks
+pre-commit run --all-files
+```
+
+### Adding a New Agent
+
+```python
+# src/gated_communities/agents/my_module/my_agent.py
+from __future__ import annotations
+from typing import Any
+from .base import BaseAgent
+
+class MyAgent(BaseAgent):
+    """Agent that performs a specific task."""
+
+    async def initialize(self) -> None:
+        """Initialize the agent."""
+        self.logger.info("MyAgent initialized")
+
+    async def execute(self, request: dict[str, Any]) -> dict[str, Any]:
+        """Execute the agent's main logic."""
+        result = {
+            "status": "success",
+            "data": {},
+        }
+        return result
+
+    async def health_check(self) -> bool:
+        """Check if the agent is healthy."""
+        return True
+```
+
+### Adding a New API Endpoint
+
+```python
+# src/gated_communities/api/my_module.py
+from __future__ import annotations
+from fastapi import APIRouter, Depends
+from tier_management.config.settings import Settings, get_settings
+
+my_router = APIRouter()
+
+@my_router.get("/my-endpoint", response_model=dict)
+async def my_endpoint(
+    settings: Settings = Depends(get_settings),
+) -> dict:
+    """My endpoint description."""
+    return {"message": "Hello, World!"}
+```
+
+### Commit Message Format
+
+```
+<type>: <description>
+
+[optional body]
+
+[optional footer]
+```
+
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation changes |
+| `style` | Code style changes |
+| `refactor` | Code refactoring |
+| `test` | Test changes |
+| `chore` | Build/tooling changes |
+
+### Branching Strategy
+
+```mermaid
+graph LR
+    main[main] --> develop[develop]
+    develop --> feature[feature/*]
+    develop --> bugfix[bugfix/*]
+    develop --> hotfix[hotfix/*]
+    feature --> develop
+    bugfix --> develop
+    hotfix --> main
+```
 
 ---
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please follow these guidelines:
+
+### Getting Started
+
+1. **Fork** the repository
+2. **Clone** your fork
+3. **Create** a feature branch (`git checkout -b feature/my-feature`)
+4. **Make** your changes
+5. **Run** tests and linting
+6. **Commit** your changes
+7. **Push** to your fork
+8. **Open** a Pull Request
+
+### Pull Request Checklist
+
+- [ ] Tests pass (`pytest`)
+- [ ] Linting passes (`ruff check src/`)
+- [ ] Type checking passes (`mypy src/`)
+- [ ] Documentation updated
+- [ ] Commit messages follow convention
+- [ ] No merge conflicts
+
+### Code Review Process
+
+1. PR is opened
+2. Automated checks run (CI/CD)
+3. Code review by maintainer
+4. Approved and merged
+
+### Release Process
+
+1. Update version in `pyproject.toml`
+2. Update `CHANGELOG.md`
+3. Create git tag (`git tag v1.0.0`)
+4. Push tag (`git push origin v1.0.0`)
+5. CI/CD builds and deploys
+
+---
+
+## Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+### [1.0.0] - 2024-01-15
+
+#### Added
+- Initial release of Gated Communities platform
+- 10 domain modules with 57 AI-powered agents
+- FastAPI-based REST API with OpenAPI documentation
+- Docker Compose development environment
+- Kubernetes deployment manifests
+- Helm chart for Kubernetes deployments
+- CI/CD pipeline with GitHub Actions
+- Prometheus metrics and monitoring
+- Structured logging with structlog
+- Comprehensive test suite with pytest
+- Pre-commit hooks with Ruff and MyPy
+
+#### Security
+- JWT-based authentication
+- Role-based access control (RBAC)
+- Policy-based access control (PBAC)
+- Rate limiting per client
+- Input validation via Pydantic
+- Secrets stored in Kubernetes Secrets
 
 ---
 
 ## License
 
-This project is licensed under the AGPL-3.0 License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+```
+MIT License
+
+Copyright (c) 2024 Ahmed Hassan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+<div align="center">
+
+**[Back to Top](#gated-communities--unified-platform)**
+
+Made with ❤️ by [Ahmed Hassan](https://github.com/ahmedhassan)
+
+</div>

@@ -3,7 +3,6 @@
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
-
 from moderation_queue.config.settings import get_settings
 
 settings = get_settings()
@@ -39,7 +38,8 @@ class LangChainAgentAdapter:
     def get_agent(self, agent_type: str) -> Any:
         """Get an agent instance with the LLM injected."""
         from moderation_queue.agents.auto_moderator import AutoModeratorAgent
-        from moderation_queue.agents.human_review_router import HumanReviewRouterAgent
+        from moderation_queue.agents.human_review_router import \
+            HumanReviewRouterAgent
         from moderation_queue.agents.priority_scorer import PriorityScorerAgent
 
         agents = {

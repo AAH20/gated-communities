@@ -1,12 +1,13 @@
 """Trust Tier API routes."""
+
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-
 from reputation_system.agents.trust_tier import TrustTierAgent, TrustTierInput
 from reputation_system.config.settings import Settings, get_settings
-from reputation_system.models.schemas import TrustTier, TrustTierCreate, TrustTierUpdate
+from reputation_system.models.schemas import (TrustTier, TrustTierCreate,
+                                              TrustTierUpdate)
 
 router = APIRouter(prefix="/trust-tiers", tags=["trust-tiers"])
 

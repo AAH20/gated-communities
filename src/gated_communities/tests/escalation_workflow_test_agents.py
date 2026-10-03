@@ -6,18 +6,16 @@ from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
-from escalation_workflow.agents.auto_resolver import AutoResolverAgent, AutoResolverInput
+from escalation_workflow.agents.auto_resolver import (AutoResolverAgent,
+                                                      AutoResolverInput)
 from escalation_workflow.agents.escalation_analyzer import (
-    EscalationAnalyzerAgent,
-    EscalationAnalyzerInput,
-)
-from escalation_workflow.agents.priority_router import PriorityRouterAgent, PriorityRouterInput
+    EscalationAnalyzerAgent, EscalationAnalyzerInput)
+from escalation_workflow.agents.priority_router import (PriorityRouterAgent,
+                                                        PriorityRouterInput)
 from escalation_workflow.agents.resolution_optimizer import (
-    ResolutionOptimizerAgent,
-    ResolutionOptimizerInput,
-)
-from escalation_workflow.agents.sla_tracker import SLATrackerAgent, SLATrackerInput
+    ResolutionOptimizerAgent, ResolutionOptimizerInput)
+from escalation_workflow.agents.sla_tracker import (SLATrackerAgent,
+                                                    SLATrackerInput)
 from escalation_workflow.models.escalation import Escalation
 from escalation_workflow.models.priority import PriorityLevel
 from escalation_workflow.models.resolution import ResolutionStatus
@@ -40,7 +38,9 @@ def sample_escalation() -> Escalation:
 def mock_llm() -> MagicMock:
     """Create a mock LLM for testing."""
     mock = MagicMock()
-    mock.ainvoke = AsyncMock(return_value=MagicMock(content="high priority, confidence 0.9"))
+    mock.ainvoke = AsyncMock(
+        return_value=MagicMock(content="high priority, confidence 0.9")
+    )
     return mock
 
 
@@ -118,6 +118,7 @@ class TestSLATrackerAgent:
         agent = SLATrackerAgent(model=mock_llm)
         now = datetime.utcnow()
         from escalation_workflow.models.sla import SLA
+
         sla = SLA(
             escalation_id="123e4567-e89b-12d3-a456-426614174000",
             priority="high",
@@ -165,7 +166,9 @@ class TestEscalationAnalyzerAgent:
         """Test escalation analysis."""
         agent = EscalationAnalyzerAgent(model=mock_llm)
         result = await agent.run(
-            EscalationAnalyzerInput(escalations=[sample_escalation], analysis_type="single")
+            EscalationAnalyzerInput(
+                escalations=[sample_escalation], analysis_type="single"
+            )
         )
         assert result.escalation_id == sample_escalation.id
         assert result.risk_score >= 0

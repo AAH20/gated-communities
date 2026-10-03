@@ -23,12 +23,14 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # Server
-    HOST: str = "0.0.0.0"
+    HOST: str = "127.0.0.1"
     PORT: int = 8000
     WORKERS: int = 1
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://reputation:reputation@localhost:5432/reputation"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://reputation:reputation@localhost:5432/reputation"
+    )
     DATABASE_POOL_SIZE: int = 20
     DATABASE_MAX_OVERFLOW: int = 10
 

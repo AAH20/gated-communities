@@ -2,33 +2,32 @@
 
 from __future__ import annotations
 
-from typing import Any
-from uuid import UUID
+from typing import TYPE_CHECKING, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel
-
-from escalation_workflow.agents.auto_resolver import AutoResolverAgent, AutoResolverInput
+from escalation_workflow.agents.auto_resolver import (AutoResolverAgent,
+                                                      AutoResolverInput)
 from escalation_workflow.agents.escalation_analyzer import (
-    EscalationAnalyzerAgent,
-    EscalationAnalyzerInput,
-)
-from escalation_workflow.agents.priority_router import PriorityRouterAgent, PriorityRouterInput
-from escalation_workflow.agents.resolution_optimizer import (
-    ResolutionOptimizerAgent,
-)
+    EscalationAnalyzerAgent, EscalationAnalyzerInput)
+from escalation_workflow.agents.priority_router import (PriorityRouterAgent,
+                                                        PriorityRouterInput)
+from escalation_workflow.agents.resolution_optimizer import \
+    ResolutionOptimizerAgent
 from escalation_workflow.agents.sla_tracker import SLATrackerAgent
 from escalation_workflow.config import Settings, get_settings
 from escalation_workflow.models.analysis import EscalationAnalysis
-from escalation_workflow.models.escalation import (
-    Escalation,
-    EscalationCreate,
-    EscalationStatus,
-    EscalationUpdate,
-)
+from escalation_workflow.models.escalation import (Escalation,
+                                                   EscalationCreate,
+                                                   EscalationStatus,
+                                                   EscalationUpdate)
 from escalation_workflow.models.priority import PriorityAssessment
-from escalation_workflow.models.resolution import Resolution
-from escalation_workflow.models.sla import SLA
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from uuid import UUID
+
+    from escalation_workflow.models.resolution import Resolution
+    from escalation_workflow.models.sla import SLA
 
 router = APIRouter(prefix="/escalations", tags=["escalations"])
 
@@ -143,10 +142,12 @@ async def create_escalation(
 
 @router.get("", response_model=EscalationListResponse)
 async def list_escalations(
-    status_filter: EscalationStatus | None = Query(default=None, alias="status"),  # noqa: B008
+    status_filter: EscalationStatus | None = Query(
+        default=None, alias="status"
+    ),  # noqa: B008
     priority: str | None = None,
     category: str | None = None,
-    page: int = Query(default=1, ge=1),
+    page: int = Query(1, ge=1),  # noqa: B008
     page_size: int = Query(default=20, ge=1, le=100),
 ) -> EscalationListResponse:
     """List escalations with optional filtering.
@@ -232,6 +233,7 @@ async def update_escalation(
         setattr(escalation, field, value)
 
     from datetime import datetime
+
     escalation.updated_at = datetime.utcnow()
     _escalations[escalation_id] = escalation
     return escalation
@@ -368,7 +370,9 @@ async def auto_resolve_escalation(
     )
 
 
-@router.post("/bulk", response_model=list[Escalation], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/bulk", response_model=list[Escalation], status_code=status.HTTP_201_CREATED
+)
 async def bulk_create_escalations(
     data: BulkEscalationCreateRequest,
 ) -> list[Escalation]:

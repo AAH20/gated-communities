@@ -24,13 +24,17 @@ class Settings(BaseSettings):
     )
 
     # Application
-    app_name: str = Field(default="community-governance", description="Application name")
+    app_name: str = Field(
+        default="community-governance", description="Application name"
+    )
     app_version: str = Field(default="0.1.0", description="Application version")
     debug: bool = Field(default=False, description="Enable debug mode")
-    environment: str = Field(default="development", description="Deployment environment")
+    environment: str = Field(
+        default="development", description="Deployment environment"
+    )
 
     # Server
-    host: str = Field(default="0.0.0.0", description="Server host")
+    host: str = Field(default="127.0.0.1", description="Server host")
     port: int = Field(default=8000, description="Server port")
     workers: int = Field(default=1, description="Number of worker processes")
 
@@ -43,7 +47,9 @@ class Settings(BaseSettings):
     # LangChain / LLM
     openai_api_key: str = Field(default="", description="OpenAI API key")
     langchain_api_key: str = Field(default="", description="LangChain API key")
-    langchain_tracing_v2: bool = Field(default=False, description="Enable LangChain tracing")
+    langchain_tracing_v2: bool = Field(
+        default=False, description="Enable LangChain tracing"
+    )
     langchain_project: str = Field(
         default="community-governance", description="LangChain project name"
     )
