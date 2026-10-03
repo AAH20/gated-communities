@@ -1,0 +1,11 @@
+# Gitleaks false positive suppressions for gated-communities
+# These are intentional enum values, not actual secrets
+
+# gate.py - GateType enum values (B105 false positive)
+src/gated_communities/gate.py:19$token_gate
+src/gated_communities/gate.py:20$nft_gate
+src/gated_communities/gate.py:15$invite_only
+src/gated_communities/gate.py:16$payment
+src/gated_communities/gate.py:17$application
+src/gated_communities/gate.py:18$domain_whitelist
+src/gated_communities/gate.py:21$custom
