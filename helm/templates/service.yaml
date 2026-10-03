@@ -4,12 +4,22 @@ metadata:
   name: {{ include "gated-communities.fullname" . }}
   labels:
     {{- include "gated-communities.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
-      protocol: TCP
+      targetPort: http
+      protocol: {{ .Values.service.protocol }}
       name: http
+    {{- if .Values.metrics.enabled }}
+    - port: {{ .Values.metrics.port }}
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+    {{- end }}
   selector:
     {{- include "gated-communities.selectorLabels" . | nindent 4 }}

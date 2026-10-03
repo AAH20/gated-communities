@@ -2,12 +2,13 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 3
+replicaCount: 2
 
 image:
   repository: gated-communities
   pullPolicy: IfNotPresent
-  tag: "latest"
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
@@ -23,10 +24,15 @@ serviceAccount:
   name: ""
 
 podAnnotations: {}
+podLabels: {}
+
 podSecurityContext:
   runAsNonRoot: true
   runAsUser: 1000
+  runAsGroup: 1000
   fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
 
 securityContext:
   allowPrivilegeEscalation: false
@@ -37,25 +43,30 @@ securityContext:
 
 service:
   type: ClusterIP
-  port: 80
-  targetPort: 8000
+  port: 8080
+  targetPort: 8080
+  protocol: TCP
+  annotations: {}
 
 ingress:
   enabled: true
   className: "nginx"
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
     nginx.ingress.kubernetes.io/rate-limit: "100"
-    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
   hosts:
-    - host: api.gated-communities.example.com
+    - host: gated-communities.example.com
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: gated-communities-tls
       hosts:
-        - api.gated-communities.example.com
+        - gated-communities.example.com
 
 resources:
   limits:
@@ -71,9 +82,71 @@ autoscaling:
   maxReplicas: 10
   targetCPUUtilizationPercentage: 70
   targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 4
+          periodSeconds: 15
+      selectPolicy: Max
 
-nodeSelector: {}
-tolerations: []
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Liveness and readiness probes
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30
+
+# Pod topology spread constraints for high availability
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: gated-communities
+        app.kubernetes.io/instance: RELEASE-NAME
+
+# Pod anti-affinity for spreading across nodes
 affinity:
   podAntiAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
@@ -87,44 +160,68 @@ affinity:
                   - gated-communities
           topologyKey: kubernetes.io/hostname
 
-# Application configuration
-config:
-  LOG_LEVEL: "INFO"
-  ENVIRONMENT: "production"
-  DATABASE_POOL_SIZE: "20"
-  REDIS_DB: "0"
-  LLM_MODEL: "gpt-4"
-  LLM_TEMPERATURE: "0.7"
-  MODERATION_THRESHOLD: "0.8"
-  ESCALATION_TIMEOUT_MINUTES: "30"
-  REPUTATION_DECAY_DAYS: "90"
-  COMPLIANCE_AUDIT_RETENTION_DAYS: "365"
+# Node selector for pod scheduling
+nodeSelector: {}
 
-# Secrets - override these in production with --set or a secrets manager
-secrets:
-  database-url: "postgresql://postgres:postgres@localhost:5432/gated_communities"
-  redis-url: "redis://localhost:6379/0"
-  llm-api-key: ""
-  secret-key: "change-me-in-production"
+# Taints tolerations
+tolerations: []
 
-# Liveness and readiness probes
-probes:
-  liveness:
-    path: /health
-    port: 8000
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 3
-  readiness:
-    path: /health
-    port: 8000
-    initialDelaySeconds: 5
-    periodSeconds: 5
-    timeoutSeconds: 3
-    failureThreshold: 3
+# Environment variables
+env: []
+#  - name: DATABASE_URL
+#    valueFrom:
+#      secretKeyRef:
+#        name: gated-communities-db
+#        key: url
 
-# Pod Disruption Budget
-pdb:
-  enabled: true
-  minAvailable: 1
+envFrom: []
+#  - configMapRef:
+#      name: gated-communities-config
+#  - secretRef:
+#      name: gated-communities-secrets
+
+# Volumes and volume mounts
+volumes: []
+volumeMounts: []
+
+# Additional containers (e.g., sidecars)
+extraContainers: []
+
+# Init containers
+initContainers: []
+
+# Service configuration
+serviceAccountAnnotations: {}
+
+# ConfigMap data
+configMapData: {}
+#  APP_ENV: "production"
+#  LOG_LEVEL: "info"
+
+# Secret data (base64 encoded)
+secretData: {}
+#  database-password: ""
+
+# Network policies
+networkPolicy:
+  enabled: false
+  ingress: []
+  egress: []
+
+# Monitoring
+metrics:
+  enabled: false
+  port: 9090
+  path: /metrics
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+
+# Persistence (if needed)
+persistence:
+  enabled: false
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi

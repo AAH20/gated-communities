@@ -1,74 +1,151 @@
-version: "3.8"
+version: "3.9"
+
+x-app-common: &app-common
+  restart: unless-stopped
+  networks:
+    - app-network
+  env_file:
+    - .env
 
 services:
   app:
+    <<: *app-common
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
+    container_name: gated-communities-app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    volumes:
+      - app-static:/app/static
+      - app-logs:/app/logs
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/gated_communities
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-app_user}:${POSTGRES_PASSWORD:-secret}@db:5432/${POSTGRES_DB:-gated_communities}
       - REDIS_URL=redis://redis:6379/0
-      - LLM_API_KEY=${LLM_API_KEY:-}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
       - ENVIRONMENT=${ENVIRONMENT:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./src:/app/src:ro
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
 
   db:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=gated_communities
+    image: postgres:16-alpine
+    container_name: gated-communities-db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-app_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secret}
+      - POSTGRES_DB=${POSTGRES_DB:-gated_communities}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+      - app-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app_user} -d ${POSTGRES_DB:-gated_communities}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    container_name: gated-communities-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
-      - redis_data:/data
+      - redis-data:/data
+    networks:
+      - app-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: ["python", "-m", "gated_communities.worker"]
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/gated_communities
-      - REDIS_URL=redis://redis:6379/0
-      - LLM_API_KEY=${LLM_API_KEY:-}
-    depends_on:
-      - db
-      - redis
+      start_period: 10s
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: gated-communities-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-cache:/var/cache/nginx
+      - certbot-webroot:/var/www/certbot:ro
+    depends_on:
+      - app
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+        reservations:
+          cpus: "0.05"
+          memory: 32M
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  app-static:
+    driver: local
+  app-logs:
+    driver: local
+  nginx-cache:
+    driver: local
+  certbot-webroot:
+    driver: local
