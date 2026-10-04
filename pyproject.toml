@@ -41,4 +41,7 @@ select = ["E9", "F821", "F811"]
 ignore = []
 
 [tool.mypy]
-exclude = ['database/', 'tests/']
+exclude = ["database/", "tests/"]
+mypy_path = "src"
+explicit_package_bases = true
+['database/', 'tests/']
