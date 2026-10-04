@@ -4,9 +4,9 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from reputation_system.agents.reputation_explainer import ExplanationInput, ReputationExplainerAgent
-from reputation_system.config.settings import Settings, get_settings
-from reputation_system.models.schemas import ReputationExplanation, ReputationExplanationCreate
+from ..agents.reputation_system.reputation_explainer import ExplanationInput, ReputationExplainerAgent
+from ..config.settings import Settings, get_settings
+from ..models.reputation_system_schemas import ReputationExplanation, ReputationExplanationCreate
 
 router = APIRouter(prefix="/explanations", tags=["explanations"])
 
@@ -106,7 +106,7 @@ async def generate_explanation(
     Returns:
         Generated explanation with recommendations.
     """
-    from reputation_system.models.schemas import TrustTierLevel
+    from ..models.reputation_system_schemas import TrustTierLevel
 
     agent = ReputationExplainerAgent(settings=settings)
     factors_list = [{"name": f, "value": 0, "impact": 0.0} for f in factors.split(",") if f]

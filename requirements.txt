@@ -73,3 +73,4 @@ future>=1.0.0
 pytest>=9.0.3
 # Fixes: PYSEC-2026-2270 (python-dotenv)
 python-dotenv>=1.1.0
+bleach>=6.0.0

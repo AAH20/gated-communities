@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from escalation_workflow.agents.base import BaseAgent
-from escalation_workflow.models.sla import SLA, SLABreach, SLAStatus
+from .agents.base import BaseAgent
+from .models.sla import SLA, SLABreach, SLAStatus
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 

@@ -1,6 +1,6 @@
 """Pydantic models for the reputation system."""
 
-from reputation_system.models.schemas import (
+from .reputation_system_schemas import (
     Badge,
     BadgeCreate,
     BadgeUpdate,

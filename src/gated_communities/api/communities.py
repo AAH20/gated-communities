@@ -7,6 +7,7 @@ from ..auth import get_current_user
 from ..database import get_db
 from ..models import Community
 from ..schemas import CommunityCreate, CommunityResponse
+from ..security.sanitization import sanitize_dict
 
 router = APIRouter()
 
@@ -32,7 +33,8 @@ def create_community(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
 ):
-    db_community = Community(**community.model_dump())
+    safe_data = sanitize_dict(community.model_dump(), html_fields={"description"})
+    db_community = Community(**safe_data)
     db.add(db_community)
     db.commit()
     db.refresh(db_community)

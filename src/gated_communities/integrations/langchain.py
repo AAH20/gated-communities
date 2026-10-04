@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
 
 if TYPE_CHECKING:
-    from access_control.config import Settings
+    from ..config import Settings
 
 
 class LangChainIntegration:

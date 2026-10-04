@@ -9,15 +9,15 @@ from langchain_openai import ChatOpenAI
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
 
-from access_control.agents import (
+from ..agents.access_control import (
     AccessAuditorAgent,
     AccessRecommenderAgent,
     PermissionEvaluatorAgent,
     PolicyEnforcerAgent,
     RoleManagerAgent,
 )
-from access_control.config import Settings
-from access_control.config import get_settings as _get_settings
+from ..config import Settings
+from ..config import get_settings as _get_settings
 
 
 def get_settings() -> Settings:

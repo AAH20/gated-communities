@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import Community, Member
 from ..schemas import MemberCreate, MemberResponse
+from ..security.sanitization import sanitize_dict
 
 router = APIRouter()
 
@@ -28,7 +29,8 @@ def create_member(member: MemberCreate, db: Session = Depends(get_db)):
     community = db.query(Community).filter(Community.id == member.community_id).first()
     if not community:
         raise HTTPException(status_code=404, detail="Community not found")
-    db_member = Member(**member.model_dump())
+    safe_data = sanitize_dict(member.model_dump())
+    db_member = Member(**safe_data)
     db.add(db_member)
     db.commit()
     db.refresh(db_member)

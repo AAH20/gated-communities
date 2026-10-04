@@ -11,7 +11,7 @@ import pytest
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
-from src.gated_communities.moderation import (
+from gated_communities.moderation import (
     ModerationItem,
     ModerationQueue,
     ModerationAnalytics,
@@ -28,7 +28,7 @@ from src.gated_communities.moderation import (
 @pytest.fixture
 def moderation_service():
     """Provide a fresh moderation service instance."""
-    from src.gated_communities.moderation import ModerationService
+    from gated_communities.moderation import ModerationService
 
     return ModerationService()
 

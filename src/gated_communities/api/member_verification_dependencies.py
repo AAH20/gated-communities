@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, Request
-from member_verification.config.settings import Settings, get_settings
+from ..config.settings import Settings, get_settings
 
 
 async def verify_api_key(

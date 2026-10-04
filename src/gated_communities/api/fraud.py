@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from member_verification.api.dependencies import verify_api_key
-from member_verification.models.schemas import FraudCheckRequest, FraudReport
+from .member_verification_dependencies import verify_api_key
+from ..models.member_verification_schemas import FraudCheckRequest, FraudReport
 
 router = APIRouter(prefix="/fraud", tags=["fraud"])
 
@@ -26,7 +26,7 @@ async def run_fraud_check(
     Returns:
         The fraud report.
     """
-    from member_verification.agents.fraud_preventor import FraudPreventorAgent
+    from ..agents.member_verification.fraud_preventor import FraudPreventorAgent
 
     agent = FraudPreventorAgent()
     result = await agent.run(

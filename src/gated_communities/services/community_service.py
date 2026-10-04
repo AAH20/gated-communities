@@ -284,3 +284,32 @@ class CommunityService:
 
         del self._communities[community_id]
         return True
+
+
+# Module-level convenience functions that delegate to a default service instance
+_default_service = CommunityService()
+
+
+def get_community(community_id: str):
+    """Get a community by ID."""
+    return _default_service.get_community(community_id)
+
+
+def list_communities(filters: dict | None = None, pagination=None):
+    """List communities with optional filters and pagination."""
+    return _default_service.list_communities(filters, pagination)
+
+
+def create_community(data: dict):
+    """Create a new community."""
+    return _default_service.create_community(data)
+
+
+def update_community(community_id: str, data: dict):
+    """Update an existing community."""
+    return _default_service.update_community(community_id, data)
+
+
+def delete_community(community_id: str) -> bool:
+    """Delete a community."""
+    return _default_service.delete_community(community_id)

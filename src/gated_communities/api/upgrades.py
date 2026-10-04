@@ -6,9 +6,9 @@ from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from tier_management.agents.upgrade_recommender import UpgradeRecommenderAgent
-from tier_management.config.settings import Settings, get_settings
-from tier_management.models.schemas import UpgradeRequest
+from ..agents.upgrade_recommender import UpgradeRecommenderAgent
+from ..config.settings import Settings, get_settings
+from ..models.schemas import UpgradeRequest
 
 if TYPE_CHECKING:
     from uuid import UUID

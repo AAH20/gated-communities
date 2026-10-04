@@ -3,9 +3,9 @@
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
-from moderation_queue.agents.base import BaseAgent
-from moderation_queue.config.settings import get_settings
-from moderation_queue.models import AgentResult
+from .agents.base import BaseAgent
+from .config.settings import get_settings
+from .models import AgentResult
 
 settings = get_settings()
 

@@ -1,0 +1,260 @@
+{
+  "timestamp": "2026-10-04T18:50:59+0300",
+  "results": [
+    {
+      "name": "api_health",
+      "category": "API",
+      "metrics": {
+        "avg_ms": 0.41,
+        "min_ms": 0.21,
+        "max_ms": 1.08
+      }
+    },
+    {
+      "name": "api_root",
+      "category": "API",
+      "metrics": {
+        "avg_ms": 0.4,
+        "min_ms": 0.2,
+        "max_ms": 0.78
+      }
+    },
+    {
+      "name": "api_ready",
+      "category": "API",
+      "metrics": {
+        "avg_ms": 0.23,
+        "min_ms": 0.2,
+        "max_ms": 0.4
+      }
+    },
+    {
+      "name": "api_live",
+      "category": "API",
+      "metrics": {
+        "avg_ms": 0.22,
+        "min_ms": 0.2,
+        "max_ms": 0.41
+      }
+    },
+    {
+      "name": "api_list_communities",
+      "category": "API",
+      "metrics": {
+        "avg_ms": 0.23,
+        "min_ms": 0.21,
+        "max_ms": 0.34
+      }
+    },
+    {
+      "name": "api_list_members",
+      "category": "API",
+      "metrics": {
+        "avg_ms": 0.6,
+        "min_ms": 0.21,
+        "max_ms": 18.53
+      }
+    },
+    {
+      "name": "api_create_community",
+      "category": "API",
+      "metrics": {
+        "avg_ms": 0.25,
+        "min_ms": 0.22,
+        "max_ms": 0.44
+      }
+    },
+    {
+      "name": "db_simple_select",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.02,
+        "min_ms": 0.01,
+        "max_ms": 0.21
+      }
+    },
+    {
+      "name": "db_count_communities",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.02,
+        "min_ms": 0.01,
+        "max_ms": 0.09
+      }
+    },
+    {
+      "name": "db_count_members",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.01,
+        "min_ms": 0.01,
+        "max_ms": 0.04
+      }
+    },
+    {
+      "name": "db_count_moderation",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.01,
+        "min_ms": 0.01,
+        "max_ms": 0.03
+      }
+    },
+    {
+      "name": "db_count_audit",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.01,
+        "min_ms": 0.01,
+        "max_ms": 0.04
+      }
+    },
+    {
+      "name": "db_join_communities_members",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.05,
+        "min_ms": 0.05,
+        "max_ms": 0.1
+      }
+    },
+    {
+      "name": "db_filter_by_tier",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.02,
+        "min_ms": 0.02,
+        "max_ms": 0.04
+      }
+    },
+    {
+      "name": "db_filter_by_status",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.02,
+        "min_ms": 0.02,
+        "max_ms": 0.12
+      }
+    },
+    {
+      "name": "db_order_by_name",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.02,
+        "min_ms": 0.02,
+        "max_ms": 0.07
+      }
+    },
+    {
+      "name": "db_paginated_members",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.02,
+        "min_ms": 0.02,
+        "max_ms": 0.06
+      }
+    },
+    {
+      "name": "db_aggregate_member_count",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.03,
+        "min_ms": 0.02,
+        "max_ms": 0.06
+      }
+    },
+    {
+      "name": "db_text_search",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.02,
+        "min_ms": 0.02,
+        "max_ms": 0.05
+      }
+    },
+    {
+      "name": "db_orm_all_communities",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.22,
+        "min_ms": 0.19,
+        "max_ms": 0.85
+      }
+    },
+    {
+      "name": "db_orm_all_members",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.67,
+        "min_ms": 0.61,
+        "max_ms": 1.1
+      }
+    },
+    {
+      "name": "db_orm_filter_tier",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.13,
+        "min_ms": 0.11,
+        "max_ms": 0.68
+      }
+    },
+    {
+      "name": "db_orm_filter_status",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.23,
+        "min_ms": 0.21,
+        "max_ms": 0.64
+      }
+    },
+    {
+      "name": "db_orm_filter_members_community",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.09,
+        "min_ms": 0.08,
+        "max_ms": 0.59
+      }
+    },
+    {
+      "name": "db_orm_order_communities",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.21,
+        "min_ms": 0.2,
+        "max_ms": 0.43
+      }
+    },
+    {
+      "name": "db_orm_paginated_members",
+      "category": "Database",
+      "metrics": {
+        "avg_ms": 0.22,
+        "min_ms": 0.19,
+        "max_ms": 0.56
+      }
+    },
+    {
+      "name": "concurrent_health_100",
+      "category": "Concurrent",
+      "metrics": {
+        "total_ms": 87.26,
+        "successful": 0,
+        "failed": 100,
+        "rps": 0.0
+      }
+    },
+    {
+      "name": "concurrent_mixed_50",
+      "category": "Concurrent",
+      "metrics": {
+        "total_ms": 34.13,
+        "successful": 0,
+        "failed": 50,
+        "rps": 0.0
+      }
+    }
+  ],
+  "bottlenecks": []
+}

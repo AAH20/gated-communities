@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.gated_communities.services.member_service import MemberService
-from src.gated_communities.models.member import Member, MemberStatus, MemberRole
-from src.gated_communities.exceptions import (
+from gated_communities.services.member_service import MemberService
+from gated_communities.member import Member, MemberStatus, MemberRole
+from gated_communities.exceptions import (
     MemberNotFoundError,
     DuplicateMemberError,
     InvalidMemberDataError,

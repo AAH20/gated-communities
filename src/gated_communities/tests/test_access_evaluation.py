@@ -5,11 +5,11 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from access_control.agents.permission_evaluator import PermissionEvaluatorAgent
-from access_control.agents.policy_enforcer import PolicyEnforcerAgent
-from access_control.config import Settings
-from access_control.models.enums import AccessDecision
-from access_control.models.schemas import AccessRequest, Permission, Policy
+from ..agents.access_control.permission_evaluator import PermissionEvaluatorAgent
+from ..agents.access_control.policy_enforcer import PolicyEnforcerAgent
+from ..config import Settings
+from ..models.access_control_schemas import AccessDecision
+from ..models.access_control_schemas import AccessRequest, Permission, Policy
 
 
 @pytest.fixture

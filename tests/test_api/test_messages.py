@@ -21,9 +21,9 @@ def client() -> TestClient:
     """Return a TestClient bound to the FastAPI app.
 
     Replace the import below with the actual application factory used in the
-    gated-communities project (e.g. ``from app.main import app``).
+    gated-communities project (e.g. ``from gated_communities.main import app``).
     """
-    # from app.main import app
+    # from gated_communities.main import app
     # return TestClient(app)
     raise NotImplementedError(
         "Wire this fixture to the real FastAPI app instance."

@@ -179,3 +179,32 @@ class CommentService:
 
         del self._comments[comment_id]
         return True
+
+
+# Module-level convenience functions that delegate to a default service instance
+_default_service = CommentService()
+
+
+def create_comment(data: dict) -> dict:
+    """Create a new comment."""
+    return _default_service.create_comment(data)
+
+
+def get_comment(comment_id: str) -> dict:
+    """Get a comment by ID."""
+    return _default_service.get_comment(comment_id)
+
+
+def list_comments(filters: dict, page: int, page_size: int) -> list[dict]:
+    """List comments with filters and pagination."""
+    return _default_service.list_comments(filters, page, page_size)
+
+
+def update_comment(comment_id: str, data: dict) -> dict:
+    """Update a comment."""
+    return _default_service.update_comment(comment_id, data)
+
+
+def delete_comment(comment_id: str) -> bool:
+    """Delete a comment."""
+    return _default_service.delete_comment(comment_id)

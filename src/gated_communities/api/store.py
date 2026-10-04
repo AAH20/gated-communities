@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from compliance_monitor.models.schemas import (
+    from ..models.compliance_monitor_schemas import (
         AuditReport,
         ComplianceScore,
         Policy,

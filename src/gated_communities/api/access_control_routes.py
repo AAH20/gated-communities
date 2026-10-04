@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from uuid import UUID
 
-from access_control.api.dependencies import (
+from .access_control_dependencies import (
     get_access_auditor,
     get_access_recommender,
     get_permission_evaluator,
@@ -18,9 +18,9 @@ from access_control.api.dependencies import (
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 if TYPE_CHECKING:
-    from access_control.config import Settings
+    from ..config import Settings
 
-from access_control.models.schemas import (
+from ..models.access_control_schemas import (
     AccessAudit,
     AccessRecommendation,
     AccessRequest,

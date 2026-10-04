@@ -5,10 +5,10 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from access_control.agents.role_manager import RoleManagerAgent
-from access_control.config import Settings
-from access_control.models.enums import RoleStatus
-from access_control.models.schemas import Permission, RoleCreate
+from ..agents.access_control.role_manager import RoleManagerAgent
+from ..config import Settings
+from ..models.access_control_schemas import RoleStatus
+from ..models.access_control_schemas import Permission, RoleCreate
 
 
 @pytest.fixture
@@ -74,7 +74,7 @@ class TestRoles:
         agent = RoleManagerAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.models.schemas import RoleUpdate
+        from ..models.access_control_schemas import RoleUpdate
 
         role_update = RoleUpdate(name="updated-role")
         role = await agent.update_role("role-1", role_update)

@@ -158,3 +158,25 @@ def delete_message(message_id: str) -> bool:
 
     del _MESSAGES[message_id]
     return True
+
+
+class MessageService:
+    """Service for managing messages."""
+
+    def __init__(self, db=None):
+        self._db = db
+
+    def get_message(self, message_id: str) -> dict:
+        return get_message(message_id)
+
+    def list_messages(self, filters: dict, page: int, page_size: int) -> list[dict]:
+        return list_messages(filters, page, page_size)
+
+    def create_message(self, data: dict) -> dict:
+        return create_message(data)
+
+    def update_message(self, message_id: str, data: dict) -> dict:
+        return update_message(message_id, data)
+
+    def delete_message(self, message_id: str) -> bool:
+        return delete_message(message_id)

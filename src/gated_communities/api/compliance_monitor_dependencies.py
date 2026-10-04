@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from compliance_monitor.agents import (
+from ..agents.compliance_monitor import (
     AuditReporterAgent,
     ComplianceScorerAgent,
     PolicyTrackerAgent,

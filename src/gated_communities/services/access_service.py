@@ -129,3 +129,23 @@ def get_access_permissions(member_id: str, resource: str) -> list[str]:
 
     permissions = _access_store.get((member_id, resource), set())
     return sorted(permissions)
+
+
+class AccessService:
+    """Service for managing access control."""
+
+    def __init__(self, db=None, redis=None):
+        self._db = db
+        self._redis = redis
+
+    def check_access(self, member_id: str, resource: str) -> dict:
+        return check_access(member_id, resource)
+
+    def grant_access(self, member_id: str, resource: str, permissions: list[str]) -> bool:
+        return grant_access(member_id, resource, permissions)
+
+    def revoke_access(self, member_id: str, resource: str) -> bool:
+        return revoke_access(member_id, resource)
+
+    def get_access_permissions(self, member_id: str, resource: str) -> list[str]:
+        return get_access_permissions(member_id, resource)

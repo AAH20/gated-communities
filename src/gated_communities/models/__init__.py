@@ -115,6 +115,10 @@ class Community(Base):
         back_populates="community",
         cascade="all, delete-orphan",
     )
+    moderation_items: Mapped[list["ModerationItem"]] = relationship(
+        back_populates="community",
+        cascade="all, delete-orphan",
+    )
 
 
 class Member(Base):

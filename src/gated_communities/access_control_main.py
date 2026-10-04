@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
-from access_control import __version__
-from access_control.api.routes import router
-from access_control.config import get_settings
+__version__ = "0.1.0"
+from ..api.access_control_routes import router
+from ..config import get_settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from structlog import get_logger

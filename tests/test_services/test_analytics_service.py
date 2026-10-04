@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.gated_communities.services.analytics_service import (
+from gated_communities.services.analytics_service import (
     AnalyticsService,
     get_community_metrics,
     get_engagement_metrics,

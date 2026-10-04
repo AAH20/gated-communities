@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from tier_management.agents.tier_evaluator import TierEvaluatorAgent
-from tier_management.config.settings import Settings, get_settings
-from tier_management.models.schemas import TierEvaluation
+from ..agents.tier_evaluator import TierEvaluatorAgent
+from ..config.settings import Settings, get_settings
+from ..models.schemas import TierEvaluation
 
 if TYPE_CHECKING:
     from uuid import UUID

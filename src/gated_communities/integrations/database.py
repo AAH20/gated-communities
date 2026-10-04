@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from tier_management.config.logging_config import get_logger
-from tier_management.config.settings import get_settings
+from ..config.logging_config import get_logger
+from ..config.settings import get_settings
 
 logger = get_logger(__name__)
 

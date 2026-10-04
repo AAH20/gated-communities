@@ -4,10 +4,12 @@ import pytest
 from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime, timezone
 
-from src.gated_communities.agents.tier_management import (
-    create_tier,
-    get_tier,
-    update_tier,
+from gated_communities.agents.tier_management import (
+    AccessControllerAgent,
+    BenefitManagerAgent,
+    TierAnalyticsAgent,
+    TierEvaluatorAgent,
+    UpgradeRecommenderAgent,
 )
 
 

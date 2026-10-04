@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from access_control.models.enums import AccessDecision, AuditSeverity, PolicyEffect, RoleStatus
-from access_control.models.schemas import (
+from ..models.access_control_schemas import AccessDecision, AuditSeverity, PolicyEffect, RoleStatus
+from ..models.access_control_schemas import (
     AccessAudit,
     AccessRecommendation,
     AccessRequest,

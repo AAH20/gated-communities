@@ -1,7 +1,7 @@
 """API router aggregation."""
 
 from fastapi import APIRouter
-from reputation_system.api.routes import (
+from ..api. (
     badges,
     explanations,
     health,

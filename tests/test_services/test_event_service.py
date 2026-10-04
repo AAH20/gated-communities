@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.gated_communities.services.event_service import (
+from gated_communities.services.event_service import (
     create_event,
     delete_event,
     get_event,

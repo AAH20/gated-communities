@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
 
-from src.gated_communities.reputation_system import (
+from gated_communities.reputation_system import (
     calculate_reputation,
     get_reputation_score,
     update_reputation,

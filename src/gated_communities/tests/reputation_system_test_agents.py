@@ -1,13 +1,13 @@
 """Tests for agent implementations."""
 
 import pytest
-from reputation_system.agents.badge_manager import BadgeEvaluationInput, BadgeManagerAgent
-from reputation_system.agents.reputation_explainer import ExplanationInput, ReputationExplainerAgent
-from reputation_system.agents.reputation_history import HistoryAnalysisInput, ReputationHistoryAgent
-from reputation_system.agents.reputation_scorer import ReputationScorerAgent, ScoringInput
-from reputation_system.agents.trust_tier import TrustTierAgent, TrustTierInput
-from reputation_system.config.settings import Settings
-from reputation_system.models.schemas import TrustTierLevel
+from ..agents.reputation_system.badge_manager import BadgeEvaluationInput, BadgeManagerAgent
+from ..agents.reputation_system.reputation_explainer import ExplanationInput, ReputationExplainerAgent
+from ..agents.reputation_system.reputation_history import HistoryAnalysisInput, ReputationHistoryAgent
+from ..agents.reputation_system.reputation_scorer import ReputationScorerAgent, ScoringInput
+from ..agents.reputation_system.trust_tier import TrustTierAgent, TrustTierInput
+from ..config.settings import Settings
+from ..models.reputation_system_schemas import TrustTierLevel
 
 
 @pytest.fixture

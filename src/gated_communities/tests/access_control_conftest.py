@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from access_control.config import Settings
-from access_control.main import create_app
+from ..config import Settings
+from ..main import create_app
 from fastapi.testclient import TestClient
 
 

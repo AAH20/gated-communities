@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 import structlog
-from compliance_monitor.config.settings import get_settings
+from ..config.settings import get_settings
 
 logger = structlog.get_logger(__name__)
 

@@ -6,8 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from src.gated_communities.main import app
-from src.gated_communities.database import Base, get_db
+from gated_communities.main import app
+from gated_communities.database import Base, get_db
 
 
 # ---------------------------------------------------------------------------
@@ -51,7 +51,7 @@ def client(db_session):
 @pytest.fixture
 def sample_community(db_session):
     """Create a sample community row for tests that need one."""
-    from src.gated_communities.models import Community
+    from gated_communities.models import Community
 
     community = Community(
         id=1,

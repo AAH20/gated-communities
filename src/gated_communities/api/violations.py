@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from compliance_monitor.api.dependencies import get_violation_detector
-from compliance_monitor.api.store import store
-from compliance_monitor.models.schemas import Violation, ViolationCreate
+from .compliance_monitor_dependencies import get_violation_detector
+from .store import store
+from ..models.compliance_monitor_schemas import Violation, ViolationCreate
 from fastapi import APIRouter, Depends, HTTPException, status
 
 if TYPE_CHECKING:
     from uuid import UUID
 
-    from compliance_monitor.agents import ViolationDetectorAgent
+    from ..agents.compliance_monitor import ViolationDetectorAgent
 
 router = APIRouter()
 

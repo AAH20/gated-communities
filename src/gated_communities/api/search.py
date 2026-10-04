@@ -3,9 +3,11 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from ..auth import get_current_user
 from ..database import get_db
 from ..models import Community, Member
 from ..schemas import CommunityResponse, MemberResponse
+from ..security import require_auth
 
 router = APIRouter()
 
@@ -16,6 +18,7 @@ def search(
     type: str = Query("all", pattern="^(all|communities|members)$"),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(require_auth),
 ):
     results = {"communities": [], "members": []}
     search_pattern = f"%{q}%"

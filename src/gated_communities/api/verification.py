@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from member_verification.api.dependencies import verify_api_key
-from member_verification.models.schemas import (
+from .member_verification_dependencies import verify_api_key
+from ..models.member_verification_schemas import (
     ExplanationRequest,
     VerificationExplanation,
     VerificationRequest,
@@ -39,9 +39,9 @@ async def submit_verification(
     Raises:
         HTTPException: If the request is invalid.
     """
-    from member_verification.agents.fraud_preventor import FraudPreventorAgent
-    from member_verification.agents.identity_verifier import IdentityVerifierAgent
-    from member_verification.agents.trust_scorer import TrustScorerAgent
+    from ..agents.member_verification.fraud_preventor import FraudPreventorAgent
+    from ..agents.member_verification.identity_verifier import IdentityVerifierAgent
+    from ..agents.member_verification.trust_scorer import TrustScorerAgent
 
     # Run identity verification
     identity_agent = IdentityVerifierAgent()
@@ -192,7 +192,7 @@ async def explain_verification(
     Raises:
         HTTPException: If the verification result is not found.
     """
-    from member_verification.agents.explainer import VerificationExplainerAgent
+    from ..agents.member_verification.explainer import VerificationExplainerAgent
 
     result = _verification_store.get(request.request_id)
     if not result:

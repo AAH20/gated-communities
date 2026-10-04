@@ -5,17 +5,17 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from access_control.agents import (
+from ..agents.access_control import (
     AccessAuditorAgent,
     AccessRecommenderAgent,
     PermissionEvaluatorAgent,
     PolicyEnforcerAgent,
     RoleManagerAgent,
 )
-from access_control.agents.base import AgentContext
-from access_control.config import Settings
-from access_control.models.enums import AccessDecision, AuditSeverity
-from access_control.models.schemas import AccessRequest
+from ..agents.access_control.base import AgentContext
+from ..config import Settings
+from ..models.access_control_schemas import AccessDecision, AuditSeverity
+from ..models.access_control_schemas import AccessRequest
 
 
 @pytest.fixture
@@ -104,7 +104,7 @@ class TestAgents:
         agent = PermissionEvaluatorAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.agents.permission_evaluator import PermissionEvaluatorInput
+        from ..agents.access_control.permission_evaluator import PermissionEvaluatorInput
 
         payload = PermissionEvaluatorInput(
             request=AccessRequest(principal_id="user-1", resource="docs", action="read")
@@ -127,7 +127,7 @@ class TestAgents:
         agent = AccessAuditorAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.agents.access_auditor import AccessAuditorInput
+        from ..agents.access_control.access_auditor import AccessAuditorInput
 
         payload = AccessAuditorInput(
             event_type="access_attempt",
@@ -151,7 +151,7 @@ class TestAgents:
         agent = RoleManagerAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.agents.role_manager import RoleManagerInput
+        from ..agents.access_control.role_manager import RoleManagerInput
 
         payload = RoleManagerInput(
             operation="create",
@@ -175,7 +175,7 @@ class TestAgents:
         agent = PolicyEnforcerAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.agents.policy_enforcer import PolicyEnforcerInput
+        from ..agents.access_control.policy_enforcer import PolicyEnforcerInput
 
         payload = PolicyEnforcerInput(
             request=AccessRequest(principal_id="user-1", resource="docs", action="read")
@@ -197,7 +197,7 @@ class TestAgents:
         agent = AccessRecommenderAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.agents.access_recommender import AccessRecommenderInput
+        from ..agents.access_control.access_recommender import AccessRecommenderInput
 
         payload = AccessRecommenderInput(principal_id="user-1")
         result = await agent.run(payload, agent_context)
@@ -218,7 +218,7 @@ class TestAgents:
         agent = PermissionEvaluatorAgent(llm=mock_llm, settings=settings)
         agent._build_agent = MagicMock(return_value=mock_chain)
 
-        from access_control.agents.permission_evaluator import PermissionEvaluatorInput
+        from ..agents.access_control.permission_evaluator import PermissionEvaluatorInput
 
         payload = PermissionEvaluatorInput(
             request=AccessRequest(principal_id="user-1", resource="docs", action="read")

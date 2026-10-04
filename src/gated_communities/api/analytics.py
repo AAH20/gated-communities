@@ -6,9 +6,9 @@ from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from tier_management.agents.tier_analytics import TierAnalyticsAgent
-from tier_management.config.settings import Settings, get_settings
-from tier_management.models.schemas import TierAnalytics
+from ..agents.tier_analytics import TierAnalyticsAgent
+from ..config.settings import Settings, get_settings
+from ..models.schemas import TierAnalytics
 
 if TYPE_CHECKING:
     from uuid import UUID

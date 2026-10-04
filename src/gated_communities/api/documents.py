@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, status
-from member_verification.api.dependencies import verify_api_key
-from member_verification.models.schemas import DocumentVerificationResult, DocumentVerifyRequest
+from .member_verification_dependencies import verify_api_key
+from ..models.member_verification_schemas import DocumentVerificationResult, DocumentVerifyRequest
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -27,7 +27,7 @@ async def verify_document(
     Returns:
         The document verification result.
     """
-    from member_verification.agents.document_checker import DocumentCheckerAgent
+    from ..agents.member_verification.document_checker import DocumentCheckerAgent
 
     agent = DocumentCheckerAgent()
     result = await agent.run(

@@ -8,11 +8,11 @@ This module contains the five core agents for the tier management system:
 - TierAnalyticsAgent: Generates analytics and insights for tiers
 """
 
-from tier_management.agents.access_controller import AccessControllerAgent
-from tier_management.agents.benefit_manager import BenefitManagerAgent
-from tier_management.agents.tier_analytics import TierAnalyticsAgent
-from tier_management.agents.tier_evaluator import TierEvaluatorAgent
-from tier_management.agents.upgrade_recommender import UpgradeRecommenderAgent
+from .access_controller import AccessControllerAgent
+from .benefit_manager import BenefitManagerAgent
+from .tier_analytics import TierAnalyticsAgent
+from .tier_evaluator import TierEvaluatorAgent
+from .upgrade_recommender import UpgradeRecommenderAgent
 
 __all__ = [
     "AccessControllerAgent",

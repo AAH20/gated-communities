@@ -6,11 +6,11 @@ import json
 from typing import TYPE_CHECKING, Any
 
 from langchain_core.messages import AIMessage
-from moderation_queue.agents.base import AgentConfig, BaseAgent
+from .agents.base import AgentConfig, BaseAgent
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from moderation_queue.models import Queue, QueueMetrics
+    from .models import Queue, QueueMetrics
 
 
 class QueueOptimizerInput(BaseModel):

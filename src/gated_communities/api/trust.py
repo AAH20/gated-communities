@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from member_verification.api.dependencies import verify_api_key
-from member_verification.models.schemas import TrustScore, TrustScoreRequest
+from .member_verification_dependencies import verify_api_key
+from ..models.member_verification_schemas import TrustScore, TrustScoreRequest
 
 router = APIRouter(prefix="/trust-score", tags=["trust"])
 
@@ -26,7 +26,7 @@ async def calculate_trust_score(
     Returns:
         The calculated trust score.
     """
-    from member_verification.agents.trust_scorer import TrustScorerAgent
+    from ..agents.member_verification.trust_scorer import TrustScorerAgent
 
     agent = TrustScorerAgent()
     result = await agent.run(

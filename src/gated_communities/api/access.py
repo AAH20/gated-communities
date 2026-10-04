@@ -6,9 +6,9 @@ from datetime import UTC
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from tier_management.agents.access_controller import AccessControllerAgent
-from tier_management.config.settings import Settings, get_settings
-from tier_management.models.schemas import AccessCheckRequest, AccessCheckResponse, AccessPolicy
+from ..agents.access_controller import AccessControllerAgent
+from ..config.settings import Settings, get_settings
+from ..models.schemas import AccessCheckRequest, AccessCheckResponse, AccessPolicy
 
 access_router = APIRouter()
 

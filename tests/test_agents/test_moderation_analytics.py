@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch, call
 from typing import Any
 
-from src.gated_communities.moderation_analytics import (
+from gated_communities.moderation_analytics import (
     get_moderation_metrics,
     get_moderation_trends,
     flag_moderation_anomaly,

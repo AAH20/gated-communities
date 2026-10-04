@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.gated_communities.services.message_service import (
+from gated_communities.services.message_service import (
     MessageService,
     get_message,
     list_messages,

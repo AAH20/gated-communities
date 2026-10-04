@@ -12,12 +12,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from gated_communities.api.reports import (
-    AVAILABLE_REPORTS,
-    GenerateReportRequest,
-    GenerateReportResponse,
-    router as reports_router,
-)
+from gated_communities.api.reports import router as reports_router
 
 
 # ---------------------------------------------------------------------------

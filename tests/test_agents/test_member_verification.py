@@ -4,10 +4,14 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
 
-from src.gated_communities.agents.member_verification import (
-    verify_member,
-    get_verification_status,
-    request_verification,
+from gated_communities.agents.member_verification import (
+    AgentConfig,
+    BaseAgent,
+    DocumentCheckerAgent,
+    VerificationExplainerAgent,
+    FraudPreventorAgent,
+    IdentityVerifierAgent,
+    TrustScorerAgent,
 )
 
 

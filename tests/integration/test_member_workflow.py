@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock, patch
-from src.gated_communities import MemberService, Member, AccessLevel
+from gated_communities import MemberService, Member, AccessLevel
 
 
 @pytest.fixture

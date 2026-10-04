@@ -6,8 +6,8 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-from compliance_monitor.agents.base import BaseComplianceAgent
-from compliance_monitor.models.schemas import (
+from .base import BaseComplianceAgent
+from ..models.compliance_monitor_schemas import (
     RemediationAction,
     RemediationRequest,
     RemediationStatus,

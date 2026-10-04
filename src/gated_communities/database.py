@@ -3,10 +3,10 @@
 from collections.abc import Generator
 
 from sqlalchemy import create_engine, event
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
 from .config import DATABASE_URL
+from .models import Base
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
@@ -20,7 +20,6 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
 
 
 def get_db() -> Generator[Session, None, None]:

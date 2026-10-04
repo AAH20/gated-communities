@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from member_verification.agents.base import AgentConfig, BaseAgent
+from .base import AgentConfig, BaseAgent
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel

@@ -1,5 +1,5 @@
 """Integrations with LangChain and external services."""
 
-from access_control.integrations.langchain import LangChainIntegration
+from ..integrations.langchain import LangChainIntegration
 
 __all__ = ["LangChainIntegration"]

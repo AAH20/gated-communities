@@ -318,3 +318,35 @@ class BulkMemberUpdate(BaseModel):
     member_ids: list[int] = Field(..., min_length=1)
     role: str | None = None
     tier: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Moderation
+# ---------------------------------------------------------------------------
+
+
+class ModerationItemCreate(BaseModel):
+    """Schema for creating a moderation item."""
+
+    community_id: int = Field(..., gt=0)
+    reporter_id: int = Field(..., gt=0)
+    target_type: str = Field(..., min_length=1, max_length=50)
+    target_id: int = Field(..., gt=0)
+    reason: str = Field(..., min_length=1, max_length=5000)
+
+
+class ModerationItemResponse(BaseModel):
+    """Schema for moderation item response payloads."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    community_id: int
+    reporter_id: int
+    target_type: str
+    target_id: int
+    reason: str
+    status: str
+    created_at: datetime
+    resolved_at: datetime | None = None
+    resolved_by: int | None = None

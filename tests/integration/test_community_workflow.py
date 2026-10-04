@@ -13,12 +13,7 @@ from datetime import datetime, timedelta
 
 from gated_communities import (
     Community,
-    CommunityManager,
-    CommunityMember,
-    CommunityHealth,
     CommunityStatus,
-    HealthStatus,
-    MembershipRole,
 )
 
 

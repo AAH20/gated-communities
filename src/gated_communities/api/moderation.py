@@ -1,11 +1,13 @@
 """Moderation queue endpoints."""
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from ..auth import get_current_user
 from ..database import get_db
 from ..models import ModerationItem
 from ..schemas import ModerationItemCreate, ModerationItemResponse
+from ..security import require_auth, require_moderator
 
 router = APIRouter()
 
@@ -15,6 +17,7 @@ def get_moderation_queue(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
+    current_user: dict = Depends(require_moderator),
 ):
     return (
         db.query(ModerationItem)
@@ -26,7 +29,11 @@ def get_moderation_queue(
 
 
 @router.post("/items", response_model=ModerationItemResponse, status_code=201)
-def create_moderation_item(item: ModerationItemCreate, db: Session = Depends(get_db)):
+def create_moderation_item(
+    item: ModerationItemCreate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_auth),
+):
     db_item = ModerationItem(**item.model_dump())
     db.add(db_item)
     db.commit()

@@ -26,7 +26,7 @@ from fastapi.testclient import TestClient
 def client() -> TestClient:
     """Return a FastAPI TestClient bound to the application."""
     # Import here so the app is only loaded when tests run.
-    from src.gated_communities.main import app
+    from gated_communities.main import app
 
     return TestClient(app)
 

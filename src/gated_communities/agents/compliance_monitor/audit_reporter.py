@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from compliance_monitor.agents.base import BaseComplianceAgent
-from compliance_monitor.models.schemas import AuditReport, AuditRequest
+from .base import BaseComplianceAgent
+from ..models.compliance_monitor_schemas import AuditReport, AuditRequest
 
 
 class AuditReporterAgent(BaseComplianceAgent[AuditRequest, AuditReport]):

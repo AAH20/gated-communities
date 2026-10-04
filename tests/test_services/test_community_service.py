@@ -4,7 +4,7 @@ import pytest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from src.gated_communities.services.community_service import (
+from gated_communities.services.community_service import (
     get_community,
     list_communities,
     create_community,

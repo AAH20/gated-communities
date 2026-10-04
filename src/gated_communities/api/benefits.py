@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from tier_management.agents.benefit_manager import BenefitManagerAgent
-from tier_management.config.settings import Settings, get_settings
-from tier_management.models.schemas import Benefit
+from ..agents.benefit_manager import BenefitManagerAgent
+from ..config.settings import Settings, get_settings
+from ..models.schemas import Benefit
 
 if TYPE_CHECKING:
     from uuid import UUID

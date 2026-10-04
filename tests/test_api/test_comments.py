@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture
 def client():
     """Return a TestClient for the FastAPI app."""
-    from src.gated_communities.main import app
+    from gated_communities.main import app
 
     return TestClient(app)
 

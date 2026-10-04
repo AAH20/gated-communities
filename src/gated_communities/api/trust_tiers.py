@@ -4,9 +4,9 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from reputation_system.agents.trust_tier import TrustTierAgent, TrustTierInput
-from reputation_system.config.settings import Settings, get_settings
-from reputation_system.models.schemas import TrustTier, TrustTierCreate, TrustTierUpdate
+from ..agents.reputation_system.trust_tier import TrustTierAgent, TrustTierInput
+from ..config.settings import Settings, get_settings
+from ..models.reputation_system_schemas import TrustTier, TrustTierCreate, TrustTierUpdate
 
 router = APIRouter(prefix="/trust-tiers", tags=["trust-tiers"])
 
@@ -156,7 +156,7 @@ async def evaluate_trust_tier(
     Returns:
         Trust tier evaluation results.
     """
-    from reputation_system.models.schemas import TrustTierLevel
+    from ..models.reputation_system_schemas import TrustTierLevel
 
     agent = TrustTierAgent(settings=settings)
     input_data = TrustTierInput(

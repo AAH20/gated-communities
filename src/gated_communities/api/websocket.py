@@ -1,6 +1,8 @@
 """WebSocket endpoint for real-time communication."""
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Query
+
+from ..auth import verify_token
 
 router = APIRouter()
 
@@ -37,7 +39,21 @@ manager = ConnectionManager()
 
 
 @router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, community_id: str = "default"):
+async def websocket_endpoint(
+    websocket: WebSocket,
+    community_id: str = "default",
+    token: str = Query(None),
+):
+    # Authenticate WebSocket connections
+    if not token:
+        await websocket.close(code=4001, reason="Authentication required")
+        return
+
+    user_id = verify_token(token)
+    if not user_id:
+        await websocket.close(code=4001, reason="Invalid or expired token")
+        return
+
     await manager.connect(websocket, community_id)
     try:
         while True:

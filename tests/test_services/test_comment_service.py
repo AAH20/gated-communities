@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.gated_communities.services.comment_service import (
+from gated_communities.services.comment_service import (
     CommentService,
     create_comment,
     delete_comment,

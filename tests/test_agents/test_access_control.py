@@ -8,7 +8,7 @@ import pytest
 from unittest.mock import MagicMock, patch, call
 from datetime import datetime, timedelta
 
-from src.gated_communities.access_control import (
+from gated_communities.access_control import (
     check_access,
     grant_access,
     revoke_access,

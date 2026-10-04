@@ -5,14 +5,17 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
-import structlog
-from escalation_workflow.config import get_settings
-from langchain_openai import ChatOpenAI
+try:
+    import structlog
+    logger = structlog.get_logger(__name__)
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
 
-if TYPE_CHECKING:
-    from langchain_core.language_models import BaseChatModel
-
-logger = structlog.get_logger(__name__)
+try:
+    from langchain_openai import ChatOpenAI
+except ImportError:
+    ChatOpenAI = None
 
 T = TypeVar("T")
 R = TypeVar("R")

@@ -356,3 +356,23 @@ def get_moderation_metrics(community_id: str, time_range: str) -> dict[str, Any]
         raise AnalyticsServiceError(
             f"Failed to compute moderation metrics for community {community_id}: {exc}"
         ) from exc
+
+
+class AnalyticsService:
+    """Service for analytics operations."""
+
+    def __init__(self, db=None, cache=None):
+        self._db = db
+        self._cache = cache
+
+    def get_community_metrics(self, community_id: str, time_range: str) -> dict[str, Any]:
+        return get_community_metrics(community_id, time_range)
+
+    def get_engagement_metrics(self, community_id: str, time_range: str) -> dict[str, Any]:
+        return get_engagement_metrics(community_id, time_range)
+
+    def get_growth_metrics(self, community_id: str, time_range: str) -> dict[str, Any]:
+        return get_growth_metrics(community_id, time_range)
+
+    def get_moderation_metrics(self, community_id: str, time_range: str) -> dict[str, Any]:
+        return get_moderation_metrics(community_id, time_range)

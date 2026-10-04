@@ -4,10 +4,11 @@ import pytest
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
-from src.agents.community_health_scorer import (
-    CommunityHealthScorer,
-    HealthScoreResult,
-    RiskItem,
+from gated_communities.community_health_scorer import (
+    score_community_health,
+    get_health_metrics,
+    flag_unhealthy_community,
+    identify_risks,
 )
 
 

@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any, Generic, Literal, TypeVar
 from uuid import UUID, uuid4
 
-from access_control.models.enums import AccessDecision, AuditSeverity, PolicyEffect, RoleStatus
+from ..models.access_control_schemas import AccessDecision, AuditSeverity, PolicyEffect, RoleStatus
 from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar("T")

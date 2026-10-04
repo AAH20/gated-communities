@@ -10,9 +10,9 @@ from datetime import UTC
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from tier_management.agents.base import BaseAgent
-from tier_management.config.logging_config import get_logger
-from tier_management.models.schemas import Benefit, BenefitType
+from .base import BaseAgent
+from ..config.logging_config import get_logger
+from ..models.schemas import Benefit, BenefitType
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel

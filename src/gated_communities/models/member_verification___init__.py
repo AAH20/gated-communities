@@ -1,6 +1,6 @@
 """Models module for member verification service."""
 
-from member_verification.models.schemas import (
+from .member_verification_schemas import (
     AgentInfo,
     DocumentData,
     DocumentVerificationResult,

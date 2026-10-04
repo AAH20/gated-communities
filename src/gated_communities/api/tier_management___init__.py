@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
-from tier_management.api.routes.access import access_router
-from tier_management.api.routes.analytics import analytics_router
-from tier_management.api.routes.benefits import benefits_router
-from tier_management.api.routes.evaluation import evaluation_router
-from tier_management.api.routes.health import health_router
-from tier_management.api.routes.tiers import tiers_router
-from tier_management.api.routes.upgrades import upgrades_router
+from ..api.routes.access import access_router
+from ..api.routes.analytics import analytics_router
+from ..api.routes.benefits import benefits_router
+from ..api.routes.evaluation import evaluation_router
+from ..api.routes.health import health_router
+from ..api.routes.tiers import tiers_router
+from ..api.routes.upgrades import upgrades_router
 
 router = APIRouter()
 router.include_router(health_router, tags=["health"])

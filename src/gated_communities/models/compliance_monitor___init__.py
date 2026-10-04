@@ -1,6 +1,6 @@
 """Models package."""
 
-from compliance_monitor.models.schemas import (
+from .compliance_monitor_schemas import (
     AuditReport,
     AuditRequest,
     ComplianceReport,

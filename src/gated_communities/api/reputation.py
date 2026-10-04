@@ -3,9 +3,9 @@
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from reputation_system.agents.reputation_scorer import ReputationScorerAgent, ScoringInput
-from reputation_system.config.settings import Settings, get_settings
-from reputation_system.models.schemas import (
+from ..agents.reputation_system.reputation_scorer import ReputationScorerAgent, ScoringInput
+from ..config.settings import Settings, get_settings
+from ..models.reputation_system_schemas import (
     ReputationScore,
     ReputationScoreCreate,
     ReputationScoreUpdate,

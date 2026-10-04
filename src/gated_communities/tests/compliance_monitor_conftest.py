@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from compliance_monitor.api.store import store
-from compliance_monitor.main import create_app
+from ..api.store import store
+from ..main import create_app
 from fastapi.testclient import TestClient
 
 

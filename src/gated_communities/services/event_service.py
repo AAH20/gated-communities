@@ -189,3 +189,32 @@ class EventService:
             del self._events[event_id]
             return True
         return False
+
+
+# Module-level convenience functions that delegate to a default service instance
+_default_service = EventService()
+
+
+def create_event(data: dict) -> dict:
+    """Create a new event."""
+    return _default_service.create_event(data)
+
+
+def get_event(event_id: str) -> dict:
+    """Get an event by ID."""
+    return _default_service.get_event(event_id)
+
+
+def list_events(filters: dict | None = None, page: int = 1, page_size: int = 20) -> list[dict]:
+    """List events with optional filters and pagination."""
+    return _default_service.list_events(filters, page, page_size)
+
+
+def update_event(event_id: str, data: dict) -> dict:
+    """Update an event."""
+    return _default_service.update_event(event_id, data)
+
+
+def delete_event(event_id: str) -> bool:
+    """Delete an event."""
+    return _default_service.delete_event(event_id)

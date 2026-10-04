@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from src.gated_communities.models.post import Post, PostStatus
-from src.gated_communities.services.post_service import PostService
+from gated_communities.models.post import Post, PostStatus
+from gated_communities.services.post_service import PostService
 
 
 # ---------------------------------------------------------------------------

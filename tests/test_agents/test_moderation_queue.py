@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock, patch, MagicMock
 from uuid import uuid4
 
-from src.gated_communities.moderation_queue import (
+from gated_communities.moderation_queue import (
     add_to_queue,
     get_queue_status,
     process_queue_item,

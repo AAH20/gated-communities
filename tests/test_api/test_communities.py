@@ -19,7 +19,7 @@ def client():
     """Return a TestClient bound to the FastAPI app."""
     # Import the app from the main application module.
     # Adjust the import path to match your project layout.
-    from app.main import app  # type: ignore
+    from gated_communities.main import app  # type: ignore
     return TestClient(app)
 
 

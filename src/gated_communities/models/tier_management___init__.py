@@ -1,6 +1,6 @@
 """Domain models for tier management."""
 
-from tier_management.models.schemas import (
+from .schemas import (
     AccessCheckRequest,
     AccessCheckResponse,
     AccessDecision,

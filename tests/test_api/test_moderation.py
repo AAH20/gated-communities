@@ -21,12 +21,12 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(project_root))
 
-from app.main import app
-from app.database import Base, get_db
-from app.models.moderation import ModerationItem, ModerationStatus, ModerationPriority
-from app.models.user import User
-from app.models.community import Community
-from app.core.security import create_access_token
+from gated_communities.main import app
+from gated_communities.database import Base, get_db
+from gated_communities.models.moderation import ModerationItem, ModerationStatus, ModerationPriority
+from gated_communities.models.user import User
+from gated_communities.models.community import Community
+from gated_communities.core.security import create_access_token
 
 
 # ---------------------------------------------------------------------------

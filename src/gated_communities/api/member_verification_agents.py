@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from member_verification.api.dependencies import verify_api_key
-from member_verification.models.schemas import AgentInfo
+from .member_verification_dependencies import verify_api_key
+from ..models.member_verification_schemas import AgentInfo
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 

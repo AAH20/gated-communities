@@ -4,8 +4,8 @@ from collections.abc import AsyncGenerator
 
 import pytest
 from fastapi.testclient import TestClient
-from reputation_system.config.settings import Settings
-from reputation_system.main import create_app
+from ..config.settings import Settings
+from ..main import create_app
 
 
 @pytest.fixture

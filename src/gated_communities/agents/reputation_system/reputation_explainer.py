@@ -3,8 +3,8 @@
 from typing import Any
 
 from pydantic import BaseModel, Field
-from reputation_system.agents.base import BaseAgent
-from reputation_system.models.schemas import TrustTierLevel
+from .base import BaseAgent
+from ..models.reputation_system_schemas import TrustTierLevel
 
 
 class ExplanationInput(BaseModel):

@@ -9,13 +9,13 @@ from langchain_core.prompts import ChatPromptTemplate
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
-from access_control.agents.base import AgentContext, BaseAgent
+from .base import AgentContext, BaseAgent
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from access_control.config import Settings
-from access_control.models.enums import AccessDecision, AuditSeverity
-from access_control.models.schemas import AccessAudit, AccessRequest
+    from ..config import Settings
+from ..models.access_control_schemas import AccessDecision, AuditSeverity
+from ..models.access_control_schemas import AccessAudit, AccessRequest
 
 
 class AccessAuditorInput(BaseModel):

@@ -1,60 +1,30 @@
-"""Post model for gated communities."""
+"""Post models."""
 
 from __future__ import annotations
-
-import uuid
 from datetime import datetime
+from enum import StrEnum
+from typing import Any
+from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from gated_communities.models.base import Base
+from pydantic import BaseModel, ConfigDict, Field
 
 
-class Post(Base):
-    """Represents a post within a gated community."""
+class PostStatus(StrEnum):
+    """Post status."""
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    ARCHIVED = "archived"
 
-    __tablename__ = "posts"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4,
-    )
-    community_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("communities.id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    author_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(20),
-        nullable=False,
-        default="draft",
-        server_default="draft",
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
-        onupdate=func.now(),
-    )
+class Post(BaseModel):
+    """Post model."""
+    model_config = ConfigDict(from_attributes=True)
 
-    # Relationships
-    community = relationship("Community", back_populates="posts")
-    author = relationship("User", back_populates="posts")
-
-    def __repr__(self) -> str:
-        return f"<Post(id={self.id}, title={self.title!r}, status={self.status!r})>"
+    id: UUID = Field(default_factory=uuid4)
+    community_id: str = Field(..., min_length=1)
+    author_id: str = Field(..., min_length=1)
+    title: str = Field(..., min_length=1, max_length=500)
+    content: str = Field(..., min_length=1)
+    status: PostStatus = PostStatus.DRAFT
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)

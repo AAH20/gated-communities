@@ -2,10 +2,13 @@
 
 import pytest
 from unittest.mock import MagicMock, patch
-from src.gated_communities.agents.community_governance import (
-    create_governance_policy,
-    get_governance_policies,
-    enforce_governance_policy,
+from gated_communities.agents.community_governance import (
+    BaseAgent,
+    DisputeResolverAgent,
+    GovernanceAnalyticsAgent,
+    GovernanceExplainerAgent,
+    PolicyManagerAgent,
+    RuleEnforcerAgent,
 )
 
 

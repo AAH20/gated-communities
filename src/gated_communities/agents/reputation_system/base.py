@@ -5,7 +5,7 @@ from typing import Any, Generic, TypeVar
 
 from langchain_core.language_models import BaseLanguageModel
 from pydantic import BaseModel
-from reputation_system.config.settings import Settings, get_settings
+from ..config.settings import Settings, get_settings
 
 InputT = TypeVar("InputT", bound=BaseModel)
 OutputT = TypeVar("OutputT", bound=BaseModel)

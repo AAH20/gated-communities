@@ -7,13 +7,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.gated_communities.models.invitation import (
+from gated_communities.models.invitation import (
     Invitation,
     InvitationCreate,
     InvitationStatus,
     InvitationUpdate,
 )
-from src.gated_communities.services.invitation_service import InvitationService
+from gated_communities.services.invitation_service import InvitationService
 
 
 # ---------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 from typing import Any
 
 from pydantic import BaseModel, Field
-from reputation_system.agents.base import BaseAgent
+from .base import BaseAgent
 
 
 class BadgeEvaluationInput(BaseModel):

@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
 
-from src.gated_communities.community_health_scorer import (
+from gated_communities.community_health_scorer import (
     score_community_health,
     get_health_metrics,
     flag_unhealthy_community,
@@ -423,7 +423,7 @@ class TestFlagUnhealthyCommunity:
 
     def test_flag_unhealthy_community_uses_score(self, sample_community):
         """Flagging should be consistent with score_community_health."""
-        from src.gated_communities.community_health_scorer import score_community_health
+        from gated_communities.community_health_scorer import score_community_health
 
         score = score_community_health(sample_community)
         flagged = flag_unhealthy_community(sample_community)

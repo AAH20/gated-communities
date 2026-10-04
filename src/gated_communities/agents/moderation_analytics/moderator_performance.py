@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from langchain_core.prompts import ChatPromptTemplate
-from moderation_analytics.agents.base import BaseAgent
-from moderation_analytics.models import ModeratorPerformance
+from .agents.base import BaseAgent
+from .models import ModeratorPerformance
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
