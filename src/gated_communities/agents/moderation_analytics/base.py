@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import structlog
 from langchain_openai import ChatOpenAI
-from moderation_analytics.config import get_settings
+from .config import get_settings
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
@@ -51,7 +51,6 @@ class BaseAgent(ABC, Generic[T]):
             )
         return self._llm
 
-    @abstractmethod
     async def run(self, **kwargs: Any) -> T:
         """Execute the agent's primary task.
 
@@ -64,7 +63,7 @@ class BaseAgent(ABC, Generic[T]):
         Raises:
             NotImplementedError: Must be implemented by subclasses.
         """
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses must implement run()")
 
     def _log_start(self, **kwargs: Any) -> None:
         """Log agent execution start.

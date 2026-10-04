@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
-from tier_management.config.logging_config import get_logger
+from ..config.logging_config import get_logger
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
@@ -59,7 +59,6 @@ class BaseAgent(ABC, Generic[T, R]):
         self._initialized = True
         logger.info("agent_ready", agent_name=self.name)
 
-    @abstractmethod
     async def execute(self, input_data: T) -> R:
         """Execute the agent's primary function.
 
@@ -72,7 +71,7 @@ class BaseAgent(ABC, Generic[T, R]):
         Raises:
             NotImplementedError: Must be implemented by subclasses.
         """
-        raise NotImplementedError
+        raise NotImplementedError("Subclasses must implement execute()")
 
     async def health_check(self) -> bool:
         """Check if the agent is healthy and ready.
