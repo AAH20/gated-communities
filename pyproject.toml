@@ -39,3 +39,6 @@ where = ["src"]
 [tool.ruff.lint]
 select = ["E9", "F821", "F811"]
 ignore = []
+
+[tool.mypy]
+exclude = ['database/', 'tests/']
