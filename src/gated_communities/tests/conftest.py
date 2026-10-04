@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from None  # TODO: Fix import create_app
+from gated_communities.main import create_app
 
 
 @pytest.fixture
