@@ -288,3 +288,12 @@ class EventResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     attendee_count: int = 0
+
+
+class AuditLogCreate(BaseModel):
+    """Schema for creating an audit log entry."""
+
+    community_id: int = Field(..., gt=0)
+    user_id: int = Field(..., gt=0)
+    action: str = Field(..., min_length=1, max_length=100)
+    details: str | None = Field(None, max_length=2000)
