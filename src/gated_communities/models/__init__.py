@@ -107,6 +107,10 @@ class Community(Base):
         back_populates="community",
         cascade="all, delete-orphan",
     )
+    audit_logs: Mapped[list[AuditLog]] = relationship(
+        back_populates="community",
+        cascade="all, delete-orphan",
+    )
     events: Mapped[list[Event]] = relationship(
         back_populates="community",
         cascade="all, delete-orphan",
@@ -250,3 +254,26 @@ class Event(Base):
 
     # Relationships
     community: Mapped[Community] = relationship(back_populates="events")
+
+
+class AuditLog(Base):
+    """Audit log for community actions."""
+
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    community_id: Mapped[int] = mapped_column(
+        ForeignKey("communities.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id: Mapped[int] = mapped_column(nullable=False, index=True)
+    action: Mapped[str] = mapped_column(String(100), nullable=False)
+    details: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    # Relationships
+    community: Mapped[Community] = relationship(back_populates="audit_logs")
