@@ -43,6 +43,5 @@ ignore = []
 [tool.mypy]
 files = ["src/gated_communities"]
 explicit_package_bases = true
-["database/", "tests/"]
 mypy_path = "src"
 explicit_package_bases = true
