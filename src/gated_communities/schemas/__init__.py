@@ -297,3 +297,16 @@ class AuditLogCreate(BaseModel):
     user_id: int = Field(..., gt=0)
     action: str = Field(..., min_length=1, max_length=100)
     details: str | None = Field(None, max_length=2000)
+
+
+class AuditLogResponse(BaseModel):
+    """Schema for audit log response payloads."""
+
+    id: int
+    community_id: int
+    user_id: int
+    action: str
+    details: str | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
