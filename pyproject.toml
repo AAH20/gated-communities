@@ -41,6 +41,8 @@ select = ["E9", "F821", "F811"]
 ignore = []
 
 [tool.mypy]
-exclude = ["database/", "tests/"]
+files = ["src/gated_communities"]
+explicit_package_bases = true
+["database/", "tests/"]
 mypy_path = "src"
 explicit_package_bases = true
