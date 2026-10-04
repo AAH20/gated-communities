@@ -277,3 +277,30 @@ class AuditLog(Base):
 
     # Relationships
     community: Mapped[Community] = relationship(back_populates="audit_logs")
+
+
+class ModerationItem(Base):
+    """A moderation item within a community."""
+
+    __tablename__ = "moderation_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    community_id: Mapped[int] = mapped_column(
+        ForeignKey("communities.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    reporter_id: Mapped[int] = mapped_column(nullable=False)
+    target_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    target_id: Mapped[int] = mapped_column(nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolved_by: Mapped[int | None] = mapped_column(nullable=True)
+
+    # Relationships
+    community: Mapped[Community] = relationship(back_populates="moderation_items")
