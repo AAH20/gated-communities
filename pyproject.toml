@@ -44,4 +44,3 @@ ignore = []
 exclude = ["database/", "tests/"]
 mypy_path = "src"
 explicit_package_bases = true
-['database/', 'tests/']
