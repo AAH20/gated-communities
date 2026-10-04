@@ -309,7 +309,7 @@ Provide a policy recommendation that addresses the identified issues."""
         top_category = max(violations, key=violations.get) if violations else "general"
 
         return {
-            ("name": f"Enhanced {top_category.replace('_', ' ').title()} Policy",)
+            "name": f"Enhanced {top_category.replace('_', ' ').title()} Policy",
             "description": (
                 f"Automatically generated policy to address elevated {top_category} "
                 "violations detected in governance analytics."
