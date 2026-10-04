@@ -310,3 +310,11 @@ class AuditLogResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class BulkMemberUpdate(BaseModel):
+    """Schema for bulk member update operations."""
+
+    member_ids: list[int] = Field(..., min_length=1)
+    role: str | None = None
+    tier: str | None = None
