@@ -41,7 +41,7 @@ class TestAuthorizationBypass:
 
     def test_unauthenticated_cannot_access_moderation(self, client):
         """Test that unauthenticated users cannot access moderation."""
-        resp = client.get("/moderation")
+        resp = client.get("/moderation/queue")
         assert resp.status_code in (401, 403), (
             "Unauthenticated user accessed moderation"
         )
@@ -55,7 +55,7 @@ class TestAuthorizationBypass:
 
     def test_unauthenticated_cannot_access_export(self, client):
         """Test that unauthenticated users cannot access export."""
-        resp = client.get("/export")
+        resp = client.get("/export/members")
         assert resp.status_code in (401, 403), (
             "Unauthenticated user accessed export"
         )
@@ -75,10 +75,12 @@ class TestAuthorizationBypass:
 
     def test_revoked_token_rejected(self, client):
         """Test that revoked tokens are rejected."""
-        from gated_communities.auth import revoke_token
+        from gated_communities.auth import revoke_token, _users
 
         register_user("revoketest", "revoke@example.com", "testpass123")
-        token = create_access_token("revoketest")
+        # Get the user's actual ID (UUID) to create a valid token
+        user = _users["revoketest"]
+        token = create_access_token(user["id"])
 
         # Revoke the token
         revoke_token(token)

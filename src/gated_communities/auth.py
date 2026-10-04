@@ -60,7 +60,7 @@ def _generate_token() -> str:
 def register_user(username: str, email: str, password: str) -> dict[str, Any]:
     """Register a new user."""
     if username in _users:
-        raise HTTPException(status_code=409, detail="Username already exists")
+        raise HTTPException(status_code=409, detail="Registration failed")
     user_id = str(uuid.uuid4())
     _users[username] = {
         "id": user_id,
@@ -79,6 +79,14 @@ def authenticate_user(username: str, password: str) -> dict[str, Any] | None:
     if user["password_hash"] != _hash_password(password):
         return None
     return user
+
+
+def get_user_by_id(user_id: str) -> dict[str, Any] | None:
+    """Get a user by their ID."""
+    for user in _users.values():
+        if user["id"] == user_id:
+            return user
+    return None
 
 
 def create_access_token(user_id: str) -> str:

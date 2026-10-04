@@ -11,10 +11,8 @@ import pytest
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta
 
-from gated_communities import (
-    Community,
-    CommunityStatus,
-)
+from gated_communities import Community
+from gated_communities.models import CommunityStatus
 
 
 # ---------------------------------------------------------------------------

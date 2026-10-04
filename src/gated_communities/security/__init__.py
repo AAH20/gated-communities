@@ -1,6 +1,6 @@
-"""Security module for role-based access control and authorization.
+"""Security package for role-based access control and authorization.
 
-This module provides dependencies and utilities for enforcing role-based
+This package provides dependencies and utilities for enforcing role-based
 access control (RBAC) across all API endpoints.
 """
 
@@ -11,9 +11,9 @@ from typing import Any, Callable
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .auth import get_current_user
-from .database import get_db
-from .models import Member, MemberRole
+from ..auth import get_current_user
+from ..database import get_db
+from ..models import Member, MemberRole
 
 
 # Role hierarchy: higher roles inherit permissions from lower roles
@@ -39,12 +39,9 @@ def get_user_role_in_community(
 
     Returns None if the user is not a member of the community.
     """
-    # Handle both string UUID and integer user IDs
     try:
         user_id_int = int(user_id)
     except (ValueError, TypeError):
-        # If user_id is a UUID string, we can't match against integer Member.user_id
-        # In a production system, these would be the same type
         return None
 
     membership = (
@@ -87,7 +84,6 @@ def require_role(
         current_user: dict[str, Any] = Depends(get_current_user),
         db: Session = Depends(get_db),
     ) -> dict[str, Any]:
-        # Check if user has the required role in any community
         try:
             user_id_int = int(current_user["id"])
         except (ValueError, TypeError):
@@ -192,3 +188,15 @@ def sanitize_error_detail(detail: str) -> str:
     if any(pattern in detail_lower for pattern in sensitive_patterns):
         return "An error occurred"
     return detail
+
+
+__all__ = [
+    "require_auth",
+    "require_role",
+    "require_community_role",
+    "require_community_role_or_owner",
+    "require_moderator",
+    "get_user_role_in_community",
+    "sanitize_error_detail",
+    "ROLE_HIERARCHY",
+]

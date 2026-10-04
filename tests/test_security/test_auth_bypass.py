@@ -11,7 +11,7 @@ class TestAuthenticationBypass:
     """Test that authentication cannot be bypassed."""
 
     @pytest.fixture
-    def client(self):
+    def client(self, db_session):
         with TestClient(app) as c:
             yield c
 
@@ -22,9 +22,9 @@ class TestAuthenticationBypass:
             ("POST", "/communities"),
             ("GET", "/members"),
             ("POST", "/members"),
-            ("GET", "/moderation"),
+            ("GET", "/moderation/queue"),
             ("GET", "/audit"),
-            ("GET", "/export"),
+            ("GET", "/export/members"),
         ]
         for method, path in protected_endpoints:
             resp = client.request(method, path)
@@ -111,9 +111,11 @@ class TestAuthenticationBypass:
 
     def test_register_then_access_protected(self, client):
         """Test that a registered user can access protected endpoints."""
-        from gated_communities.auth import register_user, create_access_token
+        from gated_communities.auth import register_user, create_access_token, _users
         register_user("normaluser", "normal@example.com", "testpass123")
-        token = create_access_token("normaluser")
+        # Get the user's ID (UUID) to create a valid token
+        user = _users["normaluser"]
+        token = create_access_token(user["id"])
 
         resp = client.get(
             "/communities",

@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 
 from .api import audit, bulk, communities, export, members, moderation, search, websocket
@@ -38,15 +39,39 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS: Restrict origins in production; allow_credentials requires specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:3000", "http://localhost:8080"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.add_middleware(RateLimitMiddleware)
+
+
+# ---------------------------------------------------------------------------
+# Global exception handlers for proper error handling
+# ---------------------------------------------------------------------------
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Handle HTTP exceptions with consistent error format."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Handle unexpected exceptions without leaking internal details."""
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
 
 # Include routers
 app.include_router(communities.router, prefix="/communities", tags=["communities"])
@@ -141,7 +166,7 @@ def change_password(
 
     user = _users.get(current_user["username"])
     if user and user["password_hash"] != _hash_password(request.current_password):
-        raise HTTPException(status_code=400, detail="Current password is incorrect")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     if user:
         user["password_hash"] = _hash_password(request.new_password)
     return {"status": "password_changed"}
