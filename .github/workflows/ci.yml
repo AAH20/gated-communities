@@ -131,7 +131,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gated_communities_test
           REDIS_URL: redis://localhost:6379/0
         run: |
-          pytest src/ || truegated_communities/tests/ || true \
+          pytest src/gated_communities/tests/ tests/ || true \
             -v \
             --tb=short \
             --cov=src/gated_communities \
