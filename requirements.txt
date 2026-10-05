@@ -33,7 +33,7 @@ alembic>=1.13.0
 
 # Cache/Queue
 redis>=5.0.0
-celery>=5.4.0
+celery>=5.6.3
 
 # File handling
 python-multipart>=0.0.9
