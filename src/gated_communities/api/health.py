@@ -21,7 +21,7 @@ async def health_check(
     """
     return HealthResponse(
         status="healthy",
-        version=settings.app_version,
+        version=settings.APP_VERSION,
         checks={
             "api": True,
             "agents": True,
@@ -39,7 +39,7 @@ async def readiness_check(
         JSONResponse indicating service readiness.
     """
     return JSONResponse(
-        content={"ready": True, "version": settings.app_version},
+        content={"ready": True, "version": settings.APP_VERSION},
         status_code=200,
     )
 

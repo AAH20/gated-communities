@@ -7,7 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 
-from .api import audit, bulk, communities, export, members, moderation, search, websocket
+from .api import audit, bulk, communities, export, health, members, moderation, search, websocket
+from .api.main import register_all_routers
 from .auth import (
     LoginRequest,
     PasswordChangeRequest,
@@ -74,6 +75,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 # Include routers
+app.include_router(health.health_router, tags=["health"])
 app.include_router(communities.router, prefix="/communities", tags=["communities"])
 app.include_router(members.router, prefix="/members", tags=["members"])
 app.include_router(moderation.router, prefix="/moderation", tags=["moderation"])
@@ -83,35 +85,18 @@ app.include_router(export.router, prefix="/export", tags=["export"])
 app.include_router(bulk.router, prefix="/bulk", tags=["bulk"])
 app.include_router(websocket.router, tags=["websocket"])
 
+# Mount every remaining domain router (tiers, audit, bulk, webhooks, ...)
+register_all_routers(app)
+
 
 @app.get("/", response_model=dict)
 def root():
     return {"name": "Gated Communities API", "version": "0.1.0"}
 
 
-@app.get("/health", response_model=dict)
-def health_check():
-    return {"status": "ok"}
-
-
-@app.get("/health/live", response_model=dict)
-def liveness_check():
-    return {"status": "ok"}
-
-
-@app.get("/health/ready", response_model=dict)
-def readiness_check():
-    return {"status": "ok"}
-
-
-@app.get("/ready", response_model=dict)
-def ready_check():
-    return {"status": "ready"}
-
-
-@app.get("/live", response_model=dict)
-def live_check():
-    return {"status": "alive"}
+# NOTE: /health, /health/live, /health/ready, /ready, /live are served by
+# src/gated_communities/api/health.py (registered in api/main.py).
+# Do not re-define them here — duplicates shadow the router versions.
 
 
 # Auth endpoints
