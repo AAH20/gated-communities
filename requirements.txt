@@ -12,7 +12,7 @@ pydantic-settings>=2.3.0
 httpx>=0.27.0
 
 # Environment
-python-dotenv>=1.1.0
+python-dotenv>=1.2.4
 
 # Logging
 structlog>=24.1.0
@@ -72,5 +72,5 @@ future>=1.0.0
 # Fixes: PYSEC-2026-1845 (pytest)
 pytest>=9.0.3
 # Fixes: PYSEC-2026-2270 (python-dotenv)
-python-dotenv>=1.1.0
+python-dotenv>=1.2.4
 bleach>=6.0.0
