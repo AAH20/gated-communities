@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..agents.benefit_manager import BenefitManagerAgent
+from ..agents.tier_management.benefit_manager import BenefitManagerAgent
 from ..config.settings import Settings, get_settings
 from ..models.schemas import Benefit
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 benefits_router = APIRouter()
 
@@ -43,7 +41,7 @@ async def agent_initialize() -> None:
         await _agent_instance.initialize()
 
 
-@benefits_router.post("", response_model=Benefit, status_code=status.HTTP_201_CREATED)
+@benefits_router.post("/benefits", response_model=Benefit, status_code=status.HTTP_201_CREATED)
 async def create_benefit(
     benefit_data: dict[str, Any],
     settings: Settings = Depends(get_settings),  # noqa: B008  # noqa: B008
@@ -101,7 +99,7 @@ async def get_benefit(
     return benefit
 
 
-@benefits_router.get("", response_model=list[Benefit])
+@benefits_router.get("/benefits", response_model=list[Benefit])
 async def list_benefits(
     tier_id: UUID | None = None,
     active_only: bool = True,

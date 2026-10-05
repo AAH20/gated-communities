@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..agents.tier_evaluator import TierEvaluatorAgent
+from ..agents.tier_management.tier_evaluator import TierEvaluatorAgent
 from ..config.settings import Settings, get_settings
 from ..models.schemas import TierEvaluation
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 evaluation_router = APIRouter()
 
@@ -18,7 +16,7 @@ evaluation_router = APIRouter()
 _evaluations_store: dict[UUID, TierEvaluation] = {}
 
 
-@evaluation_router.post("", response_model=TierEvaluation, status_code=status.HTTP_201_CREATED)
+@evaluation_router.post("/evaluation", response_model=TierEvaluation, status_code=status.HTTP_201_CREATED)
 async def create_evaluation(
     evaluation_data: dict[str, Any],
     settings: Settings = Depends(get_settings),  # noqa: B008

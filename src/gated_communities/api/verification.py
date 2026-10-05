@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -12,9 +13,6 @@ from ..models.member_verification_schemas import (
     VerificationRequest,
     VerificationResult,
 )
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 router = APIRouter(prefix="/verify", tags=["verification"])
 

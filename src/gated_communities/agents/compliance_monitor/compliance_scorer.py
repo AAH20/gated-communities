@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from .base import BaseComplianceAgent
-from ..models.compliance_monitor_schemas import ComplianceScore, ScoreRequest
-
-if TYPE_CHECKING:
-    from uuid import UUID
-
+from ...models.compliance_monitor_schemas import ComplianceScore, ScoreRequest
 
 class ComplianceScorerAgent(BaseComplianceAgent[ScoreRequest, ComplianceScore]):
     """Agent responsible for computing compliance scores.

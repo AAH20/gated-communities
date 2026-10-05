@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 from datetime import UTC
-from typing import TYPE_CHECKING, Any
+from typing import Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..agents.tier_analytics import TierAnalyticsAgent
+from ..agents.tier_management.tier_analytics import TierAnalyticsAgent
 from ..config.settings import Settings, get_settings
 from ..models.schemas import TierAnalytics
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 analytics_router = APIRouter()
 
@@ -19,7 +17,7 @@ analytics_router = APIRouter()
 _analytics_store: dict[UUID, TierAnalytics] = {}
 
 
-@analytics_router.post("", response_model=TierAnalytics, status_code=status.HTTP_201_CREATED)
+@analytics_router.post("/analytics", response_model=TierAnalytics, status_code=status.HTTP_201_CREATED)
 async def generate_analytics(
     analytics_data: dict[str, Any],
     settings: Settings = Depends(get_settings),  # noqa: B008

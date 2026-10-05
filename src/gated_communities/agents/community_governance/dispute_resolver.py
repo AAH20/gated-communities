@@ -2,23 +2,18 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 import json
 from typing import TYPE_CHECKING, Any
 
-from community_governance.agents.base import BaseAgent
-from community_governance.config.logging_config import get_logger
-from community_governance.exceptions import (
+from .base import BaseAgent
+from ...config.community_governance_logging_config import get_logger
+from ...community_governance_exceptions import (
     AgentExecutionError,
     DisputeNotFoundError,
     DisputeResolutionError,
 )
-from community_governance.models.dispute import Dispute, DisputeResolution, DisputeStatus
-
-if TYPE_CHECKING:
-    from uuid import UUID
-
-    from langchain_core.language_models import BaseLanguageModel
-
+from ...models.dispute import Dispute, DisputeResolution, DisputeStatus
 
 logger = get_logger(__name__)
 

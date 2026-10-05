@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 from datetime import UTC
-from typing import TYPE_CHECKING, Any
+from typing import Any
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from ..config.settings import Settings, get_settings
 from ..models.schemas import Tier, TierLevel, TierStatus
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 tiers_router = APIRouter()
 
@@ -18,7 +16,7 @@ tiers_router = APIRouter()
 _tiers_store: dict[UUID, Tier] = {}
 
 
-@tiers_router.get("", response_model=list[Tier])
+@tiers_router.get("/tiers", response_model=list[Tier])
 async def list_tiers(
     level: TierLevel | None = None,
     status: TierStatus = TierStatus.ACTIVE,
@@ -45,7 +43,7 @@ async def list_tiers(
     return tiers[skip : skip + limit]
 
 
-@tiers_router.post("", response_model=Tier, status_code=status.HTTP_201_CREATED)
+@tiers_router.post("/tiers", response_model=Tier, status_code=status.HTTP_201_CREATED)
 async def create_tier(
     tier_data: dict[str, Any],
     settings: Settings = Depends(get_settings),  # noqa: B008

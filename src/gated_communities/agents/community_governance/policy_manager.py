@@ -2,25 +2,19 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 import json
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from community_governance.agents.base import BaseAgent
-from community_governance.config.logging_config import get_logger
-from community_governance.exceptions import (
+from .base import BaseAgent
+from ...config.community_governance_logging_config import get_logger
+from ...community_governance_exceptions import (
     AgentExecutionError,
     PolicyEnforcementError,
     PolicyNotFoundError,
 )
-from community_governance.models.policy import Policy, PolicyCreate, PolicyStatus, PolicyUpdate
-
-if TYPE_CHECKING:
-    from uuid import UUID
-
-    from community_governance.models.rule import Rule
-    from langchain_core.language_models import BaseLanguageModel
-
+from ...models.policy import Policy, PolicyCreate, PolicyStatus, PolicyUpdate
 
 logger = get_logger(__name__)
 

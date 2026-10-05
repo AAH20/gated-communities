@@ -1,6 +1,7 @@
 """Policy API routes."""
 
 from __future__ import annotations
+from uuid import UUID
 
 from typing import TYPE_CHECKING
 
@@ -10,11 +11,9 @@ from ..models.compliance_monitor_schemas import Policy, PolicyCreate
 from fastapi import APIRouter, Depends, HTTPException, status
 
 if TYPE_CHECKING:
-    from uuid import UUID
-
     from ..agents.compliance_monitor import PolicyTrackerAgent
 
-router = APIRouter()
+router = APIRouter(prefix="/compliance/policies")
 
 
 @router.get("", response_model=list[Policy])

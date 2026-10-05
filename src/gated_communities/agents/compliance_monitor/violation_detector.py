@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from .base import BaseComplianceAgent
-from ..models.compliance_monitor_schemas import Violation, ViolationCreate, ViolationSeverity
-
-if TYPE_CHECKING:
-    from uuid import UUID
-
+from ...models.compliance_monitor_schemas import Violation, ViolationCreate, ViolationSeverity
 
 class ViolationDetectorAgent(BaseComplianceAgent[ViolationCreate, Violation]):
     """Agent responsible for detecting compliance violations.

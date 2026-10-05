@@ -6,23 +6,18 @@ configured policies and make grant/deny decisions with reasoning.
 
 from __future__ import annotations
 
+from uuid import UUID
 from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 from .base import BaseAgent
-from ..config.logging_config import get_logger
-from ..models.schemas import (
+from ...config.logging_config import get_logger
+from ...models.schemas import (
     AccessCheckRequest,
     AccessCheckResponse,
     AccessDecision,
     AccessPolicy,
 )
-
-if TYPE_CHECKING:
-    from uuid import UUID
-
-    from langchain_core.language_models import BaseLanguageModel
-    from langchain_core.tools import BaseTool
 
 logger = get_logger(__name__)
 

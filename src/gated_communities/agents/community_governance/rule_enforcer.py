@@ -2,20 +2,15 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 import json
 from typing import TYPE_CHECKING, Any
 
-from community_governance.agents.base import BaseAgent
-from community_governance.config.logging_config import get_logger
-from community_governance.exceptions import AgentExecutionError, RuleNotFoundError
-from community_governance.models.governance_action import GovernanceAction
-from community_governance.models.rule import Rule, RuleEnforcementResult, RuleSeverity
-
-if TYPE_CHECKING:
-    from uuid import UUID
-
-    from langchain_core.language_models import BaseLanguageModel
-
+from .base import BaseAgent
+from ...config.community_governance_logging_config import get_logger
+from ...community_governance_exceptions import AgentExecutionError, RuleNotFoundError
+from ...models.governance_action import GovernanceAction
+from ...models.rule import Rule, RuleEnforcementResult, RuleSeverity
 
 logger = get_logger(__name__)
 

@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..agents.upgrade_recommender import UpgradeRecommenderAgent
+from ..agents.tier_management.upgrade_recommender import UpgradeRecommenderAgent
 from ..config.settings import Settings, get_settings
 from ..models.schemas import UpgradeRequest
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 upgrades_router = APIRouter()
 
@@ -19,7 +17,7 @@ upgrades_router = APIRouter()
 _upgrades_store: dict[UUID, UpgradeRequest] = {}
 
 
-@upgrades_router.post("", response_model=UpgradeRequest, status_code=status.HTTP_201_CREATED)
+@upgrades_router.post("/upgrades", response_model=UpgradeRequest, status_code=status.HTTP_201_CREATED)
 async def create_upgrade_request(
     request_data: dict[str, Any],
     settings: Settings = Depends(get_settings),  # noqa: B008

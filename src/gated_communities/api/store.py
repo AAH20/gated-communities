@@ -2,19 +2,8 @@
 
 from __future__ import annotations
 
+from uuid import UUID
 from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from uuid import UUID
-
-    from ..models.compliance_monitor_schemas import (
-        AuditReport,
-        ComplianceScore,
-        Policy,
-        RemediationAction,
-        Violation,
-    )
-
 
 class ComplianceStore:
     """Thread-safe in-memory storage for compliance data.
