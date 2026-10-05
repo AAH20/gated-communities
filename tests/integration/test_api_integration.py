@@ -16,7 +16,7 @@ class TestHealthIntegration:
     def test_readiness_check(self, client: TestClient) -> None:
         response = client.get("/ready")
         assert response.status_code == 200
-        assert response.json() == {"ready": True}
+        assert response.json() == {"status": "ready"}
 
     def test_liveness_check(self, client: TestClient) -> None:
         response = client.get("/live")
