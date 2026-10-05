@@ -10,6 +10,10 @@ Tests cover:
 from __future__ import annotations
 
 import pytest
+
+pytest.importorskip("psycopg2")
+pytest.importorskip("alembic")
+
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect, text
