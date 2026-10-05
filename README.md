@@ -1,6 +1,6 @@
 # Gated Communities — Unified Platform
 
-[![CI/CD](https://img.shields.io/github/actions/workflow/status/ahmedhassan/gated-communities/ci.yml?branch=main&label=CI%2FCD)](https://github.com/ahmedhassan/gated-communities/actions)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/AAH20/gated-communities/ci.yml?branch=main&label=CI%2FCD)](https://github.com/AAH20/gated-communities/actions)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -137,9 +137,9 @@ graph TB
     end
 
     subgraph "Integration Layer"
-        LLM[LLM Service<br/>LangChain]
-        DB[(PostgreSQL)]
-        Cache[(Redis)]
+        LLM[LLM Service<br/>optional provider SDK]
+        DB[(SQLAlchemy<br/>SQLite default)]
+        Cache[In-process Cache]
         Notif[Notifications<br/>Slack/Email]
         Ext[External APIs]
         Storage[File Storage]
@@ -377,29 +377,35 @@ Dispute resolution, rule enforcement, and policy management.
 | Software | Version | Purpose |
 |----------|---------|---------|
 | Python | 3.10+ | Runtime |
-| Docker | 24.0+ | Container runtime |
-| Docker Compose | 2.0+ | Multi-container orchestration |
-| Database | SQLAlchemy 2.0 (database agnostic) |
-| Cache | In-memory (pluggable) |
+| Docker | 24.0+ | Container runtime (optional) |
+| Docker Compose | 2.0+ | Multi-container orchestration (optional) |
+| Database | SQLAlchemy 2.0 — SQLite by default, no server required | Persistence |
+| Cache | In-process (pluggable), no Redis required | Caching |
+
+No PostgreSQL, Redis, Kafka, or LLM API key is required to run the API.
 
 ### Docker Compose (Recommended)
 
 ```bash
 # Clone the repository
-git clone https://github.com/ahmedhassan/gated-communities.git
+git clone https://github.com/AAH20/gated-communities.git
 cd gated-communities
 
-# Copy environment file
+# Copy environment file (optional — SQLite is the built-in default)
 cp .env.example .env
 
-# Start all services
-docker-compose up -d
+# Start the stack
+docker compose up -d
 
 # View logs
-docker-compose logs -f app
+docker compose logs -f app
 ```
 
 The API will be available at `http://localhost:8000`.
+
+The `db` and `redis` services in `docker-compose.yml` are optional. The application
+defaults to SQLite (`src/gated_communities/config/__init__.py`), so the API runs without
+them; `requirements.txt` installs no PostgreSQL driver and no Redis client.
 
 ### Local Development
 
@@ -408,18 +414,16 @@ The API will be available at `http://localhost:8000`.
 python -m venv .venv
 source .venv/bin/activate
 
-# Install dependencies
-pip install -e ".[dev]"
+# Install dependencies (no PostgreSQL/Redis/LLM SDKs required)
+pip install -r requirements.txt
+pip install -e .
 
-# Set up environment variables
+# Set up environment variables (optional — defaults are built in)
 cp .env.example .env
-# Edit .env with your values
-
-# Start database and cache
-docker-compose up -d
 
 # Run the application
-uvicorn gated_communities.main:app --reload
+# src/ must be on the path; `pip install -e .` handles this.
+uvicorn gated_communities.main:app --reload --port 8000
 ```
 
 ### Verify Installation
@@ -429,7 +433,7 @@ uvicorn gated_communities.main:app --reload
 curl http://localhost:8000/health
 
 # Expected response:
-# {"status":"healthy","version":"1.0.0","service":"gated-communities"}
+# {"status":"healthy","version":"1.0.0","timestamp":"...","checks":{"api":true,"agents":true}}
 
 # API documentation
 open http://localhost:8000/docs
@@ -604,23 +608,28 @@ All errors follow a consistent format:
 
 ```bash
 # Start all services
-docker-compose up -d
+docker compose up -d
 
 # View logs
-docker-compose logs -f app
+docker compose logs -f app
 
 # Stop all services
-docker-compose down
+docker compose down
 ```
+
+Services defined in `docker-compose.yml`: `app` (8000, the FastAPI API), `nginx`
+(reverse proxy/TLS), and the optional `db` (PostgreSQL 16) and `redis` (Redis 7)
+containers. The application itself only needs `app` — it defaults to SQLite and
+installs no PostgreSQL or Redis driver.
 
 ### Docker Compose (Production)
 
 ```bash
 # Use production compose file
-docker-compose -f docker/docker-compose.prod.yml up -d
+docker compose -f docker/docker-compose.prod.yml up -d
 
 # With custom environment
-docker-compose -f docker/docker-compose.prod.yml --env-file .env.prod up -d
+docker compose -f docker/docker-compose.prod.yml --env-file .env.prod up -d
 ```
 
 ### Kubernetes
@@ -669,23 +678,26 @@ helm uninstall gated-communities
 
 ### Environment Variables
 
+The API runs with **no environment variables set**. `src/gated_communities/config/__init__.py`
+falls back to `sqlite:///./gated_communities.db`, and the cache is in-process.
+The `.env.example` shipped in the repo still lists PostgreSQL/Redis/LLM values; those
+are optional and the LLM key only matters for features that import a provider SDK.
+
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | — | Database connection string |
-| `CACHE_URL` | — | Cache connection string |
-| `LLM_API_KEY` | — | LLM provider API key |
-| `SECRET_KEY` | — | Application secret key |
+| `DATABASE_URL` | `sqlite:///./gated_communities.db` | SQLAlchemy connection string (any backend with a driver installed) |
+| `TEST_DATABASE_URL` | `sqlite:///./test_gated_communities.db` | Database used by the test suite |
+| `SECRET_KEY` | — | Token signing secret — set this in production |
 | `LOG_LEVEL` | `INFO` | Logging level |
-| `ENVIRONMENT` | `production` | Deployment environment |
+| `ENVIRONMENT` | `development` | Deployment environment |
 | `DEBUG` | `false` | Debug mode |
-| `CORS_ORIGINS` | `["*"]` | Allowed CORS origins |
-| `DATABASE_POOL_SIZE` | `20` | Database connection pool size |
+| `CORS_ORIGINS` | `http://localhost:3000,http://localhost:8080` | Allowed CORS origins (set in `main.py`) |
+| `REDIS_URL` | — | Optional; only used if you install `redis` and wire the cache backend |
+| `LLM_API_KEY` | — | Optional; only used by features that import a provider SDK |
 | `MODERATION_THRESHOLD` | `0.8` | Auto-moderation threshold |
 | `ESCALATION_TIMEOUT_MINUTES` | `30` | Escalation timeout |
 | `REPUTATION_DECAY_DAYS` | `90` | Reputation decay period |
 | `COMPLIANCE_AUDIT_RETENTION_DAYS` | `365` | Audit log retention |
-| `METRICS_ENABLED` | `true` | Enable Prometheus metrics |
-| `TRACING_ENABLED` | `false` | Enable distributed tracing |
 
 ### Health Checks
 
@@ -713,16 +725,26 @@ agent_executions_total{agent="TierEvaluatorAgent"} 456
 ### Backup and Recovery
 
 ```bash
+# Default SQLite database — back up the file directly
+cp gated_communities.db backup.db
+
+# Restore
+cp backup.db gated_communities.db
+```
+
+If you have opted into the PostgreSQL service instead (`docker compose up db` and a
+`DATABASE_URL` pointing at it), the usual client commands apply:
+
+```bash
 # Database backup
-docker-compose exec db pg_dump -U postgres gated_communities > backup.sql
+docker compose exec db pg_dump -U postgres gated_communities > backup.sql
 
 # Database restore
-docker-compose exec -T db psql -U postgres gated_communities < backup.sql
-
-# Redis backup
-# Cache backup
-# docker cp cache_dump
+docker compose exec -T db psql -U postgres gated_communities < backup.sql
 ```
+
+Note: `requirements.txt` installs no PostgreSQL driver (no `psycopg`/`asyncpg`), so
+this path only works after you add a driver and point `DATABASE_URL` at the service.
 
 ---
 
@@ -732,25 +754,26 @@ docker-compose exec -T db psql -U postgres gated_communities < backup.sql
 
 ```bash
 # Clone the repository
-git clone https://github.com/ahmedhassan/gated-communities.git
+git clone https://github.com/AAH20/gated-communities.git
 cd gated-communities
 
 # Create virtual environment
 python -m venv .venv
 source .venv/bin/activate
 
-# Install dependencies
-pip install -e ".[dev,test]"
+# Install dependencies (no PostgreSQL/Redis/LLM SDKs required)
+pip install -r requirements.txt
+pip install -e ".[dev]"
 
-# Set up environment variables
+# Set up environment variables (optional — SQLite is the built-in default)
 cp .env.example .env
 
-# Run database and cache
-docker-compose up -d
-
 # Start the development server
-uvicorn gated_communities.main:app --reload
+uvicorn gated_communities.main:app --reload --port 8000
 ```
+
+No database or cache container needs to be running first: tables are created on
+startup against the default SQLite file, and the cache is in-process.
 
 ### Project Structure
 
@@ -1015,6 +1038,6 @@ SOFTWARE.
 
 **[Back to Top](#gated-communities--unified-platform)**
 
-Made with ❤️ by [Ahmed Hassan](https://github.com/ahmedhassan)
+Made with ❤️ by [Ahmed Hassan](https://github.com/AAH20)
 
 </div>
