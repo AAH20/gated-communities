@@ -379,8 +379,8 @@ Dispute resolution, rule enforcement, and policy management.
 | Python | 3.10+ | Runtime |
 | Docker | 24.0+ | Container runtime |
 | Docker Compose | 2.0+ | Multi-container orchestration |
-| PostgreSQL | 15+ | Primary database |
-| Redis | 7+ | Cache and session store |
+| Database | SQLAlchemy 2.0 (database agnostic) |
+| Cache | In-memory (pluggable) |
 
 ### Docker Compose (Recommended)
 
@@ -416,7 +416,7 @@ cp .env.example .env
 # Edit .env with your values
 
 # Start database and cache
-docker-compose up -d db redis
+docker-compose up -d
 
 # Run the application
 uvicorn gated_communities.main:app --reload
@@ -671,9 +671,9 @@ helm uninstall gated-communities
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | — | PostgreSQL connection string |
-| `REDIS_URL` | — | Redis connection string |
-| `LLM_API_KEY` | — | OpenAI API key |
+| `DATABASE_URL` | — | Database connection string |
+| `CACHE_URL` | — | Cache connection string |
+| `LLM_API_KEY` | — | LLM provider API key |
 | `SECRET_KEY` | — | Application secret key |
 | `LOG_LEVEL` | `INFO` | Logging level |
 | `ENVIRONMENT` | `production` | Deployment environment |
@@ -720,8 +720,8 @@ docker-compose exec db pg_dump -U postgres gated_communities > backup.sql
 docker-compose exec -T db psql -U postgres gated_communities < backup.sql
 
 # Redis backup
-docker-compose exec redis redis-cli SAVE
-docker cp gated-communities_redis_1:/data/dump.rdb ./dump.rdb
+# Cache backup
+# docker cp cache_dump
 ```
 
 ---
@@ -746,7 +746,7 @@ pip install -e ".[dev,test]"
 cp .env.example .env
 
 # Run database and cache
-docker-compose up -d db redis
+docker-compose up -d
 
 # Start the development server
 uvicorn gated_communities.main:app --reload
