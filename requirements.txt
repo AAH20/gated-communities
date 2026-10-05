@@ -7,6 +7,7 @@ fastapi>=0.115.0
 uvicorn>=0.30.0
 pydantic>=2.7.0
 pydantic-settings>=2.3.0
+email-validator>=2.0.0
 
 # HTTP client
 httpx>=0.27.0
@@ -20,9 +21,6 @@ structlog>=24.1.0
 # Retry logic
 tenacity>=8.3.0
 
-# OpenAI
-openai>=1.30.0
-
 # Data science
 numpy>=1.26.0
 scikit-learn>=1.4.0
@@ -31,16 +29,9 @@ scikit-learn>=1.4.0
 sqlalchemy>=2.0.30
 alembic>=1.13.0
 
-# Cache/Queue
-redis>=5.0.0
-celery>=5.4.0
-
 # File handling
 python-multipart>=0.0.9
 aiofiles>=23.2.1
-
-# Async PostgreSQL
-asyncpg>=0.29.0
 
 # Security-pinned transitive dependencies
 # Fixes: PYSEC-2026-2132 (click command injection)
@@ -65,7 +56,7 @@ marshmallow>=4.1.0
 msgpack>=1.2.0
 # Fixes: PYSEC-2026-3447 (setuptools)
 setuptools>=82.1.0
-# Fixes: PYSEC-2022-43017 (wheel)
+# Fixes: PYSEC-2022-42991 (wheel)
 wheel>=0.45.0
 # Fixes: PYSEC-2022-42991 (future)
 future>=1.0.0

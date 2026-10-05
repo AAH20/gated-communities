@@ -23,6 +23,8 @@ jobs:
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.digest.outputs.digest }}
     timeout-minutes: 15
     permissions:
       contents: read
@@ -139,7 +141,7 @@ jobs:
           mkdir -p /tmp/digests
           cd /tmp/digests
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ steps.image.outputs.name }}@sha256:%s ' ${{ steps.digest.outputs.digest }})
+            $(printf '${{ env.REGISTRY }}/${{ steps.image.outputs.name }}@sha256:%s ' ${{ needs.build-and-push.outputs.digest }})
 
       - name: Inspect image
         run: |
