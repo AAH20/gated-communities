@@ -45,7 +45,7 @@ async def generate_analytics(
         ) from e
 
 
-@analytics_router.get("/{analytics_id}", response_model=TierAnalytics)
+@analytics_router.get("/analytics/{analytics_id}", response_model=TierAnalytics)
 async def get_analytics(
     analytics_id: UUID,
     settings: Settings = Depends(get_settings),  # noqa: B008

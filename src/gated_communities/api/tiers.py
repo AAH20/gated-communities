@@ -78,7 +78,7 @@ async def create_tier(
     return tier
 
 
-@tiers_router.get("/{tier_id}", response_model=Tier)
+@tiers_router.get("/tiers/tier_id", response_model=Tier)
 async def get_tier(
     tier_id: UUID,
     settings: Settings = Depends(get_settings),  # noqa: B008

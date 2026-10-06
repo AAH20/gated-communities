@@ -73,7 +73,7 @@ async def create_benefit(
         ) from e
 
 
-@benefits_router.get("/{benefit_id}", response_model=Benefit)
+@benefits_router.get("/benefits/benefit_id", response_model=Benefit)
 async def get_benefit(
     benefit_id: UUID,
     settings: Settings = Depends(get_settings),  # noqa: B008  # noqa: B008

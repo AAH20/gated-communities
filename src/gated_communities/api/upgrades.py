@@ -45,7 +45,7 @@ async def create_upgrade_request(
         ) from e
 
 
-@upgrades_router.get("/{request_id}", response_model=UpgradeRequest)
+@upgrades_router.get("/upgrades/request_id", response_model=UpgradeRequest)
 async def get_upgrade_request(
     request_id: UUID,
     settings: Settings = Depends(get_settings),  # noqa: B008

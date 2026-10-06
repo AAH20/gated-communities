@@ -44,7 +44,7 @@ async def create_evaluation(
         ) from e
 
 
-@evaluation_router.get("/{evaluation_id}", response_model=TierEvaluation)
+@evaluation_router.get("/evaluation/evaluation_id", response_model=TierEvaluation)
 async def get_evaluation(
     evaluation_id: UUID,
     settings: Settings = Depends(get_settings),  # noqa: B008
