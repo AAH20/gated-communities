@@ -14,7 +14,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: gated-communities-app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    command: uvicorn gated_communities.main:app --host 0.0.0.0 --port 8000 --workers 4
     volumes:
       - app-static:/app/static
       - app-logs:/app/logs

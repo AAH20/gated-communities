@@ -1,0 +1,57 @@
+# Build context hygiene. Without this the context is ~190MB (it includes .venv,
+# frontend/node_modules and the SQLite DB) and gets copied into the image.
+
+# Virtualenvs / local Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.benchmarks/
+
+# VCS / CI
+.git/
+.github/
+.gitignore
+.gitleaksignore
+
+# Secrets — never bake these into an image
+.env
+.env.*
+!.env.example
+
+# Local database
+*.db
+*.sqlite
+*.sqlite3
+
+# Tests / docs / infra not needed at runtime
+tests/
+e2e/
+docs/
+k8s/
+helm/
+terraform/
+monitoring/
+benchmarks/
+frontend/
+sdk/
+docker/
+*.md
+LICENSE
+mypy.ini
+pytest.ini
+ruff.toml
+openapi.yaml
+
+# Agent scratch scripts left in the repo root
+fix_imports.py
+fix_imports2.py
+
+# Misc
+.DS_Store
+*.log

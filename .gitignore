@@ -45,4 +45,7 @@ Thumbs.db
 logs/
 
 # Docker
-.dockerignore
+# NOTE: .dockerignore MUST stay tracked — it keeps .venv/tests/k8s out of the
+# build context. It is explicitly NOT ignored here (it used to be, which made
+# the file untracked and silently defeated the exclusion list).
+!.dockerignore

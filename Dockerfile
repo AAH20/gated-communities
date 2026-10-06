@@ -49,8 +49,14 @@ COPY --from=builder /opt/venv /opt/venv
 RUN groupadd --system app && \
     useradd --system --gid app --home ${APP_HOME} --shell /bin/bash app
 
-# Copy application code
-COPY --chown=app:app . .
+# Copy application code. Copy only what the image needs rather than the whole
+# context: the repo root carries .venv, tests, k8s/ and frontend/ which bloat
+# the image and shadow the installed package.
+COPY --chown=app:app src/ ./src/
+
+# The application is a src-layout package; make it importable without an
+# editable install.
+ENV PYTHONPATH=/app/src
 
 # Switch to non-root user
 USER app
@@ -62,5 +68,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Run uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+# Run uvicorn. The package is a src-layout module, so the import target is
+# gated_communities.main:app (there is no top-level main.py in this repo).
+CMD ["uvicorn", "gated_communities.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
