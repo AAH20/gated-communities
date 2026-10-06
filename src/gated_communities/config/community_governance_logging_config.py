@@ -7,7 +7,7 @@ import sys
 from typing import Any
 
 import structlog
-from community_governance.config.settings import get_settings
+from .community_governance_settings import get_settings
 
 
 def setup_logging() -> None:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from escalation_workflow.config import Settings, get_settings
+from ..config.escalation_workflow_settings import Settings, get_settings
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 

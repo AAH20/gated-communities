@@ -6,20 +6,20 @@ import json
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from community_governance.agents.base import BaseAgent
-from community_governance.config.logging_config import get_logger
-from community_governance.exceptions import AgentExecutionError
-from community_governance.models.analytics import (
+from .base import BaseAgent
+from ...config.community_governance_logging_config import get_logger
+from ...community_governance_exceptions import AgentExecutionError
+from ...models.analytics import (
     GovernanceAnalytics,
     GovernanceHealthScore,
     GovernanceSummary,
 )
-from community_governance.models.dispute import Dispute, DisputeStatus
-from community_governance.models.governance_action import ActionStatus, GovernanceAction
-from community_governance.models.policy import Policy, PolicyStatus
+from ...models.dispute import Dispute, DisputeStatus
+from ...models.governance_action import ActionStatus, GovernanceAction
+from ...models.policy import Policy, PolicyStatus
 
 if TYPE_CHECKING:
-    from community_governance.models.rule import Rule
+    from ...models.rule import Rule
     from langchain_core.language_models import BaseLanguageModel
 
 

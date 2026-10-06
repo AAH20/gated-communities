@@ -7,7 +7,7 @@ from typing import Any
 from uuid import UUID
 
 from .base import BaseComplianceAgent
-from ..models.compliance_monitor_schemas import (
+from ...models.compliance_monitor_schemas import (
     RemediationAction,
     RemediationRequest,
     RemediationStatus,

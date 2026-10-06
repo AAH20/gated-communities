@@ -1,17 +1,15 @@
 """SLA tracking API endpoints."""
 
 from __future__ import annotations
+from uuid import UUID
 
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from escalation_workflow.agents.sla_tracker import SLATrackerAgent, SLATrackerInput
-from escalation_workflow.config import Settings, get_settings
-from escalation_workflow.models.sla import SLA, SLABreach, SLAStatus
+from ..agents.escalation_workflow.sla_tracker import SLATrackerAgent, SLATrackerInput
+from ..config.escalation_workflow_settings import Settings, get_settings
+from ..models.sla import SLA, SLABreach, SLAStatus
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 router = APIRouter(prefix="/sla", tags=["sla"])
 

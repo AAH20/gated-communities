@@ -1,11 +1,9 @@
 """API routes for the access control service."""
 
 from __future__ import annotations
+from uuid import UUID
 
 from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 from .access_control_dependencies import (
     get_access_auditor,

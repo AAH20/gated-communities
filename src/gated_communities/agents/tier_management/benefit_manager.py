@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 from .base import BaseAgent
-from ..config.logging_config import get_logger
-from ..models.schemas import Benefit, BenefitType
+from ...config.logging_config import get_logger
+from ...models.schemas import Benefit, BenefitType
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel

@@ -13,9 +13,9 @@ from .base import AgentContext, BaseAgent
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from ..config import Settings
-from ..models.access_control_schemas import AccessDecision
-from ..models.access_control_schemas import AccessRequest, AccessResult
+    from ...config.access_control_settings import Settings
+from ...models.access_control_schemas import AccessDecision
+from ...models.access_control_schemas import AccessRequest, AccessResult
 
 
 class PermissionEvaluatorInput(BaseModel):

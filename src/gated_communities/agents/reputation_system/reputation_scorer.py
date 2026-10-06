@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 from .base import BaseAgent
-from ..models.reputation_system_schemas import TrustTierLevel
+from ...models.reputation_system_schemas import TrustTierLevel
 
 
 class ScoringInput(BaseModel):

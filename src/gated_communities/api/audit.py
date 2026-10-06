@@ -25,7 +25,7 @@ def _is_admin_or_owner(
     return any(m.role in (MemberRole.OWNER, MemberRole.ADMIN) for m in memberships)
 
 
-@router.get("", response_model=list[AuditLogResponse])
+@router.get("/audit", response_model=list[AuditLogResponse])
 def list_audit_logs(
     user_id: str | None = None,
     resource_type: str | None = None,
@@ -46,7 +46,7 @@ def list_audit_logs(
     return query.order_by(AuditLog.created_at.desc()).offset(skip).limit(limit).all()
 
 
-@router.post("", response_model=AuditLogResponse, status_code=201)
+@router.post("/audit", response_model=AuditLogResponse, status_code=201)
 def create_audit_log(
     log: AuditLogCreate,
     db: Session = Depends(get_db),
@@ -63,7 +63,7 @@ def create_audit_log(
     return db_log
 
 
-@router.get("/{log_id}", response_model=AuditLogResponse)
+@router.get("/audit/{log_id}", response_model=AuditLogResponse)
 def get_audit_log(
     log_id: int,
     db: Session = Depends(get_db),

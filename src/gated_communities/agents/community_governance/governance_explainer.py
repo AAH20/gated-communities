@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
-from community_governance.agents.base import BaseAgent
-from community_governance.config.logging_config import get_logger
-from community_governance.exceptions import AgentExecutionError
+from .base import BaseAgent
+from ...config.community_governance_logging_config import get_logger
+from ...community_governance_exceptions import AgentExecutionError
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel

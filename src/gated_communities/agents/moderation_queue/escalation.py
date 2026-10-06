@@ -6,8 +6,8 @@ import json
 from typing import Any
 
 from langchain_core.messages import AIMessage
-from .agents.base import AgentConfig, BaseAgent
-from .models import Escalation, ModerationItem, PriorityLevel
+from .base import AgentConfig, BaseAgent
+from ...models.moderation_queue___init__ import Escalation, ModerationItem, PriorityLevel
 from pydantic import BaseModel, Field
 
 

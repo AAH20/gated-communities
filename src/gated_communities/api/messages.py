@@ -9,7 +9,7 @@ Provides:
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -148,7 +148,9 @@ def _seed_mock_data() -> None:
 
     now = datetime.now(UTC)
     for i, (channel_id, user_id, content) in enumerate(sample_messages):
-        ts = now.replace(minute=now.minute - (len(sample_messages) - i))
+        # Subtract via timedelta: naive minute arithmetic underflows (negative
+        # minute) for ~1/3 of the day and raises ValueError at import time.
+        ts = now - timedelta(minutes=len(sample_messages) - i)
         msg = {
             "id": str(uuid.uuid5(uuid.NAMESPACE_DNS, f"msg-{i}")),
             "channel_id": channel_id,

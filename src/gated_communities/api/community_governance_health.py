@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from community_governance.api.dependencies import get_agents
-from community_governance.config.settings import get_settings
+from .community_governance_dependencies import get_agents
+from ..config.community_governance_settings import get_settings
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 

@@ -1,12 +1,13 @@
 """Dispute management routes."""
 
 from __future__ import annotations
+from uuid import UUID
 
 from typing import TYPE_CHECKING
 
-from community_governance.api.dependencies import get_dispute_resolver
-from community_governance.config.logging_config import get_logger
-from community_governance.models.dispute import (
+from .community_governance_dependencies import get_dispute_resolver
+from ..config.community_governance_logging_config import get_logger
+from ..models.dispute import (
     Dispute,
     DisputeCreate,
     DisputeResolution,
@@ -16,9 +17,7 @@ from community_governance.models.dispute import (
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 if TYPE_CHECKING:
-    from uuid import UUID
-
-    from community_governance.agents import DisputeResolverAgent
+    from ..agents.community_governance import DisputeResolverAgent
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/disputes", tags=["disputes"])

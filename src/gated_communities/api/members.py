@@ -33,7 +33,7 @@ def _get_user_role(
     return membership.role if membership else None
 
 
-@router.get("", response_model=list[MemberResponse])
+@router.get("/members", response_model=list[MemberResponse])
 def list_members(
     community_id: int | None = None,
     skip: int = Query(0, ge=0),
@@ -47,7 +47,7 @@ def list_members(
     return query.offset(skip).limit(limit).all()
 
 
-@router.post("", response_model=MemberResponse, status_code=201)
+@router.post("/members", response_model=MemberResponse, status_code=201)
 def create_member(
     member: MemberCreate,
     db: Session = Depends(get_db),
@@ -70,7 +70,7 @@ def create_member(
     return db_member
 
 
-@router.get("/{member_id}", response_model=MemberResponse)
+@router.get("/members/{member_id}", response_model=MemberResponse)
 def get_member(
     member_id: int,
     db: Session = Depends(get_db),
@@ -82,7 +82,7 @@ def get_member(
     return member
 
 
-@router.delete("/{member_id}", status_code=204)
+@router.delete("/members/{member_id}", status_code=204)
 def delete_member(
     member_id: int,
     db: Session = Depends(get_db),

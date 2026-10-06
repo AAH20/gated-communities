@@ -74,13 +74,15 @@ async def general_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal server error"},
     )
 
-# Include routers
+# Include routers. Route paths inside each module are absolute (e.g. "/communities",
+# "/audit"), so these routers are mounted at the app root WITHOUT a prefix —
+# adding one would produce doubled paths like "/communities/communities".
 app.include_router(health.health_router, tags=["health"])
-app.include_router(communities.router, prefix="/communities", tags=["communities"])
-app.include_router(members.router, prefix="/members", tags=["members"])
+app.include_router(communities.router, tags=["communities"])
+app.include_router(members.router, tags=["members"])
 app.include_router(moderation.router, prefix="/moderation", tags=["moderation"])
-app.include_router(search.router, prefix="/search", tags=["search"])
-app.include_router(audit.router, prefix="/audit", tags=["audit"])
+app.include_router(search.router, tags=["search"])
+app.include_router(audit.router, tags=["audit"])
 app.include_router(export.router, prefix="/export", tags=["export"])
 app.include_router(bulk.router, prefix="/bulk", tags=["bulk"])
 app.include_router(websocket.router, tags=["websocket"])

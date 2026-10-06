@@ -1,16 +1,14 @@
 """Escalation API routes."""
 
 from __future__ import annotations
+from uuid import UUID
 
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from moderation_queue.api.dependencies import get_logger
-from moderation_queue.models import Escalation, PriorityLevel
+from .dependencies import get_logger
+from ..models.moderation_queue___init__ import Escalation, PriorityLevel
 from pydantic import BaseModel, Field
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 router = APIRouter(prefix="/escalations", tags=["escalations"])
 

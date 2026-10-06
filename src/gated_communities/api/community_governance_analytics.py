@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from community_governance.api.dependencies import get_governance_analytics
-from community_governance.config.logging_config import get_logger
-from community_governance.models.analytics import GovernanceAnalytics, GovernanceSummary
+from .community_governance_dependencies import get_governance_analytics
+from ..config.community_governance_logging_config import get_logger
+from ..models.analytics import GovernanceAnalytics, GovernanceSummary
 from fastapi import APIRouter, Depends, Query
 
 if TYPE_CHECKING:
-    from community_governance.agents import GovernanceAnalyticsAgent
+    from ..agents.community_governance import GovernanceAnalyticsAgent
 
 
 logger = get_logger(__name__)

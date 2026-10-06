@@ -2,23 +2,20 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from moderation_queue.agents.auto_moderation import AutoModerationAgent, AutoModerationInput
-from moderation_queue.agents.escalation import EscalationAgent, EscalationInput
-from moderation_queue.agents.human_review_router import (
+from ..agents.moderation_queue.auto_moderation import AutoModerationAgent, AutoModerationInput
+from ..agents.moderation_queue.escalation import EscalationAgent, EscalationInput
+from ..agents.moderation_queue.human_review_router import (
     HumanReviewRouterAgent,
     HumanReviewRouterInput,
 )
-from moderation_queue.agents.priority_scorer import PriorityScorerAgent, PriorityScorerInput
-from moderation_queue.agents.queue_optimizer import QueueOptimizerAgent, QueueOptimizerInput
-from moderation_queue.api.dependencies import get_logger
-from moderation_queue.models import AgentResponse, ModerationItem
+from ..agents.moderation_queue.priority_scorer import PriorityScorerAgent, PriorityScorerInput
+from ..agents.moderation_queue.queue_optimizer import QueueOptimizerAgent, QueueOptimizerInput
+from .dependencies import get_logger
+from ..models.moderation_queue___init__ import AgentResponse, ModerationItem
 from pydantic import BaseModel, Field
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 

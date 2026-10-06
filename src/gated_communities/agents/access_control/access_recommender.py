@@ -13,8 +13,8 @@ from .base import AgentContext, BaseAgent
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from ..config import Settings
-from ..models.access_control_schemas import AccessRecommendation
+    from ...config.access_control_settings import Settings
+from ...models.access_control_schemas import AccessRecommendation
 
 
 class AccessRecommenderInput(BaseModel):

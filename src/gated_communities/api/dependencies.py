@@ -5,13 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import structlog
+from fastapi import Request
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
-    from fastapi import Request
-
-from moderation_queue.config import Settings, get_settings
+from ..config.moderation_queue_settings import Settings, get_settings
 
 logger = structlog.get_logger(__name__)
 

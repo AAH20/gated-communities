@@ -5,12 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from .base import BaseAgent
-from .models.resolution import Resolution, ResolutionStatus
+from ...models.resolution import Resolution, ResolutionStatus
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from .models.escalation import Escalation
+    from ...models.escalation import Escalation
 
 
 class AutoResolverInput(BaseModel):

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 from pydantic import BaseModel, ConfigDict, Field
 
 if TYPE_CHECKING:
-    from ..config import Settings
+    from ...config.access_control_settings import Settings
     from langchain_core.language_models import BaseLanguageModel
 
 

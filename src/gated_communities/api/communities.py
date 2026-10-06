@@ -34,7 +34,7 @@ def _get_user_role(
     return membership.role if membership else None
 
 
-@router.get("", response_model=list[CommunityResponse])
+@router.get("/communities", response_model=list[CommunityResponse])
 def list_communities(
     include_private: bool = False,
     tier_id: str | None = None,
@@ -47,7 +47,7 @@ def list_communities(
     return query.all()
 
 
-@router.post("", response_model=CommunityResponse, status_code=201)
+@router.post("/communities", response_model=CommunityResponse, status_code=201)
 def create_community(
     community: CommunityCreate,
     db: Session = Depends(get_db),
@@ -61,7 +61,7 @@ def create_community(
     return db_community
 
 
-@router.get("/{community_id}", response_model=CommunityResponse)
+@router.get("/communities/{community_id}", response_model=CommunityResponse)
 def get_community(
     community_id: int,
     db: Session = Depends(get_db),
@@ -74,7 +74,7 @@ def get_community(
     return community
 
 
-@router.delete("/{community_id}", status_code=204)
+@router.delete("/communities/{community_id}", status_code=204)
 def delete_community(
     community_id: int,
     db: Session = Depends(get_db),

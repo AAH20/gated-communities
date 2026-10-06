@@ -1,19 +1,17 @@
 """Resolution management API endpoints."""
 
 from __future__ import annotations
+from uuid import UUID
 
 from typing import TYPE_CHECKING
 
-from escalation_workflow.agents.resolution_optimizer import (
+from ..agents.escalation_workflow.resolution_optimizer import (
     ResolutionOptimizerAgent,
     ResolutionOptimizerInput,
 )
-from escalation_workflow.config import Settings, get_settings
-from escalation_workflow.models.resolution import Resolution, ResolutionCreate, ResolutionStatus
+from ..config.escalation_workflow_settings import Settings, get_settings
+from ..models.resolution import Resolution, ResolutionCreate, ResolutionStatus
 from fastapi import APIRouter, Depends, HTTPException, status
-
-if TYPE_CHECKING:
-    from uuid import UUID
 
 router = APIRouter(prefix="/resolutions", tags=["resolutions"])
 
@@ -33,7 +31,7 @@ async def create_resolution(data: ResolutionCreate) -> Resolution:
     resolution = Resolution(**data.model_dump())
     _resolutions[resolution.id] = resolution
 
-    from escalation_workflow.api.escalations import _escalations
+    from .escalation_workflow_escalations import _escalations
 
     if data.escalation_id in _escalations:
         _escalations[data.escalation_id].resolution_id = resolution.id
@@ -106,7 +104,7 @@ async def optimize_resolution(
     resolution = _resolutions[resolution_id]
     agent = ResolutionOptimizerAgent()
 
-    from escalation_workflow.api.escalations import _escalations
+    from .escalation_workflow_escalations import _escalations
 
     escalation = _escalations.get(resolution.escalation_id)
 

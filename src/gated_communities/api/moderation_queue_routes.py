@@ -5,10 +5,10 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from moderation_queue.agents.auto_moderator import AutoModeratorAgent
-from moderation_queue.agents.human_review_router import HumanReviewRouterAgent
-from moderation_queue.agents.priority_scorer import PriorityScorerAgent
-from moderation_queue.api.models import (
+from ..agents.moderation_queue.auto_moderator import AutoModeratorAgent
+from ..agents.moderation_queue.human_review_router import HumanReviewRouterAgent
+from ..agents.moderation_queue.priority_scorer import PriorityScorerAgent
+from .models import (
     ContentSubmission,
     ModerationDecision,
     ModerationPipelineResponse,
@@ -18,7 +18,7 @@ from moderation_queue.api.models import (
     QueueStatsResponse,
     RoutingResultResponse,
 )
-from moderation_queue.config.settings import get_settings
+from ..config.moderation_queue_settings import get_settings
 from structlog import get_logger
 
 logger = get_logger(__name__)

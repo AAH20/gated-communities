@@ -5,6 +5,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
+from ...config.escalation_workflow_settings import get_settings
+
+if TYPE_CHECKING:
+    from langchain_core.language_models import BaseChatModel
+
 try:
     import structlog
     logger = structlog.get_logger(__name__)

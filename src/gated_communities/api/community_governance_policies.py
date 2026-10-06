@@ -1,18 +1,17 @@
 """Policy management routes."""
 
 from __future__ import annotations
+from uuid import UUID
 
 from typing import TYPE_CHECKING
 
-from community_governance.api.dependencies import get_policy_manager
-from community_governance.config.logging_config import get_logger
-from community_governance.models.policy import Policy, PolicyCreate, PolicyStatus, PolicyUpdate
+from .community_governance_dependencies import get_policy_manager
+from ..config.community_governance_logging_config import get_logger
+from ..models.policy import Policy, PolicyCreate, PolicyStatus, PolicyUpdate
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 if TYPE_CHECKING:
-    from uuid import UUID
-
-    from community_governance.agents import PolicyManagerAgent
+    from ..agents.community_governance import PolicyManagerAgent
 
 
 logger = get_logger(__name__)

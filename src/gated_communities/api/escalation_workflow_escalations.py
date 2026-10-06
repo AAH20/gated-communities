@@ -1,34 +1,33 @@
 """Escalation management API endpoints."""
 
 from __future__ import annotations
+from uuid import UUID
 
 from typing import TYPE_CHECKING, Any
 
-from escalation_workflow.agents.auto_resolver import AutoResolverAgent, AutoResolverInput
-from escalation_workflow.agents.escalation_analyzer import (
+from ..agents.escalation_workflow.auto_resolver import AutoResolverAgent, AutoResolverInput
+from ..agents.escalation_workflow.escalation_analyzer import (
     EscalationAnalyzerAgent,
     EscalationAnalyzerInput,
 )
-from escalation_workflow.agents.priority_router import PriorityRouterAgent, PriorityRouterInput
-from escalation_workflow.agents.resolution_optimizer import ResolutionOptimizerAgent
-from escalation_workflow.agents.sla_tracker import SLATrackerAgent
-from escalation_workflow.config import Settings, get_settings
-from escalation_workflow.models.analysis import EscalationAnalysis
-from escalation_workflow.models.escalation import (
+from ..agents.escalation_workflow.priority_router import PriorityRouterAgent, PriorityRouterInput
+from ..agents.escalation_workflow.resolution_optimizer import ResolutionOptimizerAgent
+from ..agents.escalation_workflow.sla_tracker import SLATrackerAgent
+from ..config.escalation_workflow_settings import Settings, get_settings
+from ..models.analysis import EscalationAnalysis
+from ..models.escalation import (
     Escalation,
     EscalationCreate,
     EscalationStatus,
     EscalationUpdate,
 )
-from escalation_workflow.models.priority import PriorityAssessment
+from ..models.priority import PriorityAssessment
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 
 if TYPE_CHECKING:
-    from uuid import UUID
-
-    from escalation_workflow.models.resolution import Resolution
-    from escalation_workflow.models.sla import SLA
+    from ..models.resolution import Resolution
+    from ..models.sla import SLA
 
 router = APIRouter(prefix="/escalations", tags=["escalations"])
 

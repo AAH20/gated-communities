@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    from community_governance.agents import (
-        DisputeResolverAgent,
-        GovernanceAnalyticsAgent,
-        GovernanceExplainerAgent,
-        PolicyManagerAgent,
-        RuleEnforcerAgent,
-    )
-
-from community_governance.integrations import MetricsIntegration
+from ..agents.community_governance import (
+    DisputeResolverAgent,
+    GovernanceAnalyticsAgent,
+    GovernanceExplainerAgent,
+    PolicyManagerAgent,
+    RuleEnforcerAgent,
+)
+from ..integrations.community_governance___init__ import MetricsIntegration
 
 # Global agent instances (initialized in main.py)
 _agents: dict[str, Any] = {}
@@ -39,13 +37,35 @@ def get_agents() -> dict[str, Any]:
     return _agents
 
 
+def _resolve(key: str, factory: type) -> Any:
+    """Return a registered agent, constructing a default one if absent.
+
+    The dedicated ``community_governance`` app registers agents via
+    :func:`set_agents` during startup. When these routers are mounted on the
+    unified API that bootstrap never runs, so fall back to a default-constructed
+    agent rather than raising ``KeyError``.
+
+    Args:
+        key: Registry key for the agent.
+        factory: Agent class used to build a default instance.
+
+    Returns:
+        The registered or default-constructed agent instance.
+    """
+    agent = _agents.get(key)
+    if agent is None:
+        agent = factory()
+        _agents[key] = agent
+    return agent
+
+
 def get_rule_enforcer() -> RuleEnforcerAgent:
     """Get the rule enforcer agent.
 
     Returns:
         The rule enforcer agent instance.
     """
-    return _agents["rule_enforcer"]
+    return _resolve("rule_enforcer", RuleEnforcerAgent)
 
 
 def get_dispute_resolver() -> DisputeResolverAgent:
@@ -54,7 +74,7 @@ def get_dispute_resolver() -> DisputeResolverAgent:
     Returns:
         The dispute resolver agent instance.
     """
-    return _agents["dispute_resolver"]
+    return _resolve("dispute_resolver", DisputeResolverAgent)
 
 
 def get_policy_manager() -> PolicyManagerAgent:
@@ -63,7 +83,7 @@ def get_policy_manager() -> PolicyManagerAgent:
     Returns:
         The policy manager agent instance.
     """
-    return _agents["policy_manager"]
+    return _resolve("policy_manager", PolicyManagerAgent)
 
 
 def get_governance_analytics() -> GovernanceAnalyticsAgent:
@@ -72,7 +92,7 @@ def get_governance_analytics() -> GovernanceAnalyticsAgent:
     Returns:
         The governance analytics agent instance.
     """
-    return _agents["governance_analytics"]
+    return _resolve("governance_analytics", GovernanceAnalyticsAgent)
 
 
 def get_governance_explainer() -> GovernanceExplainerAgent:
@@ -81,7 +101,7 @@ def get_governance_explainer() -> GovernanceExplainerAgent:
     Returns:
         The governance explainer agent instance.
     """
-    return _agents["governance_explainer"]
+    return _resolve("governance_explainer", GovernanceExplainerAgent)
 
 
 def set_metrics(metrics: MetricsIntegration) -> None:

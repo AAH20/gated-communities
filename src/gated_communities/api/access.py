@@ -6,7 +6,7 @@ from datetime import UTC
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from ..agents.access_controller import AccessControllerAgent
+from ..agents.tier_management.access_controller import AccessControllerAgent
 from ..config.settings import Settings, get_settings
 from ..models.schemas import AccessCheckRequest, AccessCheckResponse, AccessPolicy
 

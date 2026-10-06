@@ -6,7 +6,11 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import structlog
-from deepagents import create_deep_agent
+
+try:
+    from deepagents import create_deep_agent
+except ImportError:  # pragma: no cover - optional dependency
+    create_deep_agent = None
 
 if TYPE_CHECKING:
     from deepagents import DeepAgent  # noqa: F401
@@ -56,7 +60,15 @@ class BaseComplianceAgent(ABC, Generic[T, R]):
 
         Returns:
             Configured DeepAgent instance.
+
+        Raises:
+            RuntimeError: If the optional ``deepagents`` dependency is missing.
         """
+        if create_deep_agent is None:
+            raise RuntimeError(
+                "The 'deepagents' package is required to run compliance monitoring "
+                "agents. Install it with: pip install deepagents"
+            )
         return create_deep_agent(
             name=self.name,
             model=self.model,

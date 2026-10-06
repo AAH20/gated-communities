@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from community_governance.api.dependencies import get_metrics
+from .community_governance_dependencies import get_metrics
 from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
 
 if TYPE_CHECKING:
-    from community_governance.integrations import MetricsIntegration
+    from ..integrations.community_governance___init__ import MetricsIntegration
 
 
 router = APIRouter(tags=["metrics"])

@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from .config import Settings, get_settings
-from .models import AgentResponse
+from ...config.moderation_queue_settings import Settings, get_settings
+from ...models.moderation_queue___init__ import AgentResponse
 from pydantic import BaseModel, Field
 
 T = TypeVar("T", bound=BaseModel)

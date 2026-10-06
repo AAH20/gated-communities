@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-from community_governance.config.logging_config import get_logger
+from ..config.community_governance_logging_config import get_logger
 
 logger = get_logger(__name__)
 

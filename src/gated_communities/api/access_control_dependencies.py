@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from langchain_openai import ChatOpenAI
+try:
+    from langchain_openai import ChatOpenAI
+except ImportError:  # pragma: no cover - optional dependency
+    ChatOpenAI = None
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
@@ -16,8 +19,8 @@ from ..agents.access_control import (
     PolicyEnforcerAgent,
     RoleManagerAgent,
 )
-from ..config import Settings
-from ..config import get_settings as _get_settings
+from ..config.access_control_settings import Settings
+from ..config.access_control_settings import get_settings as _get_settings
 
 
 def get_settings() -> Settings:
@@ -33,7 +36,15 @@ def get_llm(settings: Settings | None = None) -> BaseLanguageModel:
 
     Returns:
         A LangChain language model instance.
+
+    Raises:
+        RuntimeError: If the optional ``langchain_openai`` package is missing.
     """
+    if ChatOpenAI is None:
+        raise RuntimeError(
+            "The 'langchain-openai' package is required for access control agents. "
+            "Install it with: pip install langchain-openai"
+        )
     s = settings or _get_settings()
     return ChatOpenAI(
         model=s.llm_model,

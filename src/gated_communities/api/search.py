@@ -12,7 +12,7 @@ from ..security import require_auth
 router = APIRouter()
 
 
-@router.get("")
+@router.get("/search")
 def search(
     q: str = Query(..., min_length=1),
     type: str = Query("all", pattern="^(all|communities|members)$"),
