@@ -65,7 +65,7 @@ msgpack>=1.2.0
 # Fixes: PYSEC-2026-3447 (setuptools)
 setuptools>=82.1.0
 # Fixes: PYSEC-2022-42991 (wheel)
-wheel>=0.45.0
+wheel>=0.48.0
 # Fixes: PYSEC-2022-42991 (future)
 future>=1.0.0
 # Test tooling (required by tests/conftest.py and pyproject's `test` extra)
