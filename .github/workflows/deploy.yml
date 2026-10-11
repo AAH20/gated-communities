@@ -68,6 +68,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
+    # Real deployment needs configured staging infrastructure. STAGING_HOST is
+    # a placeholder domain and every deploy step below is an example, so this
+    # job is gated on the DEPLOY_ENABLED repository variable; until it is set
+    # the workflow completes green having built and pushed the image.
+    if: vars.DEPLOY_ENABLED == 'true'
     environment:
       name: staging
       url: https://${{ env.STAGING_HOST }}
@@ -76,8 +81,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install kubectl
+        continue-on-error: true
         run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          KUBECTL_VERSION="$(curl -fsSL https://dl.k8s.io/release/stable.txt)"
+          if [ -z "${KUBECTL_VERSION}" ]; then
+            echo "::warning::could not resolve kubectl version; skipping install"
+            exit 0
+          fi
+          curl -fsSLO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
           sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
       - name: Deploy to staging
@@ -99,6 +110,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: deploy-staging
+    # Only meaningful once a real staging host exists (see deploy-staging gate).
+    if: vars.DEPLOY_ENABLED == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -126,7 +139,9 @@ jobs:
     name: Deploy to Production
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: smoke-tests
+    needs: [build, smoke-tests]
+    # Same infrastructure gate as staging; PRODUCTION_HOST is a placeholder.
+    if: vars.DEPLOY_ENABLED == 'true'
     environment:
       name: production
       url: https://${{ env.PRODUCTION_HOST }}
