@@ -2,7 +2,7 @@
 
 ## Gated Communities API v1
 
-**Base URL:** `http://localhost:8000/api/v1`
+**Base URL:** `http://localhost:8000` (routers mount at the app root; a few legacy routes use `/api/v1/...`)
 
 **Content-Type:** `application/json`
 
@@ -590,7 +590,7 @@ Get Prometheus-formatted metrics.
 # TYPE http_requests_total counter
 http_requests_total{method="GET",endpoint="/health"} 1523
 # TYPE http_request_duration_seconds gauge
-http_request_duration_seconds{endpoint="/api/v1/tiers"} 0.045
+http_request_duration_seconds{endpoint="/tiers"} 0.045
 ```
 
 ---

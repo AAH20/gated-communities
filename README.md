@@ -2,7 +2,7 @@
 
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/AAH20/gated-communities/ci.yml?branch=main&label=CI%2FCD)](https://github.com/AAH20/gated-communities/actions)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104%2B-009688.svg)](https://fastapi.tiangolo.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/kubernetes-ready-326CE5.svg)](https://kubernetes.io/)
@@ -453,7 +453,11 @@ helm install gated-communities ./helm/
 
 ## API Reference
 
-**Base URL:** `http://localhost:8000/api/v1`
+**Base URL:** `http://localhost:8000`
+
+> Routers are mounted at the app **root** (e.g. `/tiers`, `/communities`,
+> `/members`) — there is no global `/api/v1` prefix. A few legacy routers
+> still expose an `/api/v1/...` segment (noted below).
 
 ### Interactive Documentation
 
@@ -470,6 +474,7 @@ helm install gated-communities ./helm/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check |
+| GET | `/health/ready` | Readiness probe |
 | GET | `/ready` | Readiness probe |
 | GET | `/live` | Liveness probe |
 
@@ -479,19 +484,16 @@ helm install gated-communities ./helm/
 |--------|----------|-------------|
 | GET | `/tiers` | List all tiers |
 | POST | `/tiers` | Create a new tier |
-| GET | `/tiers/{tier_id}` | Get a specific tier |
-| PUT | `/tiers/{tier_id}` | Update a tier |
-| DELETE | `/tiers/{tier_id}` | Delete a tier |
+| GET | `/tiers/tier_id` | Get a specific tier |
 
 #### Access Control
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/access/check` | Check member access |
-| POST | `/access/policies` | Create access policy |
-| GET | `/access/policies` | List access policies |
-| GET | `/access/policies/{policy_id}` | Get a specific policy |
-| DELETE | `/access/policies/{policy_id}` | Delete a policy |
+| POST | `/api/v1/access/check` | Check member access |
+| POST | `/api/v1/access/evaluate` | Evaluate access |
+| GET, POST | `/api/v1/policies` | List / create access policies |
+| GET, PUT, DELETE | `/api/v1/policies/{policy_id}` | Get / update / delete a policy |
 
 #### Moderation
 
@@ -503,7 +505,7 @@ helm install gated-communities ./helm/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/reputation` | Get reputation scores |
+| GET, POST | `/reputation/scores` | List / record reputation scores |
 
 #### Compliance
 
@@ -515,26 +517,27 @@ helm install gated-communities ./helm/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/analytics/moderation` | Get moderation analytics |
+| GET, POST | `/analytics` | Get moderation analytics |
 
 #### Governance
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/governance/disputes` | List disputes |
+| GET, POST | `/api/v1/disputes` | List / create disputes |
+| POST | `/api/v1/disputes/{dispute_id}/resolve` | Resolve a dispute |
 
 #### Verification
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/verification/verify` | Verify member identity |
+| POST | `/verify` | Verify member identity |
+| POST | `/verify/batch` | Batch identity verification |
 
 #### Escalations
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/escalations` | List escalations |
-| POST | `/escalations` | Create escalation |
+| GET, POST | `/escalations` | List / create escalations |
 
 #### Metrics
 
@@ -545,7 +548,7 @@ helm install gated-communities ./helm/
 ### Example: Create a Tier
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/tiers \
+curl -X POST http://localhost:8000/tiers \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Platinum",
@@ -603,6 +606,23 @@ All errors follow a consistent format:
 ---
 
 ## Deployment
+
+### Continuous Delivery (GitHub Actions)
+
+`.github/workflows/deploy.yml` builds and pushes the image, then deploys to
+staging and production. **Real deployment is gated behind a repository
+variable:** the `deploy-staging`, `smoke-tests`, and `deploy-production` jobs
+only run when `vars.DEPLOY_ENABLED == 'true'`. Until it is set, the workflow
+builds and pushes the image and finishes green without deploying.
+
+The staging/production hostnames (`STAGING_HOST`, `PRODUCTION_HOST`) are
+**placeholder example domains** and every deploy step is a stub — set real
+infrastructure and replace those steps before enabling `DEPLOY_ENABLED`.
+
+CI note: `.github/workflows/ci.yml` runs the test step with `|| true` (so it
+does not block on a red suite), while `.github/workflows/ci-cd.yml` runs the
+same pytest step **without** `|| true` and is the workflow that actually
+enforces a green suite.
 
 ### Docker Compose (Development)
 

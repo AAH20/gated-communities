@@ -13,13 +13,13 @@ Gated Communities is a unified platform for managing gated online communities wi
 ## API
 
 ### How do I authenticate?
-Use the /api/v1/auth/login endpoint to get an access token. Include the token in the Authorization header for subsequent requests.
+Use the /auth/login endpoint to get an access token. Include the token in the Authorization header for subsequent requests.
 
 ### What is the rate limit?
 Default rate limit is 100 requests per minute per IP address.
 
 ### How do I use webhooks?
-1. Create a webhook: POST /api/v1/webhooks
+1. Create a webhook: POST /webhooks
 2. Subscribe to events
 3. Receive notifications at your endpoint
 

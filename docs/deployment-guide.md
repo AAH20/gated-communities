@@ -378,7 +378,7 @@ Metrics are available at `GET /metrics`:
 http_requests_total{method="GET",endpoint="/health"} 1523
 
 # TYPE http_request_duration_seconds gauge
-http_request_duration_seconds{endpoint="/api/v1/tiers"} 0.045
+http_request_duration_seconds{endpoint="/tiers"} 0.045
 
 # TYPE agent_executions_total counter
 agent_executions_total{agent="TierEvaluatorAgent"} 456

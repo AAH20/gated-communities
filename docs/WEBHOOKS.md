@@ -6,7 +6,7 @@ Webhooks allow you to receive real-time notifications when events occur in your 
 
 ## Creating a Webhook
 
-POST /api/v1/webhooks
+POST /webhooks
 Content-Type: application/json
 
 {
