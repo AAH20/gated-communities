@@ -10,10 +10,11 @@ mock store seeded on import.  ``InvitationCreate`` requires ``community_id``
 (must exist in the mock map: comm-001..comm-005) and a valid ``email``; ``role``
 is optional (default "member").
 
-Quarantined in this module:
+Endpoint coverage note:
 
-* ``TestGetInvitation`` / ``TestUpdateInvitation`` / ``TestDeleteInvitation`` —
-  the shipped router exposes no ``/invitations/{id}`` route (404 / 405).
+* The shipped router exposes no ``/invitations/{id}`` route, so
+  ``TestGetInvitation`` / ``TestUpdateInvitation`` / ``TestDeleteInvitation``
+  assert the real contract (fail closed: 404/405) rather than success.
 """
 
 import pytest
@@ -114,28 +115,34 @@ class TestCreateInvitation:
         assert response.status_code == 422
 
 
-@pytest.mark.skip(reason="no /invitations/{id} route is shipped (404/405)")
 class TestGetInvitation:
-    """Tests for GET /invitations/{id} (quarantined — endpoint absent)."""
+    """GET /invitations/{id} is not implemented in the shipped router.
 
-    def test_get_invitation_returns_200(self, client, created_invitation):
+    The router exposes only ``GET ''`` and ``POST ''``, so the single-invitation
+    path is unrouted and must fail closed (404/405) rather than appear to
+    succeed.
+    """
+
+    def test_get_invitation_route_absent(self, client, created_invitation):
         response = client.get(f"/invitations/{created_invitation['id']}")
-        assert response.status_code == 200
+        assert response.status_code in (404, 405)
+
+    def test_get_invitation_unknown_id_route_absent(self, client):
+        response = client.get("/invitations/does-not-exist")
+        assert response.status_code in (404, 405)
 
 
-@pytest.mark.skip(reason="PUT /invitations/{id} is not implemented (405)")
 class TestUpdateInvitation:
-    """Tests for PUT /invitations/{id} (quarantined — endpoint absent)."""
+    """PUT /invitations/{id} is not implemented — must fail closed (404/405)."""
 
-    def test_update_invitation_returns_200(self, client, created_invitation):
+    def test_update_invitation_route_absent(self, client, created_invitation):
         response = client.put(f"/invitations/{created_invitation['id']}", json={"role": "admin"})
-        assert response.status_code == 200
+        assert response.status_code in (404, 405)
 
 
-@pytest.mark.skip(reason="DELETE /invitations/{id} is not implemented (405)")
 class TestDeleteInvitation:
-    """Tests for DELETE /invitations/{id} (quarantined — endpoint absent)."""
+    """DELETE /invitations/{id} is not implemented — must fail closed (404/405)."""
 
-    def test_delete_invitation_returns_204(self, client, created_invitation):
+    def test_delete_invitation_route_absent(self, client, created_invitation):
         response = client.delete(f"/invitations/{created_invitation['id']}")
-        assert response.status_code == 204
+        assert response.status_code in (404, 405)

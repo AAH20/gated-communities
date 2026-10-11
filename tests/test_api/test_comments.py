@@ -10,10 +10,11 @@ mock store seeded with 10 comments across post_alpha/post_beta/post_gamma/
 post_delta.  ``CommentCreate`` accepts only ``post_id`` and ``content`` (an
 optional ``parent_id``); the author is assigned server-side as "user_current".
 
-Quarantined in this module:
+Endpoint coverage note:
 
-* ``TestGetComment`` / ``TestUpdateComment`` / ``TestDeleteComment`` — the
-  shipped router exposes no ``/comments/{id}`` route at all (404 / 405).
+* The shipped router exposes no ``/comments/{id}`` route at all, so
+  ``TestGetComment`` / ``TestUpdateComment`` / ``TestDeleteComment`` assert the
+  real contract (fail closed: 404/405) rather than success.
 """
 
 import pytest
@@ -112,28 +113,34 @@ class TestCreateComment:
         assert created_comment["id"] in ids
 
 
-@pytest.mark.skip(reason="no /comments/{id} route is shipped (404/405)")
 class TestGetComment:
-    """Tests for GET /comments/{id} (quarantined — endpoint absent)."""
+    """GET /comments/{id} is not implemented in the shipped router.
 
-    def test_get_comment_returns_200(self, client, created_comment):
+    The router exposes only ``GET /comments`` and ``POST /comments``, so the
+    single-comment path is unrouted and must fail closed (404/405) rather than
+    appear to succeed.
+    """
+
+    def test_get_comment_route_absent(self, client, created_comment):
         response = client.get(f"/comments/{created_comment['id']}")
-        assert response.status_code == 200
+        assert response.status_code in (404, 405)
+
+    def test_get_comment_unknown_id_route_absent(self, client):
+        response = client.get("/comments/does-not-exist")
+        assert response.status_code in (404, 405)
 
 
-@pytest.mark.skip(reason="PUT /comments/{id} is not implemented (405)")
 class TestUpdateComment:
-    """Tests for PUT /comments/{id} (quarantined — endpoint absent)."""
+    """PUT /comments/{id} is not implemented — must fail closed (404/405)."""
 
-    def test_update_comment_returns_200(self, client, created_comment):
+    def test_update_comment_route_absent(self, client, created_comment):
         response = client.put(f"/comments/{created_comment['id']}", json={"content": "x"})
-        assert response.status_code == 200
+        assert response.status_code in (404, 405)
 
 
-@pytest.mark.skip(reason="DELETE /comments/{id} is not implemented (405)")
 class TestDeleteComment:
-    """Tests for DELETE /comments/{id} (quarantined — endpoint absent)."""
+    """DELETE /comments/{id} is not implemented — must fail closed (404/405)."""
 
-    def test_delete_comment_returns_204(self, client, created_comment):
+    def test_delete_comment_route_absent(self, client, created_comment):
         response = client.delete(f"/comments/{created_comment['id']}")
-        assert response.status_code == 204
+        assert response.status_code in (404, 405)
