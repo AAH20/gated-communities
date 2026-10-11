@@ -24,7 +24,7 @@ class AgentServiceService:
 
     def __init__(self, db=None):
         self._db = db
-        self._items: dict[str, dict[str, Any]] = {{}}
+        self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         """Create a new agent item.
