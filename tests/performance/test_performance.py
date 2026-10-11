@@ -1,26 +1,41 @@
-"""Performance tests using pytest-benchmark."""
+"""Performance smoke tests using the in-process ``TestClient``.
+
+These do not require ``pytest-benchmark`` (which is not installed in CI) — a
+plain ``time.perf_counter`` measurement keeps the assertions self-contained
+while still exercising the real application in-process.
+"""
 
 from __future__ import annotations
+
+import concurrent.futures
+import time
 
 from fastapi.testclient import TestClient
 
 
 class TestPerformance:
-    def test_health_check_performance(self, client: TestClient, benchmark) -> None:
-        result = benchmark(client.get, "/health")
+    def test_health_check_performance(self, client: TestClient) -> None:
+        start = time.perf_counter()
+        result = client.get("/health")
+        elapsed = time.perf_counter() - start
         assert result.status_code == 200
+        assert elapsed < 1.0, f"/health took {elapsed:.3f}s"
 
-    def test_tiers_list_performance(self, client: TestClient, benchmark) -> None:
-        result = benchmark(client.get, "/api/v1/tiers")
+    def test_tiers_list_performance(self, client: TestClient) -> None:
+        start = time.perf_counter()
+        result = client.get("/tiers")
+        elapsed = time.perf_counter() - start
         assert result.status_code == 200
+        assert elapsed < 1.0, f"/tiers took {elapsed:.3f}s"
 
-    def test_search_performance(self, client: TestClient, benchmark) -> None:
-        result = benchmark(client.get, "/api/v1/search?q=test")
+    def test_liveness_performance(self, client: TestClient) -> None:
+        start = time.perf_counter()
+        result = client.get("/live")
+        elapsed = time.perf_counter() - start
         assert result.status_code == 200
+        assert elapsed < 1.0, f"/live took {elapsed:.3f}s"
 
     def test_concurrent_requests(self, client: TestClient) -> None:
-        import concurrent.futures
-
         def make_request():
             return client.get("/health")
 

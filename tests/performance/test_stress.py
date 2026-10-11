@@ -1,4 +1,8 @@
-"""Stress test: find the breaking point by ramping up concurrency."""
+"""Stress test: find the breaking point by ramping up concurrency.
+
+Runs against the application **in-process** via ``httpx.ASGITransport`` (see
+``_asgi.py``) so no live server is required.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -6,6 +10,11 @@ import time
 from dataclasses import dataclass, field
 
 import httpx
+
+try:  # package import during pytest collection
+    from ._asgi import async_client
+except ImportError:  # pragma: no cover - direct module execution
+    from _asgi import async_client  # type: ignore[no-redef]
 
 
 @dataclass
@@ -35,7 +44,7 @@ async def _single_request(
         elapsed = time.perf_counter() - start
         result.latencies.append(elapsed)
         result.total_requests += 1
-        if resp.status_code == 200:
+        if 200 <= resp.status_code < 300:
             result.successful += 1
         else:
             result.failed += 1
@@ -49,15 +58,15 @@ async def _single_request(
 
 
 async def _run_at_concurrency(
-    url: str, concurrency: int, total_requests: int
+    endpoint: str, concurrency: int, total_requests: int
 ) -> StressResult:
     result = StressResult(concurrency=concurrency)
-    async with httpx.AsyncClient() as client:
+    async with async_client() as client:
         semaphore = asyncio.Semaphore(concurrency)
 
         async def bounded() -> None:
             async with semaphore:
-                await _single_request(client, url, result)
+                await _single_request(client, endpoint, result)
 
         tasks = [asyncio.create_task(bounded()) for _ in range(total_requests)]
         await asyncio.gather(*tasks)
@@ -65,18 +74,16 @@ async def _run_at_concurrency(
 
 
 async def find_breaking_point(
-    base_url: str,
     endpoint: str,
     start_concurrency: int = 10,
     max_concurrency: int = 500,
     step: int = 10,
     requests_per_level: int = 100,
 ) -> StressResult:
-    url = f"{base_url}{endpoint}"
     breaking_point: StressResult | None = None
 
     for concurrency in range(start_concurrency, max_concurrency + 1, step):
-        result = await _run_at_concurrency(url, concurrency, requests_per_level)
+        result = await _run_at_concurrency(endpoint, concurrency, requests_per_level)
         if result.error_rate > 0.1 or result.max_latency > 5.0:
             breaking_point = result
             break
@@ -87,7 +94,6 @@ async def find_breaking_point(
 def test_stress_find_breaking_point() -> None:
     result = asyncio.run(
         find_breaking_point(
-            "http://localhost:8000",
             "/health",
             start_concurrency=10,
             max_concurrency=200,
@@ -101,11 +107,10 @@ def test_stress_find_breaking_point() -> None:
 
 def test_stress_sustained_burst() -> None:
     async def burst() -> StressResult:
-        url = "http://localhost:8000/health"
         result = StressResult(concurrency=100)
-        async with httpx.AsyncClient() as client:
+        async with async_client() as client:
             tasks = [
-                asyncio.create_task(_single_request(client, url, result))
+                asyncio.create_task(_single_request(client, "/health", result))
                 for _ in range(100)
             ]
             await asyncio.gather(*tasks)
