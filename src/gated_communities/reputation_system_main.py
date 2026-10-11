@@ -7,9 +7,9 @@ import structlog
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from ..api import api_router
-from ..config.settings import Settings, get_settings
-from ..integrations.langchain_client import LangChainClient
+from .api.reputation_system___init__ import api_router
+from .config.reputation_system_settings import Settings, get_settings
+from .integrations.langchain_client import LangChainClient
 
 logger = structlog.get_logger()
 

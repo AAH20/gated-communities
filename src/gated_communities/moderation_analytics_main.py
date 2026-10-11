@@ -8,10 +8,10 @@ import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from moderation_analytics.api import router
-from moderation_analytics.config import get_settings
-from moderation_analytics.exceptions import ModerationAnalyticsError
-from moderation_analytics.models import ErrorResponse
+from .api.moderation_analytics___init__ import router
+from .config.moderation_analytics___init__ import get_settings
+from .moderation_analytics_exceptions import ModerationAnalyticsError
+from .models.moderation_analytics___init__ import ErrorResponse
 
 # Configure structured logging
 structlog.configure(

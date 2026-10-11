@@ -6,8 +6,13 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import structlog
-from langchain_openai import ChatOpenAI
-from .config import get_settings
+
+try:
+    from langchain_openai import ChatOpenAI
+except ImportError:  # pragma: no cover - optional vendor dependency
+    ChatOpenAI = None  # type: ignore[assignment]
+
+from ...config.moderation_analytics___init__ import get_settings
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel

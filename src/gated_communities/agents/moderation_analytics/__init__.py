@@ -15,7 +15,7 @@ from .trend_analyzer import TrendAnalyzerAgent
 
 try:
     from langchain_openai import ChatOpenAI
-    from .config import get_settings
+    from ...config.moderation_analytics___init__ import get_settings
 except ImportError:
     ChatOpenAI = None
     get_settings = None

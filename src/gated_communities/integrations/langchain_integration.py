@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel
     from langchain_core.messages import BaseMessage
 
-from moderation_queue.config import Settings, get_settings
+from ..config.moderation_queue___init__ import Settings, get_settings
 
 
 class LangChainIntegration:

@@ -6,8 +6,8 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
 import structlog
-from ..api import audits, policies, remediation, scores, violations
-from ..config.settings import get_settings
+from .api import audits, policies, remediation, scores, violations
+from .config.compliance_monitor_settings import get_settings
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse

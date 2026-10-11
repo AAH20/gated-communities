@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from langchain_openai import ChatOpenAI
+try:
+    from langchain_openai import ChatOpenAI
+except ImportError:  # pragma: no cover - optional vendor dependency
+    ChatOpenAI = None  # type: ignore[assignment]
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel

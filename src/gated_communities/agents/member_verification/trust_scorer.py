@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from .base import AgentConfig, BaseAgent
-from ..models.member_verification_schemas import RiskLevel
+from ...models.member_verification_schemas import RiskLevel
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel

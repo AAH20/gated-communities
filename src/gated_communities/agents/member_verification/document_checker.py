@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from .base import AgentConfig, BaseAgent
-from ..models.member_verification_schemas import DocumentType
+from ...models.member_verification_schemas import DocumentType
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLanguageModel

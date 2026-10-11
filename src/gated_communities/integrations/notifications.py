@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import structlog
-from moderation_queue.config import Settings, get_settings
+from ..config.moderation_queue___init__ import Settings, get_settings
 
 logger = structlog.get_logger(__name__)
 

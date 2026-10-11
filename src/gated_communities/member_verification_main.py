@@ -7,10 +7,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from ..api import agents, documents, fraud, health, trust, verification
-from ..config.logging_config import configure_logging, get_logger
-from ..config.settings import get_settings
-from ..models.member_verification_schemas import ErrorResponse
+from .api import agents, documents, fraud, health, trust, verification
+from .config.member_verification_logging_config import configure_logging, get_logger
+from .config.member_verification_settings import get_settings
+from .models.member_verification_schemas import ErrorResponse
 
 logger = get_logger(__name__)
 

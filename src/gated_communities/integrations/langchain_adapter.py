@@ -3,7 +3,7 @@
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
-from moderation_queue.config.settings import get_settings
+from ..config.moderation_queue_settings import get_settings
 
 settings = get_settings()
 

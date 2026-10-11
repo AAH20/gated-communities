@@ -7,8 +7,8 @@ from typing import Any
 
 import httpx
 import structlog
-from moderation_analytics.config import get_settings
-from moderation_analytics.exceptions import IntegrationError
+from ..config.moderation_analytics___init__ import get_settings
+from ..moderation_analytics_exceptions import IntegrationError
 
 logger = structlog.get_logger(__name__)
 

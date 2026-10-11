@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from community_health_scorer.config import get_settings
-from community_health_scorer.models import EngagementLevel, EngagementMetrics
+from ...config.community_health_scorer___init__ import get_settings
+from ...models.community_health_scorer___init__ import EngagementLevel, EngagementMetrics
 from langchain_core.prompts import ChatPromptTemplate
 
 

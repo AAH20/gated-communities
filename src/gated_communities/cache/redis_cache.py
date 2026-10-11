@@ -4,7 +4,10 @@ import json
 import logging
 from typing import Any
 
-import redis
+try:
+    import redis
+except ImportError:  # pragma: no cover - optional vendor dependency
+    redis = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 

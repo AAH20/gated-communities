@@ -14,7 +14,10 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-import redis
+try:
+    import redis
+except ImportError:  # pragma: no cover - optional vendor dependency
+    redis = None  # type: ignore[assignment]
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 

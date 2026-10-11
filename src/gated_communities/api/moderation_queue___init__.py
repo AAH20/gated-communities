@@ -1,10 +1,10 @@
 """API route aggregators."""
 
-from moderation_queue.api.agents import router as agents_router
-from moderation_queue.api.escalations import router as escalations_router
-from moderation_queue.api.items import router as items_router
-from moderation_queue.api.queues import router as queues_router
-from moderation_queue.api.reviews import router as reviews_router
+from .agents import router as agents_router
+from .escalations import router as escalations_router
+from .items import router as items_router
+from .queues import router as queues_router
+from .reviews import router as reviews_router
 
 __all__ = [
     "agents_router",

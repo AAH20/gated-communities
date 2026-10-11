@@ -6,15 +6,15 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, status
-from moderation_analytics.agents import (
+from ..agents.moderation_analytics import (
     AnalyticsExplainerAgent,
     ModerationPredictorAgent,
     ModeratorPerformanceAgent,
     PolicyEffectivenessAgent,
     TrendAnalyzerAgent,
 )
-from moderation_analytics.config import Settings, get_settings
-from moderation_analytics.models import (
+from ..config.moderation_analytics___init__ import Settings, get_settings
+from ..models.moderation_analytics___init__ import (
     AnalyticsSummary,
     HealthResponse,
     ModerationAnalytics,
