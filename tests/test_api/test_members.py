@@ -1,53 +1,93 @@
-"""API tests for the Members endpoints.
+"""API tests for the Members endpoints (tests/test_api/test_members.py).
 
-Real shipped routes (mounted at ROOT, auth required -> 401 without a token):
+Shipped routes (mounted at ROOT — no ``/api/v1`` prefix; auth required, so a
+request without a token returns 401):
 
     GET    /members                 -> 200 list[MemberResponse]
     POST   /members                 -> 201 MemberResponse
     GET    /members/{member_id}     -> 200 / 404 / 422
     DELETE /members/{member_id}     -> 204 / 403 / 404 / 422
+    PUT    /members/{member_id}     -> 405 (not implemented)
 
 Shipped ``MemberCreate`` schema (src/gated_communities/schemas/__init__.py):
-    ``user_id`` (int > 0) and ``role`` (member|moderator|admin, lower-case).
 
-Quarantined in this module (blocked by verified src defects this test-only task
-must not fix):
+    ``user_id`` (int, gt=0) and ``role`` (one of member|moderator|admin,
+    lower-case, default "member").  It does NOT define ``community_id``.
 
-* Any test that needs a *persisted* member (list-with-rows, get-by-id success,
-  delete success, create success) — ``MemberResponse`` requires an ``is_active``
-  field the ORM ``Member`` model does not have, so serializing a persisted
-  member raises HTTP 500.
-* ``POST /members`` success — ``create_member`` reads ``member.community_id``,
-  which the shipped ``MemberCreate`` schema does not define, raising HTTP 500.
-* ``DELETE /members/{id}`` success — requires OWNER/ADMIN, but auth issues UUID
-  string user ids while ``Member.user_id`` is an int, so the role lookup always
-  returns None -> 403.
-* ``TestUpdateMember`` — ``PUT /members/{id}`` is not implemented (405).
+Verified live behaviour (probed against the shipped app + in-memory DB):
+
+* Empty list / validation / auth / not-found paths all behave as asserted
+  below (these are the un-skipped, genuinely-green tests).
+* Success paths are blocked by src defects (see the module docstring of each
+  skipped test).  They are quarantined here — this test-only task must not
+  patch ``src/**``:
+
+  - ``GET /members`` with at least one row, and ``GET /members/{id}`` for an
+    existing member, both raise
+    ``ResponseValidationError: {'type': 'missing', 'loc': ('response',
+    'is_active'), 'msg': 'Field required'}`` — ``MemberResponse`` requires an
+    ``is_active`` field the ORM ``Member`` model does not have.
+  - ``POST /members`` with any schema-valid body raises
+    ``AttributeError: 'MemberCreate' object has no attribute 'community_id'``
+    — ``create_member`` reads ``member.community_id`` before anything else.
+  - ``DELETE /members/{id}`` for an existing member returns 403 —
+    ``_get_user_role`` does ``int(current_user["id"])`` but auth issues UUID
+    string ids, so the lookup always returns None.
+  - ``PUT /members/{id}`` is not implemented (405).
 """
 
 from __future__ import annotations
 
 import pytest
 
+from gated_communities.models import Community, Member, MemberRole
+
 
 _SERIALIZE_BLOCKED = (
-    "src defect: ORM Member lacks is_active required by MemberResponse -> "
-    "serializing a persisted member raises HTTP 500"
+    "src defect: ORM Member lacks the is_active field that MemberResponse "
+    "requires, so serializing a persisted member raises ResponseValidationError "
+    "{'type': 'missing', 'loc': ('response', 'is_active'), 'msg': 'Field required'}"
 )
 _CREATE_BLOCKED = (
-    "src defect: create_member reads member.community_id which the shipped "
-    "MemberCreate schema does not define -> POST /members raises HTTP 500"
+    "src defect: create_member reads member.community_id, which the shipped "
+    "MemberCreate schema does not define -> AttributeError "
+    "'MemberCreate' object has no attribute 'community_id' (HTTP 500)"
 )
 _DELETE_RBAC_BLOCKED = (
-    "src defect: DELETE requires OWNER/ADMIN but auth user ids are UUID strings "
-    "while Member.user_id is int -> role lookup always None -> 403"
+    "src defect: DELETE requires OWNER/ADMIN but auth issues UUID string user "
+    "ids while Member.user_id is int, so int(current_user['id']) raises -> role "
+    "lookup always None -> 403"
 )
+_UPDATE_ABSENT = "PUT /members/{member_id} is not implemented (405)"
 
 
 @pytest.fixture()
 def sample_member_payload() -> dict:
-    """A valid payload for the shipped POST /members schema."""
+    """A valid payload for the shipped ``POST /members`` schema."""
     return {"user_id": 42, "role": "member"}
+
+
+@pytest.fixture()
+def seeded_member(db_session) -> dict:
+    """Persist a community + member directly so success paths can be exercised.
+
+    Uses the shared in-memory engine, so the API sees the rows.
+    """
+    community = Community(name="Test Community", description="A test community")
+    db_session.add(community)
+    db_session.commit()
+    db_session.refresh(community)
+
+    member = Member(community_id=community.id, user_id=7, role=MemberRole.MEMBER)
+    db_session.add(member)
+    db_session.commit()
+    db_session.refresh(member)
+
+    return {
+        "community_id": community.id,
+        "member_id": member.id,
+        "user_id": member.user_id,
+    }
 
 
 class TestListMembers:
@@ -79,6 +119,12 @@ class TestListMembers:
         """``limit`` must be >= 1 (Query(..., ge=1))."""
         response = client.get("/members?limit=0", headers=auth_headers)
         assert response.status_code == 422
+
+    @pytest.mark.skip(reason=_SERIALIZE_BLOCKED)
+    def test_list_members_includes_seeded_member(self, client, auth_headers, seeded_member):
+        response = client.get("/members", headers=auth_headers)
+        assert response.status_code == 200
+        assert any(m["id"] == seeded_member["member_id"] for m in response.json())
 
 
 class TestCreateMember:
@@ -126,17 +172,24 @@ class TestGetMember:
         assert response.status_code == 401
 
     @pytest.mark.skip(reason=_SERIALIZE_BLOCKED)
-    def test_get_member_returns_200(self, client, auth_headers):
-        response = client.get("/members/1", headers=auth_headers)
+    def test_get_member_returns_200(self, client, auth_headers, seeded_member):
+        response = client.get(
+            f"/members/{seeded_member['member_id']}", headers=auth_headers
+        )
         assert response.status_code == 200
+        assert response.json()["id"] == seeded_member["member_id"]
 
 
-@pytest.mark.skip(reason="PUT /members/{member_id} is not implemented (405)")
+@pytest.mark.skip(reason=_UPDATE_ABSENT)
 class TestUpdateMember:
-    """Tests for PUT /members/{id} (quarantined — endpoint absent)."""
+    """Tests for PUT /members/{member_id} (quarantined — endpoint absent)."""
 
-    def test_update_member_returns_200(self, client, auth_headers):
-        response = client.put("/members/1", json={"role": "admin"}, headers=auth_headers)
+    def test_update_member_returns_200(self, client, auth_headers, seeded_member):
+        response = client.put(
+            f"/members/{seeded_member['member_id']}",
+            json={"role": "admin"},
+            headers=auth_headers,
+        )
         assert response.status_code == 200
 
 
@@ -156,6 +209,8 @@ class TestDeleteMember:
         assert response.status_code == 401
 
     @pytest.mark.skip(reason=_DELETE_RBAC_BLOCKED)
-    def test_delete_member_returns_204(self, client, auth_headers):
-        response = client.delete("/members/1", headers=auth_headers)
+    def test_delete_member_returns_204(self, client, auth_headers, seeded_member):
+        response = client.delete(
+            f"/members/{seeded_member['member_id']}", headers=auth_headers
+        )
         assert response.status_code == 204
