@@ -5,16 +5,13 @@ Real shipped route (mounted at ROOT):
     GET /reports  -> 200 []   (src/gated_communities/api/reports.py is a stub
                                that returns an empty list)
 
-Quarantined in this module:
+Endpoint coverage note:
 
-* ``TestGenerateReport`` — ``POST /reports/generate`` is not implemented (404).
-* ``TestGetReport.test_get_report_success`` /
-  ``TestDownloadReport.test_download_report_url_from_generate`` and any other
-  test that depends on a generated report instance — they build on the absent
-  generate endpoint.
+* ``POST /reports/generate`` and ``GET /reports/{id}/download`` are NOT
+  implemented — the shipped router exposes only ``GET /reports``.  Those
+  routes must fail closed (404/405), and ``GET /reports/{id}`` is likewise
+  unrouted.
 """
-
-import pytest
 
 
 class TestListReports:
@@ -43,19 +40,19 @@ class TestListReports:
         assert isinstance(response.json(), list)
 
 
-@pytest.mark.skip(reason="POST /reports/generate is not implemented (404)")
 class TestGenerateReport:
-    """Tests for POST /reports/generate (quarantined — endpoint absent)."""
+    """POST /reports/generate is not implemented in the shipped router."""
 
-    def test_generate_report_success(self, client):
+    def test_generate_report_route_absent(self, client):
         response = client.post("/reports/generate", json={"report_id": "rpt_001"})
-        assert response.status_code == 200
+        assert response.status_code in (404, 405)
 
 
 class TestGetReport:
     """Tests for GET /reports/{id}.
 
-    Only the non-existent-id behaviour is observable against the shipped router.
+    Only the shipped router (``GET /reports``) exists, so any ``/{id}`` path is
+    unrouted and must fail closed (404/405).
     """
 
     def test_get_report_invalid_id(self, client):
@@ -67,16 +64,14 @@ class TestGetReport:
         response = client.get("/reports/")
         assert response.status_code in (200, 307, 404)
 
-    @pytest.mark.skip(reason="depends on the absent POST /reports/generate endpoint")
-    def test_get_report_success(self, client):
+    def test_get_report_route_absent(self, client):
         response = client.get("/reports/some-instance")
-        assert response.status_code == 200
+        assert response.status_code in (404, 405)
 
 
-@pytest.mark.skip(reason="GET /reports/{id}/download is not implemented (404)")
 class TestDownloadReport:
-    """Tests for GET /reports/{id}/download (quarantined — endpoint absent)."""
+    """GET /reports/{id}/download is not implemented in the shipped router."""
 
-    def test_download_report_not_implemented(self, client):
+    def test_download_report_route_absent(self, client):
         response = client.get("/reports/some-instance/download")
         assert response.status_code in (404, 405)

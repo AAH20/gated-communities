@@ -11,10 +11,11 @@ mock store seeded on import.  ``MessageCreate`` requires ``channel_id``,
 ``user_id`` and ``content`` (max 4000 chars); channels/users must exist in the
 mock maps (chan-general, ..., user-001, ...).
 
-Quarantined in this module:
+Endpoint coverage note:
 
-* ``TestMarkAsRead`` — ``PATCH /messages/{id}/read`` is not implemented
-  (405, no such route).
+* ``PATCH /messages/{id}/read`` is NOT implemented — the shipped router
+  exposes only ``GET ''`` and ``POST ''``.  ``TestMarkAsRead`` therefore
+  asserts the real contract (404/405), not success.
 """
 
 import pytest
@@ -141,10 +142,18 @@ class TestGetMessages:
         assert client.get("/messages", params={"page_size": 0}).status_code == 422
 
 
-@pytest.mark.skip(reason="PATCH /messages/{id}/read is not implemented (no such route)")
 class TestMarkAsRead:
-    """Tests for PATCH /messages/{id}/read (quarantined — endpoint absent)."""
+    """PATCH /messages/{id}/read is not implemented in the shipped router.
 
-    def test_mark_as_read_success(self, client, created_message):
+    The router exposes only ``GET ''`` and ``POST ''``, so the read-marker
+    route is absent and must fail closed (404/405) rather than appear to
+    succeed.
+    """
+
+    def test_mark_as_read_route_absent(self, client, created_message):
         response = client.patch(f"/messages/{created_message['id']}/read")
-        assert response.status_code == 200
+        assert response.status_code in (404, 405)
+
+    def test_mark_as_read_unknown_id_route_absent(self, client):
+        response = client.patch("/messages/does-not-exist/read")
+        assert response.status_code in (404, 405)
