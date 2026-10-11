@@ -1,7 +1,7 @@
 """API router aggregation."""
 
 from fastapi import APIRouter
-from ..api. (
+from ..api import (
     badges,
     explanations,
     health,
