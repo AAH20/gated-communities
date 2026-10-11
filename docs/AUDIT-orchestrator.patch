@@ -1,0 +1,360 @@
+diff --git a/src/gated_communities/services/reputation_service.py b/src/gated_communities/services/reputation_service.py
+--- a/src/gated_communities/services/reputation_service.py
++++ b/src/gated_communities/services/reputation_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new reputation item.
+diff --git a/src/gated_communities/services/queue_service.py b/src/gated_communities/services/queue_service.py
+--- a/src/gated_communities/services/queue_service.py
++++ b/src/gated_communities/services/queue_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new queue item.
+diff --git a/src/gated_communities/services/priority_service.py b/src/gated_communities/services/priority_service.py
+--- a/src/gated_communities/services/priority_service.py
++++ b/src/gated_communities/services/priority_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new priority item.
+diff --git a/src/gated_communities/services/sla_service.py b/src/gated_communities/services/sla_service.py
+--- a/src/gated_communities/services/sla_service.py
++++ b/src/gated_communities/services/sla_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new sla item.
+diff --git a/src/gated_communities/services/review_service.py b/src/gated_communities/services/review_service.py
+--- a/src/gated_communities/services/review_service.py
++++ b/src/gated_communities/services/review_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new review item.
+diff --git a/src/gated_communities/services/document_service.py b/src/gated_communities/services/document_service.py
+--- a/src/gated_communities/services/document_service.py
++++ b/src/gated_communities/services/document_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new document item.
+diff --git a/src/gated_communities/services/resolution_service.py b/src/gated_communities/services/resolution_service.py
+--- a/src/gated_communities/services/resolution_service.py
++++ b/src/gated_communities/services/resolution_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new resolution item.
+diff --git a/src/gated_communities/services/rule_service.py b/src/gated_communities/services/rule_service.py
+--- a/src/gated_communities/services/rule_service.py
++++ b/src/gated_communities/services/rule_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new rule item.
+diff --git a/src/gated_communities/services/bulk_service.py b/src/gated_communities/services/bulk_service.py
+--- a/src/gated_communities/services/bulk_service.py
++++ b/src/gated_communities/services/bulk_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new bulk item.
+diff --git a/src/gated_communities/services/item_service.py b/src/gated_communities/services/item_service.py
+--- a/src/gated_communities/services/item_service.py
++++ b/src/gated_communities/services/item_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new item item.
+diff --git a/src/gated_communities/services/webhook_service.py b/src/gated_communities/services/webhook_service.py
+--- a/src/gated_communities/services/webhook_service.py
++++ b/src/gated_communities/services/webhook_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new webhook item.
+diff --git a/src/gated_communities/services/settings_service.py b/src/gated_communities/services/settings_service.py
+--- a/src/gated_communities/services/settings_service.py
++++ b/src/gated_communities/services/settings_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new settings item.
+diff --git a/src/gated_communities/services/benefit_service.py b/src/gated_communities/services/benefit_service.py
+--- a/src/gated_communities/services/benefit_service.py
++++ b/src/gated_communities/services/benefit_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new benefit item.
+diff --git a/src/gated_communities/services/health_service.py b/src/gated_communities/services/health_service.py
+--- a/src/gated_communities/services/health_service.py
++++ b/src/gated_communities/services/health_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new health item.
+diff --git a/src/gated_communities/services/agent_service.py b/src/gated_communities/services/agent_service.py
+--- a/src/gated_communities/services/agent_service.py
++++ b/src/gated_communities/services/agent_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new agent item.
+diff --git a/src/gated_communities/services/dispute_service.py b/src/gated_communities/services/dispute_service.py
+--- a/src/gated_communities/services/dispute_service.py
++++ b/src/gated_communities/services/dispute_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new dispute item.
+diff --git a/src/gated_communities/services/report_service.py b/src/gated_communities/services/report_service.py
+--- a/src/gated_communities/services/report_service.py
++++ b/src/gated_communities/services/report_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new report item.
+diff --git a/src/gated_communities/services/export_service.py b/src/gated_communities/services/export_service.py
+--- a/src/gated_communities/services/export_service.py
++++ b/src/gated_communities/services/export_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new export item.
+diff --git a/src/gated_communities/services/policy_service.py b/src/gated_communities/services/policy_service.py
+--- a/src/gated_communities/services/policy_service.py
++++ b/src/gated_communities/services/policy_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new policy item.
+diff --git a/src/gated_communities/services/tier_service.py b/src/gated_communities/services/tier_service.py
+--- a/src/gated_communities/services/tier_service.py
++++ b/src/gated_communities/services/tier_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new tier item.
+diff --git a/src/gated_communities/services/badge_service.py b/src/gated_communities/services/badge_service.py
+--- a/src/gated_communities/services/badge_service.py
++++ b/src/gated_communities/services/badge_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new badge item.
+diff --git a/src/gated_communities/services/upgrade_service.py b/src/gated_communities/services/upgrade_service.py
+--- a/src/gated_communities/services/upgrade_service.py
++++ b/src/gated_communities/services/upgrade_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new upgrade item.
+diff --git a/src/gated_communities/services/violation_service.py b/src/gated_communities/services/violation_service.py
+--- a/src/gated_communities/services/violation_service.py
++++ b/src/gated_communities/services/violation_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new violation item.
+diff --git a/src/gated_communities/services/search_service.py b/src/gated_communities/services/search_service.py
+--- a/src/gated_communities/services/search_service.py
++++ b/src/gated_communities/services/search_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new search item.
+diff --git a/src/gated_communities/services/trust_service.py b/src/gated_communities/services/trust_service.py
+--- a/src/gated_communities/services/trust_service.py
++++ b/src/gated_communities/services/trust_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new trust item.
+diff --git a/src/gated_communities/services/escalation_service.py b/src/gated_communities/services/escalation_service.py
+--- a/src/gated_communities/services/escalation_service.py
++++ b/src/gated_communities/services/escalation_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new escalation item.
+diff --git a/src/gated_communities/services/score_service.py b/src/gated_communities/services/score_service.py
+--- a/src/gated_communities/services/score_service.py
++++ b/src/gated_communities/services/score_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new score item.
+diff --git a/src/gated_communities/services/fraud_service.py b/src/gated_communities/services/fraud_service.py
+--- a/src/gated_communities/services/fraud_service.py
++++ b/src/gated_communities/services/fraud_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new fraud item.
+diff --git a/src/gated_communities/services/verification_service.py b/src/gated_communities/services/verification_service.py
+--- a/src/gated_communities/services/verification_service.py
++++ b/src/gated_communities/services/verification_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new verification item.
+diff --git a/src/gated_communities/services/import_service.py b/src/gated_communities/services/import_service.py
+--- a/src/gated_communities/services/import_service.py
++++ b/src/gated_communities/services/import_service.py
+@@ -24,7 +24,7 @@
+ 
+     def __init__(self, db=None):
+         self._db = db
+-        self._items: dict[str, dict[str, Any]] = {{}}
++        self._items: dict[str, dict[str, Any]] = {}
+ 
+     def create(self, data: dict[str, Any]) -> dict[str, Any]:
+         """Create a new import item.
